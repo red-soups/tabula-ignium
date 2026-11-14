@@ -1,8 +1,8 @@
 package com.tabulaignium.api.region;
 
-import java.util.List;
-import java.util.LinkedHashSet;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -73,7 +73,9 @@ public class RegionInterestService {
     private String label(Region region) {
         var names = new ArrayList<String>();
         for (Region current = region; current != null; current = current.getParent()) {
-            names.addFirst(current.getName());
+            if (current.getRegionLevel() > 0) {
+                names.addFirst(current.getName());
+            }
         }
         return String.join(" ", names);
     }

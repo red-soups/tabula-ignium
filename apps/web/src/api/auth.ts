@@ -2,7 +2,6 @@ export type CurrentUser = {
   id: number
   name: string
   email: string
-  nationalityCode: string
   interestedRegions: { id: number; label: string }[]
 }
 
@@ -14,7 +13,6 @@ export type PendingSignup = {
 
 export type SignupDetails = {
   name: string
-  nationalityCode: string
   regionIds: number[]
 }
 

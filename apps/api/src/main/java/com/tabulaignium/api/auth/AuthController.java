@@ -5,12 +5,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +26,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.tabulaignium.api.auth.GoogleOidcUserService.AccountPrincipal;
 import com.tabulaignium.api.region.RegionInterestService;
-
 @RestController
 class AuthController {
-
-    private static final Set<String> NATIONALITY_CODES = Locale.getISOCountries(Locale.IsoCountryCode.PART1_ALPHA2);
 
     private final UserRepository users;
     private final GoogleAccountService accounts;
@@ -67,12 +61,7 @@ class AuthController {
     ResponseEntity<CurrentUser> signup(@AuthenticationPrincipal AccountPrincipal principal,
             OAuth2AuthenticationToken authentication, @Valid @RequestBody SignupRequest signup,
             HttpServletRequest request, HttpServletResponse response) {
-        if (!NATIONALITY_CODES.contains(signup.nationalityCode())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown nationality code");
-        }
-
-        long userId = accounts.completeSignup(principal, signup.name().strip(),
-                signup.nationalityCode(), signup.regionIds());
+        long userId = accounts.completeSignup(principal, signup.name().strip(), signup.regionIds());
         User user = users.findById(userId).orElseThrow();
         var registered = new AccountPrincipal(principal, userId);
         var context = SecurityContextHolder.createEmptyContext();
@@ -89,11 +78,7 @@ class AuthController {
     @PutMapping("/api/me")
     ResponseEntity<CurrentUser> updateMe(@AuthenticationPrincipal AccountPrincipal principal,
             @Valid @RequestBody ProfileRequest profile) {
-        if (!NATIONALITY_CODES.contains(profile.nationalityCode())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown nationality code");
-        }
-        User user = profiles.update(principal.userId(), profile.name().strip(),
-                profile.nationalityCode(), profile.regionIds());
+        User user = profiles.update(principal.userId(), profile.name().strip(), profile.regionIds());
         return uncached(currentUser(user));
     }
 
@@ -104,7 +89,7 @@ class AuthController {
 
     private CurrentUser currentUser(User user) {
         return new CurrentUser(user.getId(), user.getName(), user.getEmail(),
-                user.getNationalityCode(), regionInterests.selectedRegions(user.getId()));
+                regionInterests.selectedRegions(user.getId()));
     }
 
     private static <T> ResponseEntity<T> uncached(T response) {
@@ -112,19 +97,17 @@ class AuthController {
     }
 
     record SignupRequest(@NotBlank @Size(max = 100) String name,
-            @NotBlank @Pattern(regexp = "[A-Z]{2}") String nationalityCode,
             @NotEmpty @Size(max = 5) List<@Positive Long> regionIds) {
     }
 
     record ProfileRequest(@NotBlank @Size(max = 100) String name,
-            @NotBlank @Pattern(regexp = "[A-Z]{2}") String nationalityCode,
             @NotEmpty @Size(max = 5) List<@Positive Long> regionIds) {
     }
 
     record PendingSignup(boolean registrationRequired, String name, String email) {
     }
 
-    record CurrentUser(long id, String name, String email, String nationalityCode,
+    record CurrentUser(long id, String name, String email,
             List<RegionInterestService.SelectedRegion> interestedRegions) {
     }
 

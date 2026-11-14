@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,9 +18,11 @@ import org.springframework.web.server.ResponseStatusException;
 class RegionController {
 
     private final RegionRepository regions;
+    private final RegionMapService regionMaps;
 
-    RegionController(RegionRepository regions) {
+    RegionController(RegionRepository regions, RegionMapService regionMaps) {
         this.regions = regions;
+        this.regionMaps = regionMaps;
     }
 
     @GetMapping("/api/regions")
@@ -42,5 +45,23 @@ class RegionController {
     }
 
     record RegionResponse(long id, String name, String countryCode, Short level) {
+    }
+
+    @GetMapping("/api/regions/{regionId}/map")
+    ResponseEntity<RegionMapService.RegionMap> regionMap(
+            @PathVariable @Positive long regionId) {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)))
+                .body(regionMaps.find(regionId));
+    }
+
+    @GetMapping("/api/regions/{parentId}/children/map")
+    ResponseEntity<List<RegionMapService.RegionMap>> childRegionMaps(
+            @PathVariable @Positive long parentId) {
+        regions.findById(parentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Region not found"));
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)))
+                .body(regionMaps.findChildren(parentId));
     }
 }

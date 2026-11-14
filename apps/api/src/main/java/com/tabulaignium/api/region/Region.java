@@ -24,7 +24,7 @@ public class Region {
     @Column(name = "country_code", nullable = false, length = 2)
     private String countryCode;
 
-    @Column(name = "region_level")
+    @Column(name = "region_level", nullable = false)
     private Short regionLevel;
 
     @ManyToOne(fetch = FetchType.LAZY)

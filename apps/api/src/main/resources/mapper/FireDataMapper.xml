@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tabulaignium.api.firedata.FireDataMapper">
+
+    <select id="existsRegion" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM regions WHERE id = #{regionId})
+    </select>
+
+    <select id="findSummary" resultType="com.tabulaignium.api.firedata.FireSummary">
+        SELECT
+            r.id AS region_id,
+            COUNT(f.id) AS observation_count,
+            COUNT(DISTINCT f.acq_date) AS observed_day_count,
+            MIN(f.acq_datetime_kst) AS earliest_observation,
+            MAX(f.acq_datetime_kst) AS latest_observation,
+            AVG(f.frp) AS average_frp,
+            MAX(f.frp) AS maximum_frp,
+            SUM(f.frp) AS total_frp
+        FROM regions r
+        LEFT JOIN fire_points f
+          ON f.location &amp;&amp; r.boundary
+         AND ST_Covers(r.boundary, f.location)
+        <if test="fromPeriod != null and fromPeriod != ''">
+         AND f.period &gt;= #{fromPeriod}
+        </if>
+        <if test="toPeriod != null and toPeriod != ''">
+         AND f.period &lt;= #{toPeriod}
+        </if>
+        <if test="sensor != null and sensor != 'ALL'">
+         AND f.sensor = #{sensor}
+        </if>
+        <if test="confidenceLevel != null and confidenceLevel != 'ALL'">
+         AND f.confidence_level = #{confidenceLevel}
+        </if>
+        WHERE r.id = #{regionId}
+        GROUP BY r.id
+    </select>
+
+    <select id="findPoints" resultType="com.tabulaignium.api.firedata.FirePoint">
+        SELECT
+            f.id,
+            f.latitude,
+            f.longitude,
+            f.frp,
+            f.confidence_level,
+            f.sensor,
+            f.acq_datetime_kst AS observed_at
+        FROM regions r
+        JOIN fire_points f
+          ON f.location &amp;&amp; r.boundary
+         AND ST_Covers(r.boundary, f.location)
+        WHERE r.id = #{regionId}
+          AND f.period = #{period}
+        <if test="sensor != null and sensor != 'ALL'">
+          AND f.sensor = #{sensor}
+        </if>
+        <if test="confidenceLevel != null and confidenceLevel != 'ALL'">
+          AND f.confidence_level = #{confidenceLevel}
+        </if>
+        ORDER BY f.acq_datetime_kst DESC, f.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findMonthlyTrend" resultType="com.tabulaignium.api.firedata.MonthlyFireTrend">
+        SELECT
+            f.period,
+            COUNT(*) AS observation_count,
+            SUM(f.frp) AS total_frp,
+            AVG(f.frp) AS average_frp
+        FROM regions r
+        JOIN fire_points f
+          ON f.location &amp;&amp; r.boundary
+         AND ST_Covers(r.boundary, f.location)
+        WHERE r.id = #{regionId}
+          AND f.period &gt;= #{fromPeriod}
+          AND f.period &lt;= #{toPeriod}
+        <if test="sensor != null and sensor != 'ALL'">
+          AND f.sensor = #{sensor}
+        </if>
+        GROUP BY f.period
+        ORDER BY f.period
+    </select>
+
+    <select id="findConfidenceDistribution" resultType="com.tabulaignium.api.firedata.ConfidenceDistribution">
+        SELECT
+            f.confidence_level,
+            COUNT(*) AS observation_count,
+            COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS percentage
+        FROM regions r
+        JOIN fire_points f
+          ON f.location &amp;&amp; r.boundary
+         AND ST_Covers(r.boundary, f.location)
+        WHERE r.id = #{regionId}
+          AND f.period &gt;= #{fromPeriod}
+          AND f.period &lt;= #{toPeriod}
+        <if test="sensor != null and sensor != 'ALL'">
+          AND f.sensor = #{sensor}
+        </if>
+        GROUP BY f.confidence_level
+        ORDER BY CASE f.confidence_level
+            WHEN 'high' THEN 1
+            WHEN 'nominal' THEN 2
+            WHEN 'low' THEN 3
+            ELSE 4
+        END
+    </select>
+
+</mapper>

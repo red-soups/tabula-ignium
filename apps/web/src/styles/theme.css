@@ -1,38 +1,43 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+
+  /* Brand */
+  --brand-red: #e9011d;
+  --brand-green: #032e1e;
+  --brand-charcoal: #343333;
 
   /* Base surfaces */
-  --bg: #0b1113;
-  --header: #101819;
-  --surface: #131d1f;
-  --panel: #172224;
-  --modal-surface: #172124;
-  --interactive-hover: #1b2729;
+  --bg: #f3f1ec;
+  --header: #fff;
+  --surface: #f7f6f2;
+  --panel: #fff;
+  --modal-surface: #fff;
+  --interactive-hover: #f0eee8;
 
   /* Text */
-  --text: #edf4ee;
-  --text-strong: #f2f7f1;
-  --text-soft: #aebbb6;
-  --muted: #96a59f;
-  --muted-dark: #82918b;
+  --text: var(--brand-charcoal);
+  --text-strong: var(--brand-green);
+  --text-soft: #666662;
+  --muted: #747873;
+  --muted-dark: #92958f;
 
   /* Borders */
-  --line: #293638;
-  --line-soft: #223033;
-  --border-strong: #3c4d4a;
+  --line: #d9ddd6;
+  --line-soft: #e8e9e4;
+  --border-strong: #b9c2b9;
 
   /* Brand and states */
-  --green: #b4e6a7;
-  --green-dark: #19301f;
-  --green-ink: #172a1b;
-  --green-hover: #cbf0c1;
-  --orange: #ff8f62;
-  --danger: #f27b7b;
-  --danger-hover: #ff9292;
-  --danger-surface: #3b2022;
+  --green: var(--brand-green);
+  --green-dark: #021f15;
+  --green-ink: #fff;
+  --green-hover: #075238;
+  --orange: var(--brand-red);
+  --danger: var(--brand-red);
+  --danger-hover: #c90019;
+  --danger-surface: #fff0f2;
 
   /* Utility */
   --white: #fff;
-  --overlay: rgb(3 8 9 / 78%);
-  --shadow-modal: 0 25px 90px #0009;
+  --overlay: rgb(3 46 30 / 42%);
+  --shadow-modal: 0 25px 90px rgb(3 46 30 / 22%);
 }

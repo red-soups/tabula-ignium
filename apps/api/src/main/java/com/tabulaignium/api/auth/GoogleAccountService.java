@@ -1,7 +1,8 @@
 package com.tabulaignium.api.auth;
 
-import java.util.Locale;
+import com.tabulaignium.api.region.RegionInterestService;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -10,8 +11,6 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
-
-import com.tabulaignium.api.region.RegionInterestService;
 
 @Service
 class GoogleAccountService {
@@ -40,15 +39,14 @@ class GoogleAccountService {
         return transactions.execute(status -> findUserId(subject).orElse(null));
     }
 
-    long completeSignup(OidcUser googleUser, String name, String nationalityCode,
-            List<Long> regionIds) {
+    long completeSignup(OidcUser googleUser, String name, List<Long> regionIds) {
         String subject = googleUser.getSubject();
         String email = verifiedEmail(googleUser);
 
         try {
             return transactions.execute(status -> findUserId(subject).orElseGet(() -> {
                 rejectEmailConflict(email);
-                User user = users.save(new User(name, email, nationalityCode));
+                User user = users.save(new User(name, email));
                 accounts.save(new OAuthAccount(user, PROVIDER, subject));
                 regionInterests.attach(user.getId(), regionIds);
                 return user.getId();

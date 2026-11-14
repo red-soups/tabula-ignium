@@ -1,9 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import type { CurrentUser, ProfileDetails } from '../api/auth'
-import { useRegionsQuery } from '../api/regionQueries'
 import { Icon } from './Icon'
 import { RegionSelector } from './RegionSelector'
-import { SearchableSelect } from './SearchableSelect'
 
 type EditProfileModalProps = {
   user: CurrentUser
@@ -18,9 +16,8 @@ export function EditProfileModal({ user, busy, error, onClose, onSubmit }: EditP
   const titleId = useId()
   const emailHintId = useId()
   const [name, setName] = useState(user.name)
-  const [nationalityCode, setNationalityCode] = useState(user.nationalityCode)
-  const [regionIds, setRegionIds] = useState<number[]>(user.interestedRegions.map(({ id }) => id))
-  const countriesQuery = useRegionsQuery(null)
+  const initialRegions = user.interestedRegions.slice(0, 1)
+  const [regionIds, setRegionIds] = useState<number[]>(initialRegions.map(({ id }) => id))
 
   useEffect(() => {
     const element = dialog.current
@@ -30,8 +27,8 @@ export function EditProfileModal({ user, busy, error, onClose, onSubmit }: EditP
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!busy && name.trim() && nationalityCode && regionIds.length > 0) {
-      onSubmit({ name: name.trim(), nationalityCode, regionIds })
+    if (!busy && name.trim() && regionIds.length > 0) {
+      onSubmit({ name: name.trim(), regionIds })
     }
   }
 
@@ -45,7 +42,7 @@ export function EditProfileModal({ user, busy, error, onClose, onSubmit }: EditP
       <div className="signup-modal-head">
         <div>
           <h2 id={titleId}>회원정보 수정</h2>
-          <p>이름, 국적, 관심 지역을 변경할 수 있습니다.</p>
+          <p>이름과 관심 지역을 변경할 수 있습니다.</p>
         </div>
         <button className="modal-close" type="button" onClick={onClose} aria-label="닫기" disabled={busy}>
           <Icon name="close" />
@@ -63,38 +60,20 @@ export function EditProfileModal({ user, busy, error, onClose, onSubmit }: EditP
             <input type="email" value={user.email} readOnly aria-describedby={emailHintId} />
             <small id={emailHintId}>이메일은 변경할 수 없습니다.</small>
           </label>
-          <label>
-            <span>국적</span>
-            <SearchableSelect
-              name="nationalityCode"
-              value={nationalityCode}
-              options={countriesQuery.data?.map(({ name: countryName, countryCode }) => ({
-                value: countryCode,
-                label: `${countryName} (${countryCode})`,
-              })) ?? []}
-              placeholder={countriesQuery.isPending
-                ? '불러오는 중…'
-                : countriesQuery.isError
-                  ? '국가 불러오기 실패'
-                  : '국적 검색'}
-              disabled={countriesQuery.isPending || countriesQuery.isError}
-              onChange={setNationalityCode}
-            />
-          </label>
         </div>
 
         <RegionSelector
           title="관심 지역"
           inputName="regionIds"
-          initialSelections={user.interestedRegions}
-          maxSelections={5}
+          initialSelections={initialRegions}
+          maxSelections={1}
           onSelectionChange={setRegionIds}
         />
 
         {error && <p className="auth-error" role="alert">{error}</p>}
         <div className="signup-actions">
           <button className="quiet-button" type="button" onClick={onClose} disabled={busy}>취소</button>
-          <button className="accent-button" type="submit" disabled={busy || !name.trim() || !nationalityCode || regionIds.length === 0}>
+          <button className="accent-button" type="submit" disabled={busy || !name.trim() || regionIds.length === 0}>
             {busy ? '저장 중…' : '저장'}
           </button>
         </div>

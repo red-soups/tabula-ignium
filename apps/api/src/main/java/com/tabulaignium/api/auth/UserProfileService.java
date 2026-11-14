@@ -19,11 +19,11 @@ class UserProfileService {
     }
 
     @Transactional
-    User update(long userId, String name, String nationalityCode, List<Long> regionIds) {
+    User update(long userId, String name, List<Long> regionIds) {
         User user = users.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
         regionInterests.replace(userId, regionIds);
-        user.updateProfile(name, nationalityCode);
+        user.updateProfile(name);
         return user;
     }
 }

@@ -21,16 +21,12 @@ class User {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "nationality_code", length = 2)
-    private String nationalityCode;
-
     protected User() {
     }
 
-    User(String name, String email, String nationalityCode) {
+    User(String name, String email) {
         this.name = name;
         this.email = email;
-        this.nationalityCode = nationalityCode;
     }
 
     Long getId() {
@@ -45,12 +41,7 @@ class User {
         return email;
     }
 
-    String getNationalityCode() {
-        return nationalityCode;
-    }
-
-    void updateProfile(String name, String nationalityCode) {
+    void updateProfile(String name) {
         this.name = name;
-        this.nationalityCode = nationalityCode;
     }
 }

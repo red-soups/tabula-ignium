@@ -1,15 +1,16 @@
 # 대한민국 지도 데이터
 
-## 위성 영상
+## 지도 배경
 
-- 지도 바탕은 EOX의 **EOxCloudless 2016/2017** WMTS를 브라우저에서 현재 보이는 범위에 한해 불러온다.
-- 타일 주소: `https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless/default/WGS84/{z}/{y}/{x}.jpg`
-- [EOX 이용 안내](https://cloudless.eox.at/documentation/faq)에 따르면 이 연도 영상은 CC BY 4.0이며, 출처 표시를 조건으로 상업용 앱의 배경 지도에도 사용할 수 있다. 공개 타일 서버에는 공정 사용 기준이 적용되고 가용성 보장은 없다.
-- 지도 화면에 `EOxCloudless by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2016 & 2017)`와 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 링크를 표시한다. 향후 지도 영상이 문서에 포함된다면 문서에도 출처를 표시해야 한다.
-- 2018년 이후 EOxCloudless 공개 타일은 이용 조건이 다르므로 연도만 바꾸어 연결하지 않는다.
+- 외부 위성 영상이나 지도 타일을 사용하지 않는다.
+- 밝은 단색 배경 위에 DB에서 조회한 행정구역 경계를 SVG로 표시한다.
 
 ## 행정 경계
 
-- `src/data/koreaMap.json`은 [geoBoundaries gbOpen 대한민국 ADM0](https://www.geoboundaries.org/api/current/gbOpen/KOR/ADM0/) 및 [ADM1](https://www.geoboundaries.org/api/current/gbOpen/KOR/ADM1/)의 단순화 GeoJSON에서 국가 1개와 시도 17개의 도형을 합친 정적 파일이다. 지도 렌더링에 필요한 이름과 단계만 남기고 좌표를 소수점 셋째 자리로 반올림했다.
-- 위 두 자료의 메타데이터에는 원본 라이선스가 `Public Domain`으로 명시되어 있다. 지도 화면에는 geoBoundaries 출처 링크를 표시한다.
-- 행정 경계는 지도 표시용이다. 사용자가 선택한 직사각형은 프론트엔드 state에서 `west`, `south`, `east`, `north` 좌표로 관리하며, 이후 API 요청에 사용할 수 있다.
+- 정적 지도 JSON 파일은 사용하지 않는다.
+- `regions.boundary`에 저장된 PostGIS 경계를 `/api/regions/{regionId}/map`과
+  `/api/regions/{parentId}/children/map`으로 조회한다.
+- 0단계는 대한민국 외곽선, 1단계는 시·도, 2단계는 시·군·구 표시와 클릭에 사용한다.
+- API는 화면 전송량을 줄이기 위해 `ST_SimplifyPreserveTopology`로 경계를 단순화하고
+  WGS84 GeoJSON으로 반환한다.
+- 선택 결과는 `regionId`, 이름과 경계 범위를 프론트엔드 상태에 보관한다.

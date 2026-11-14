@@ -23,19 +23,18 @@ export function RegionSelector({
   initialSelections = [],
   onSelectionChange,
 }: RegionSelectorProps) {
-  const [countryId, setCountryId] = useState(0)
   const [cityId, setCityId] = useState(0)
   const [districtId, setDistrictId] = useState(0)
   const [selectedRegions, setSelectedRegions] =
     useState<SelectedRegion[]>(initialSelections)
 
   const countriesQuery = useRegionsQuery(null)
+  const country = countriesQuery.data?.find(
+    (item) => item.countryCode === 'KR' && item.level === 0,
+  )
+  const countryId = country?.id ?? 0
   const citiesQuery = useRegionsQuery(countryId || null, countryId > 0)
   const districtsQuery = useRegionsQuery(cityId || null, cityId > 0)
-
-  const country = countriesQuery.data?.find(
-    (item) => item.id === countryId,
-  )
   const city = citiesQuery.data?.find(
     (item) => item.id === cityId,
   )
@@ -49,10 +48,10 @@ export function RegionSelector({
   }
 
   const addRegion = () => {
-    const selected = district ?? city ?? country
+    const selected = district ?? city
 
     if (
-      !country ||
+      !city ||
       !selected ||
       selectedRegions.length >= maxSelections
     ) {
@@ -68,8 +67,7 @@ export function RegionSelector({
     }
 
     const label = [
-      country.name,
-      city?.name,
+      city.name,
       district?.name,
     ]
       .filter(Boolean)
@@ -83,7 +81,6 @@ export function RegionSelector({
       },
     ])
 
-    setCountryId(0)
     setCityId(0)
     setDistrictId(0)
   }
@@ -112,34 +109,6 @@ export function RegionSelector({
 
       <div className="region-selectors">
         <label>
-          <span>국가</span>
-
-          <SearchableSelect
-            value={countryId ? String(countryId) : ''}
-            options={
-              countriesQuery.data?.map((item) => ({
-                value: String(item.id),
-                label: `${item.name} (${item.countryCode})`,
-              })) ?? []
-            }
-            placeholder={
-              countriesQuery.isPending
-                ? '불러오는 중…'
-                : '국가 검색'
-            }
-            disabled={
-              countriesQuery.isPending ||
-              countriesQuery.isError
-            }
-            onChange={(value) => {
-              setCountryId(Number(value))
-              setCityId(0)
-              setDistrictId(0)
-            }}
-          />
-        </label>
-
-        <label>
           <span>
             시·도 <small>선택</small>
           </span>
@@ -153,14 +122,14 @@ export function RegionSelector({
               })) ?? []
             }
             placeholder={
-              !countryId
-                ? '국가 먼저 선택'
-                : citiesQuery.isPending
+              countriesQuery.isPending || citiesQuery.isPending
                   ? '불러오는 중…'
                   : '시·도 검색'
             }
             disabled={
               !countryId ||
+              countriesQuery.isPending ||
+              countriesQuery.isError ||
               citiesQuery.isPending ||
               citiesQuery.isError
             }
@@ -207,7 +176,7 @@ export function RegionSelector({
           type="button"
           onClick={addRegion}
           disabled={
-            !country ||
+            !city ||
             selectedRegions.length >= maxSelections
           }
         >
