@@ -14,6 +14,7 @@ import {
   DashboardSidebar,
   type ProjectFilter,
 } from '../components/DashboardSidebar'
+import { GlobePreview } from '../components/GlobePreview'
 import { HeroSection } from '../components/HeroSection'
 import { ProjectGrid, type Project } from '../components/ProjectGrid'
 import { SignupModal } from '../components/SignupModal'
@@ -69,6 +70,11 @@ function Home() {
   const [query, setQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [redirectError, setRedirectError] = useState(() =>
+  const [isGlobePreviewOpen, setIsGlobePreviewOpen] = useState(false)
+  const [account, setAccount] = useState<CurrentUser | PendingSignup | null>(null)
+  const [authBusy, setAuthBusy] = useState(true)
+  const [authError, setAuthError] = useState(() =>
+
     new URLSearchParams(window.location.search).get('login') === 'failed'
       ? 'Google 로그인에 실패했습니다. 다시 시도해 주세요.'
       : '',
@@ -134,6 +140,7 @@ function Home() {
     <div className="app-shell">
       <AppHeader
         onCreateProject={openCreateModal}
+        onGlobePreview={() => setIsGlobePreviewOpen(true)}
         user={user}
         authBusy={authBusy}
         onLogin={startGoogleLogin}
@@ -152,6 +159,7 @@ function Home() {
           />
         </main>
       </div>
+      {isGlobePreviewOpen && <GlobePreview onClose={() => setIsGlobePreviewOpen(false)} />}
       <CreateProjectModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
