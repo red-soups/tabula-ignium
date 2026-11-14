@@ -20,6 +20,8 @@ http://localhost:8080/login/oauth2/code/google
 
 프론트엔드와 함께 실행할 때는 백엔드에 `WEB_ORIGIN=http://localhost:5173`을 설정합니다. 별도 터미널에서 `apps/web`로 이동해 `npm ci`와 `npm run dev`를 실행하고 `http://localhost:5173`을 엽니다. Vite가 `/api`와 `/oauth2` 요청을 백엔드에 전달합니다. Google 콜백은 `http://localhost:8080/login/oauth2/code/google`에서 받고, 성공하면 웹 홈으로, 실패하면 웹 홈의 `?login=failed`로 이동합니다.
 
+로컬에서는 브라우저 주소도 `localhost:5173`을 사용하세요. `127.0.0.1`에서 OAuth를 시작하면 쿠키가 그 호스트에 저장되어 `localhost:8080` 콜백에서 전달되지 않습니다. 프론트엔드 로그인 버튼은 개발 중 `127.0.0.1`에서 열었더라도 로그인 시작 주소를 `localhost`로 맞춥니다.
+
 배포 시 같은 외부 오리진에서 `/api`, `/oauth2`, `/login/oauth2/code`를 백엔드로 전달합니다. `WEB_ORIGIN`, `GOOGLE_REDIRECT_URI`에 공개 HTTPS 주소를 지정하고 Google Cloud에도 같은 콜백 URL을 등록합니다. `SESSION_COOKIE_SECURE=true`로 설정하세요.
 
 ## 계정 연결
