@@ -1,0 +1,35 @@
+:root {
+  color-scheme: dark;
+
+  /* Base surfaces */
+  --bg: #0b1113;
+  --header: #101819;
+  --surface: #131d1f;
+  --panel: #172224;
+  --modal-surface: #172124;
+  --interactive-hover: #1b2729;
+
+  /* Text */
+  --text: #edf4ee;
+  --text-strong: #f2f7f1;
+  --text-soft: #aebbb6;
+  --muted: #96a59f;
+  --muted-dark: #82918b;
+
+  /* Borders */
+  --line: #293638;
+  --line-soft: #223033;
+  --border-strong: #3c4d4a;
+
+  /* Brand and states */
+  --green: #b4e6a7;
+  --green-dark: #19301f;
+  --green-ink: #172a1b;
+  --green-hover: #cbf0c1;
+  --orange: #ff8f62;
+
+  /* Utility */
+  --white: #fff;
+  --overlay: rgb(3 8 9 / 78%);
+  --shadow-modal: 0 25px 90px #0009;
+}
