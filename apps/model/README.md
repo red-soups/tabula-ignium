@@ -26,6 +26,7 @@ apps/model/
 ├── scripts/
 │   ├── fetch_sample.py    최근 7일 샘플 받기 (MODIS + VIIRS NOAA-20) + 샘플 격자 만들기
 │   ├── fetch_firms_api.py 연도 파일 이후 기간(2026~)을 FIRMS API로 받기 (MAP_KEY 필요)
+│   ├── build_static_sources.py 고정 열원(화산·플레어·공장) 위치표 → 지구본 NRT 점 거르기용 JSON
 │   ├── aggregate.py       FIRMS 과거 데이터 → 격자 표 (`--landcover`로 토지 피복까지)
 │   └── build_landcover.py MCD12C1 → 0.5° 칸별 토지 피복 표
 ├── tests/                 작은 가짜 데이터로 확인하는 테스트 (`.venv/bin/python -m pytest tests -q`)
@@ -273,6 +274,9 @@ export FIRMS_MAP_KEY=...   # https://firms.modaps.eosdis.nasa.gov/api/map_key/ �
 - **NRT 파일에는 `type` 열이 없어서**, SP와 같이 집계하면 NRT 행이 `type = 0` 필터에 전부 걸러집니다(NRT 달이 통째로 0).
   그래서 같은 기간 SP의 고정 열원(화산·공장·해상) 위치를 약 1 km 칸으로 모아, NRT 탐지에 `type`을 채웁니다(`type_inferred = 1`).
 - 5일씩(API 한도) 받고, 끊겨도 다시 실행하면 이어 받습니다. 받을 수 없는 날이 있으면 끝에 알려 줍니다.
+- 지구본의 실시간 점(FIRMS 7일 파일)도 `type`이 없어서 가스 플레어·공장이 '화재'로 찍힙니다(점의 약 6%).
+  `scripts/build_static_sources.py`로 SP의 고정 열원 위치표(0.01° 칸, 2026 SP 기준 약 2.5만 칸, 255 kB / gzip 77 kB)를
+  만들어 웹 Worker에서 거르면 됩니다. 칸 규칙은 `fetch_firms_api.py`와 같습니다.
 - 마지막 달은 진행 중인 달이라 합계가 평년의 한 달 전체보다 작습니다. "이번 달 vs 평년"에서는 평년도 같은 기간으로 맞추거나 진행 중 표시가 필요합니다.
 
 ## 3) 토지 피복 (`landcover` 열)
