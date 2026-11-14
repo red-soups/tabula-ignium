@@ -5,6 +5,7 @@ const GOOGLE_LOGIN_DATA = {
 
 type GoogleLoginButtonProps = {
   onClick: () => void
+  disabled: boolean
 }
 
 function GoogleLogo() {
@@ -18,9 +19,9 @@ function GoogleLogo() {
   )
 }
 
-export function GoogleLoginButton({ onClick }: GoogleLoginButtonProps) {
+export function GoogleLoginButton({ onClick, disabled }: GoogleLoginButtonProps) {
   return (
-    <button className="google-login-button header-google-login" type="button" onClick={onClick}>
+    <button className="google-login-button header-google-login" type="button" aria-label={GOOGLE_LOGIN_DATA.label} onClick={onClick} disabled={disabled}>
       <GoogleLogo />
       <span>{GOOGLE_LOGIN_DATA.label}</span>
     </button>

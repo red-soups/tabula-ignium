@@ -1,4 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  AuthRequestError, completeSignup, getAccount, GOOGLE_LOGIN_URL, logout,
+  type CurrentUser, type PendingSignup, type SignupDetails,
+} from '../api/auth'
 import { AppHeader } from '../components/AppHeader'
 import { CreateProjectModal } from '../components/CreateProjectModal'
 import {
@@ -49,7 +53,61 @@ function Home() {
   const [filter, setFilter] = useState<ProjectFilter>('all')
   const [query, setQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false)
+  const [account, setAccount] = useState<CurrentUser | PendingSignup | null>(null)
+  const [authBusy, setAuthBusy] = useState(true)
+  const [authError, setAuthError] = useState(() =>
+    new URLSearchParams(window.location.search).get('login') === 'failed'
+      ? 'Google 로그인에 실패했습니다. 다시 시도해 주세요.'
+      : '',
+  )
+  const pendingSignup = account && 'registrationRequired' in account ? account : null
+  const user = account && 'id' in account ? account : null
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('login') === 'failed') {
+      url.searchParams.delete('login')
+      window.history.replaceState(null, '', url)
+    }
+    getAccount(controller.signal)
+      .then((profile) => { if (!controller.signal.aborted) setAccount(profile) })
+      .catch(() => { if (!controller.signal.aborted) setAuthError('로그인 상태를 확인하지 못했습니다.') })
+      .finally(() => { if (!controller.signal.aborted) setAuthBusy(false) })
+    return () => controller.abort()
+  }, [])
+
+  async function finishSignup(details: SignupDetails) {
+    setAuthBusy(true)
+    setAuthError('')
+    try {
+      setAccount(await completeSignup(details))
+    } catch (error) {
+      if (error instanceof AuthRequestError && error.status === 401) {
+        setAccount(null)
+        setAuthError('가입 세션이 만료되었습니다. Google로 다시 로그인해 주세요.')
+      } else if (error instanceof AuthRequestError && error.status === 409) {
+        setAuthError('이미 등록된 이메일입니다. 기존 계정으로 로그인해 주세요.')
+      } else {
+        setAuthError('회원가입을 완료하지 못했습니다. 입력값을 확인하고 다시 시도해 주세요.')
+      }
+    } finally {
+      setAuthBusy(false)
+    }
+  }
+
+  async function endSession() {
+    setAuthBusy(true)
+    setAuthError('')
+    try {
+      await logout()
+      setAccount(null)
+    } catch {
+      setAuthError(pendingSignup ? '가입 취소에 실패했습니다.' : '로그아웃에 실패했습니다.')
+    } finally {
+      setAuthBusy(false)
+    }
+  }
 
   const filteredProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase('ko-KR')
@@ -73,11 +131,15 @@ function Home() {
     <div className="app-shell">
       <AppHeader
         onCreateProject={openCreateModal}
-        onLogin={() => setIsSignupModalOpen(true)}
+        user={user}
+        authBusy={authBusy}
+        onLogin={() => window.location.assign(GOOGLE_LOGIN_URL)}
+        onLogout={() => void endSession()}
       />
       <div className="dashboard-layout">
         <DashboardSidebar activeFilter={filter} onFilterChange={setFilter} />
         <main className="dashboard-content">
+          {authError && !pendingSignup && <p className="auth-error" role="alert">{authError}</p>}
           <HeroSection onCreateProject={openCreateModal} />
           <ProjectGrid
             projects={filteredProjects}
@@ -91,10 +153,15 @@ function Home() {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-      <SignupModal
-        open={isSignupModalOpen}
-        onClose={() => setIsSignupModalOpen(false)}
-      />
+      {pendingSignup && (
+        <SignupModal
+          profile={pendingSignup}
+          busy={authBusy}
+          error={authError}
+          onClose={() => void endSession()}
+          onSubmit={(details) => void finishSignup(details)}
+        />
+      )}
     </div>
   )
 }

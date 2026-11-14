@@ -3,10 +3,12 @@ package com.tabulaignium.api.auth;
 import java.util.Locale;
 import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 class GoogleAccountService {
@@ -24,29 +26,42 @@ class GoogleAccountService {
         this.transactions = transactions;
     }
 
-    long findOrCreateUser(OidcUser googleUser) {
+    Long findExistingUser(OidcUser googleUser) {
         String subject = googleUser.getSubject();
         if (subject == null || subject.isBlank() || subject.length() > 255) {
             throw new OAuth2AuthenticationException("invalid_google_subject");
         }
+        verifiedEmail(googleUser);
+        return transactions.execute(status -> findUserId(subject).orElse(null));
+    }
 
+    long completeSignup(OidcUser googleUser, String name, String nationalityCode) {
+        String subject = googleUser.getSubject();
+        String email = verifiedEmail(googleUser);
+
+        try {
+            return transactions.execute(status -> findUserId(subject).orElseGet(() -> {
+                rejectEmailConflict(email);
+                User user = users.save(new User(name, email, nationalityCode));
+                accounts.save(new OAuthAccount(user, PROVIDER, subject));
+                return user.getId();
+            }));
+        } catch (DataIntegrityViolationException failure) {
+            // Look up the winning insert after this transaction has rolled back.
+            return transactions.execute(status -> findUserId(subject).orElseGet(() -> {
+                rejectEmailConflict(email);
+                throw failure;
+            }));
+        }
+    }
+
+    static String verifiedEmail(OidcUser googleUser) {
         String email = googleUser.getEmail();
         if (!Boolean.TRUE.equals(googleUser.getEmailVerified()) || email == null
                 || email.isBlank() || email.length() > 255) {
             throw new OAuth2AuthenticationException("unverified_google_email");
         }
-        String normalizedEmail = email.toLowerCase(Locale.ROOT);
-
-        try {
-            return transactions.execute(status -> findUserId(subject)
-                    .orElseGet(() -> registerUser(googleUser.getFullName(), normalizedEmail, subject)));
-        } catch (DataIntegrityViolationException failure) {
-            // A concurrent insert may have won. Read again after the failed transaction rolls back.
-            return transactions.execute(status -> findUserId(subject).orElseGet(() -> {
-                rejectEmailConflict(normalizedEmail);
-                throw failure;
-            }));
-        }
+        return email.toLowerCase(Locale.ROOT);
     }
 
     private Optional<Long> findUserId(String subject) {
@@ -54,22 +69,9 @@ class GoogleAccountService {
                 .map(account -> account.getUser().getId());
     }
 
-    private long registerUser(String name, String email, String subject) {
-        rejectEmailConflict(email);
-        User user = users.save(new User(displayName(name, email), email));
-        accounts.save(new OAuthAccount(user, PROVIDER, subject));
-        return user.getId();
-    }
-
     private void rejectEmailConflict(String email) {
         if (users.existsByEmailIgnoreCase(email)) {
-            throw new OAuth2AuthenticationException("account_email_conflict");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");
         }
-    }
-
-    private String displayName(String name, String email) {
-        String value = name == null || name.isBlank() ? email : name.strip();
-        int length = value.codePointCount(0, value.length());
-        return value.substring(0, value.offsetByCodePoints(0, Math.min(length, 100)));
     }
 }

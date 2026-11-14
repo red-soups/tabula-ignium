@@ -1,81 +1,87 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import type { PendingSignup, SignupDetails } from '../api/auth'
 import { Icon } from './Icon'
-import { RegionSelector } from './RegionSelector'
 
-// API 연결 전 회원가입 폼에서 사용하는 예시 국가·행정구역 데이터입니다.
-const SIGNUP_FORM_DATA = {
-  title: '회원가입',
-  description: '기본 정보와 관심 지역을 설정해 주세요.',
-  countries: [
-    { code: 'KR', name: '대한민국' },
-    { code: 'US', name: '미국' },
-    { code: 'JP', name: '일본' },
-    { code: 'CN', name: '중국' },
-    { code: 'AU', name: '호주' },
-    { code: 'BR', name: '브라질' },
-  ],
-}
+const NATIONALITIES = [
+  { code: 'KR', name: '대한민국' },
+  { code: 'US', name: '미국' },
+  { code: 'JP', name: '일본' },
+  { code: 'CN', name: '중국' },
+  { code: 'AU', name: '호주' },
+  { code: 'BR', name: '브라질' },
+]
 
 type SignupModalProps = {
-  open: boolean
+  profile: PendingSignup
+  busy: boolean
+  error: string
   onClose: () => void
+  onSubmit: (details: SignupDetails) => void
 }
 
-export function SignupModal({ open, onClose }: SignupModalProps) {
+export function SignupModal({ profile, busy, error, onClose, onSubmit }: SignupModalProps) {
+  const dialog = useRef<HTMLDialogElement>(null)
   const titleId = useId()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [nationalityCode, setNationalityCode] = useState('KR')
+  const emailHintId = useId()
+  const [name, setName] = useState(() => profile.name?.slice(0, 100) ?? '')
+  const [nationalityCode, setNationalityCode] = useState('')
 
   useEffect(() => {
-    if (!open) return
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', closeOnEscape)
-    return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [open, onClose])
+    const element = dialog.current
+    element?.showModal()
+    return () => element?.close()
+  }, [])
 
-  if (!open) return null
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!busy && name.trim()) onSubmit({ name: name.trim(), nationalityCode })
+  }
 
   return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className="signup-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} onMouseDown={(event) => event.stopPropagation()}>
-        <div className="signup-modal-head">
-          <div>
-            <span className="modal-eyebrow">Google 계정으로 시작하기</span>
-            <h2 id={titleId}>{SIGNUP_FORM_DATA.title}</h2>
-            <p>{SIGNUP_FORM_DATA.description}</p>
-          </div>
-          <button className="modal-close" type="button" onClick={onClose} aria-label="닫기"><Icon name="close" /></button>
+    <dialog
+      ref={dialog}
+      className="signup-modal"
+      aria-labelledby={titleId}
+      onCancel={(event) => { event.preventDefault(); if (!busy) onClose() }}
+    >
+      <div className="signup-modal-head">
+        <div>
+          <h2 id={titleId}>회원가입</h2>
+          <p>이름과 국적을 확인해 가입을 완료하세요.</p>
+        </div>
+        <button className="modal-close" type="button" onClick={onClose} aria-label="닫기" disabled={busy}>
+          <Icon name="close" />
+        </button>
+      </div>
+
+      <form className="signup-form" onSubmit={submit}>
+        <div className="signup-basic-fields">
+          <label>
+            <span>이름</span>
+            <input name="name" value={name} onChange={(event) => setName(event.target.value)} maxLength={100} required />
+          </label>
+          <label>
+            <span>이메일</span>
+            <input type="email" value={profile.email} readOnly aria-describedby={emailHintId} />
+            <small id={emailHintId}>Google에서 확인한 이메일입니다.</small>
+          </label>
+          <label>
+            <span>국적</span>
+            <select name="nationalityCode" value={nationalityCode} onChange={(event) => setNationalityCode(event.target.value)} required>
+              <option value="">국적 선택</option>
+              {NATIONALITIES.map(({ code, name }) => <option value={code} key={code}>{name} ({code})</option>)}
+            </select>
+          </label>
         </div>
 
-        <form className="signup-form" onSubmit={(event) => { event.preventDefault(); onClose() }}>
-          <div className="signup-basic-fields">
-            <label>
-              <span>이름</span>
-              <input name="name" value={name} onChange={(event) => setName(event.target.value)} placeholder="이름을 입력하세요" maxLength={100} required />
-            </label>
-            <label>
-              <span>이메일</span>
-              <input name="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" maxLength={255} required />
-            </label>
-            <label>
-              <span>국적</span>
-              <select name="nationality_code" value={nationalityCode} onChange={(event) => setNationalityCode(event.target.value)} required>
-                {SIGNUP_FORM_DATA.countries.map((country) => <option value={country.code} key={country.code}>{country.name} ({country.code})</option>)}
-              </select>
-            </label>
-          </div>
-
-          <RegionSelector title="관심 지역" inputName="region_ids" maxSelections={5} />
-
-          <div className="signup-actions">
-            <button className="quiet-button" type="button" onClick={onClose}>취소</button>
-            <button className="accent-button" type="submit">회원가입</button>
-          </div>
-        </form>
-      </section>
-    </div>
+        {error && <p className="auth-error" role="alert">{error}</p>}
+        <div className="signup-actions">
+          <button className="quiet-button" type="button" onClick={onClose} disabled={busy}>취소</button>
+          <button className="accent-button" type="submit" disabled={busy || !name.trim() || !nationalityCode}>
+            {busy ? '처리 중…' : '회원가입'}
+          </button>
+        </div>
+      </form>
+    </dialog>
   )
 }
