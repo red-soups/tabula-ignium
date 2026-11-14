@@ -2,13 +2,36 @@ spring:
   application:
     name: tabula-ignium-api
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/tabula_ignium}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/tabula_ignium}
     username: ${DB_USER:tabula_ignium}
     password: ${DB_PASSWORD}
+  flyway:
+    enabled: false
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/login/oauth2/code/google}
+            scope: [openid, email, profile]
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: ${SESSION_COOKIE_SECURE:false}
+
+app:
+  auth:
+    web-origin: ${WEB_ORIGIN:}
 
 mybatis:
   mapper-locations: classpath*:/mapper/**/*.xml
