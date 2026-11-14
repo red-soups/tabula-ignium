@@ -9,6 +9,6 @@ interface ProjectBoundaryMapper {
     List<BoundaryRow> findByProjectId(long projectId);
 
     record BoundaryRow(long id, String name, short level, double west,
-            double east, double south, double north) {
+            double east, double south, double north, String geometryGeoJson) {
     }
 }

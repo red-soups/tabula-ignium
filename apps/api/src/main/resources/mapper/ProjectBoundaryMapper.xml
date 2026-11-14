@@ -9,7 +9,11 @@
            ST_XMin(r.boundary) AS west,
            ST_XMax(r.boundary) AS east,
            ST_YMin(r.boundary) AS south,
-           ST_YMax(r.boundary) AS north
+           ST_YMax(r.boundary) AS north,
+           ST_AsGeoJSON(ST_SimplifyPreserveTopology(r.boundary,
+               GREATEST(0.00005, GREATEST(ST_XMax(r.boundary) - ST_XMin(r.boundary),
+                                          ST_YMax(r.boundary) - ST_YMin(r.boundary)) / 200)), 5)
+               AS geometry_geo_json
     FROM project_regions pr
     JOIN regions r ON r.id = pr.region_id
     WHERE pr.project_id = #{projectId}
