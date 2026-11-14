@@ -13,7 +13,7 @@ cd apps/api
 
 팀의 macOS 개발 환경에서는 `./mvnw`를 사용합니다. Wrapper는 첫 실행 시 Maven 3.10.0을 내려받습니다.
 
-서버를 실행할 때는 접속 가능한 PostgreSQL이 필요합니다. `DB_PASSWORD`를 환경 변수로 설정한 뒤 `apps/api`에서 `./mvnw spring-boot:run`을 실행하세요. 기본 포트는 `8080`입니다. Docker 없이 로컬 PostgreSQL이나 팀에서 제공하는 DB에 연결할 수 있습니다.
+서버를 시작하려면 PostgreSQL과 Google OAuth 클라이언트 설정이 필요합니다. 기본 포트는 `8080`입니다. [Google 로그인 설정 및 실행 절차](docs/google-oauth.md)를 따라 시작할 수 있습니다.
 
 ## 파일 구성
 
@@ -31,7 +31,8 @@ cd apps/api
 | 설정 | 역할 |
 | --- | --- |
 | `spring.application.name` | 애플리케이션 이름을 `tabula-ignium-api`로 설정합니다. |
-| `spring.datasource` | `DB_URL`의 기본값은 `jdbc:postgresql://localhost:5432/tabula_ignium`, `DB_USER`의 기본값은 `tabula_ignium`입니다. `DB_PASSWORD`는 환경 변수로 지정합니다. |
+| `spring.datasource` | `DB_URL`의 기본값은 `jdbc:postgresql://localhost:5433/tabula_ignium`, `DB_USER`의 기본값은 `tabula_ignium`입니다. `DB_PASSWORD`는 환경 변수로 지정합니다. |
+| `spring.flyway.enabled: false` | DB용 Compose의 Flyway가 마이그레이션을 실행합니다. |
 | `spring.jpa.open-in-view: false` | HTTP 요청 전체에 JPA 영속성 컨텍스트를 열어 두는 기능을 비활성화합니다. |
 | `spring.jpa.hibernate.ddl-auto: validate` | 시작 시 Hibernate가 엔티티 매핑과 DB 스키마가 맞는지 검사합니다. |
 | `mybatis.mapper-locations` | `src/main/resources/mapper/`와 하위 폴더에서 Mapper XML을 찾습니다. |
@@ -41,5 +42,5 @@ cd apps/api
 
 - **JPA**는 엔티티 저장·수정·삭제 및 간단한 조회에 사용합니다. 엔티티와 `JpaRepository`는 `com.tabulaignium.api` 하위에 둡니다.
 - **MyBatis**는 조건 검색, 조인, 집계에 사용합니다. 인터페이스에 `@Mapper`를 붙이고 XML을 `src/main/resources/mapper/`에 둡니다. XML의 `namespace`는 인터페이스의 전체 클래스명입니다.
-- **Flyway**는 스키마 변경을 관리합니다. 첫 테이블을 추가할 때 `src/main/resources/db/migration/V1__initial_schema.sql`을 작성합니다. Hibernate는 시작 시 엔티티 매핑을 검증합니다.
+- **Flyway**는 스키마 변경을 관리합니다. DB 변경 SQL은 저장소의 `infra/db/migrations/`에 다음 버전으로 추가합니다. Hibernate는 시작 시 엔티티 매핑을 검증합니다.
 - 한 서비스 작업에서 JPA와 MyBatis를 함께 쓰면 서비스 메서드에 Spring의 `@Transactional`을 적용합니다. MyBatis가 같은 트랜잭션에서 JPA의 변경을 바로 읽어야 하면 조회 전에 JPA를 플러시합니다.
