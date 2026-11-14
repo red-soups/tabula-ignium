@@ -57,7 +57,7 @@ class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/oauth2/authorization/google", "/login/oauth2/code/google", "/error")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/me", "/api/csrf").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/me", "/api/csrf", "/api/regions").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/signup").hasAuthority(SIGNUP_REQUIRED)
                         .anyRequest().hasAuthority(REGISTERED_USER))
                 .exceptionHandling(exceptions -> exceptions

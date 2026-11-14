@@ -1,6 +1,7 @@
 package com.tabulaignium.api.auth;
 
 import java.util.Locale;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.tabulaignium.api.region.RegionInterestService;
+
 @Service
 class GoogleAccountService {
 
@@ -17,12 +20,14 @@ class GoogleAccountService {
 
     private final UserRepository users;
     private final OAuthAccountRepository accounts;
+    private final RegionInterestService regionInterests;
     private final TransactionTemplate transactions;
 
     GoogleAccountService(UserRepository users, OAuthAccountRepository accounts,
-            TransactionTemplate transactions) {
+            RegionInterestService regionInterests, TransactionTemplate transactions) {
         this.users = users;
         this.accounts = accounts;
+        this.regionInterests = regionInterests;
         this.transactions = transactions;
     }
 
@@ -35,7 +40,8 @@ class GoogleAccountService {
         return transactions.execute(status -> findUserId(subject).orElse(null));
     }
 
-    long completeSignup(OidcUser googleUser, String name, String nationalityCode) {
+    long completeSignup(OidcUser googleUser, String name, String nationalityCode,
+            List<Long> regionIds) {
         String subject = googleUser.getSubject();
         String email = verifiedEmail(googleUser);
 
@@ -44,6 +50,7 @@ class GoogleAccountService {
                 rejectEmailConflict(email);
                 User user = users.save(new User(name, email, nationalityCode));
                 accounts.save(new OAuthAccount(user, PROVIDER, subject));
+                regionInterests.attach(user.getId(), regionIds);
                 return user.getId();
             }));
         } catch (DataIntegrityViolationException failure) {

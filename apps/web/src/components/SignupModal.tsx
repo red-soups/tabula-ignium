@@ -1,15 +1,9 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import type { PendingSignup, SignupDetails } from '../api/auth'
+import { useRegionsQuery } from '../api/regionQueries'
 import { Icon } from './Icon'
-
-const NATIONALITIES = [
-  { code: 'KR', name: '대한민국' },
-  { code: 'US', name: '미국' },
-  { code: 'JP', name: '일본' },
-  { code: 'CN', name: '중국' },
-  { code: 'AU', name: '호주' },
-  { code: 'BR', name: '브라질' },
-]
+import { RegionSelector } from './RegionSelector'
+import { SearchableSelect } from './SearchableSelect'
 
 type SignupModalProps = {
   profile: PendingSignup
@@ -25,6 +19,8 @@ export function SignupModal({ profile, busy, error, onClose, onSubmit }: SignupM
   const emailHintId = useId()
   const [name, setName] = useState(() => profile.name?.slice(0, 100) ?? '')
   const [nationalityCode, setNationalityCode] = useState('')
+  const [regionIds, setRegionIds] = useState<number[]>([])
+  const countriesQuery = useRegionsQuery(null)
 
   useEffect(() => {
     const element = dialog.current
@@ -34,7 +30,9 @@ export function SignupModal({ profile, busy, error, onClose, onSubmit }: SignupM
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!busy && name.trim()) onSubmit({ name: name.trim(), nationalityCode })
+    if (!busy && name.trim() && nationalityCode && regionIds.length > 0) {
+      onSubmit({ name: name.trim(), nationalityCode, regionIds })
+    }
   }
 
   return (
@@ -67,17 +65,35 @@ export function SignupModal({ profile, busy, error, onClose, onSubmit }: SignupM
           </label>
           <label>
             <span>국적</span>
-            <select name="nationalityCode" value={nationalityCode} onChange={(event) => setNationalityCode(event.target.value)} required>
-              <option value="">국적 선택</option>
-              {NATIONALITIES.map(({ code, name }) => <option value={code} key={code}>{name} ({code})</option>)}
-            </select>
+            <SearchableSelect
+              name="nationalityCode"
+              value={nationalityCode}
+              options={countriesQuery.data?.map(({ name, countryCode }) => ({
+                value: countryCode,
+                label: `${name} (${countryCode})`,
+              })) ?? []}
+              placeholder={countriesQuery.isPending
+                ? '불러오는 중…'
+                : countriesQuery.isError
+                  ? '국가 불러오기 실패'
+                  : '국적 검색'}
+              disabled={countriesQuery.isPending || countriesQuery.isError}
+              onChange={setNationalityCode}
+            />
           </label>
         </div>
+
+        <RegionSelector
+          title="관심 지역"
+          inputName="regionIds"
+          maxSelections={5}
+          onSelectionChange={setRegionIds}
+        />
 
         {error && <p className="auth-error" role="alert">{error}</p>}
         <div className="signup-actions">
           <button className="quiet-button" type="button" onClick={onClose} disabled={busy}>취소</button>
-          <button className="accent-button" type="submit" disabled={busy || !name.trim() || !nationalityCode}>
+          <button className="accent-button" type="submit" disabled={busy || !name.trim() || !nationalityCode || regionIds.length === 0}>
             {busy ? '처리 중…' : '회원가입'}
           </button>
         </div>

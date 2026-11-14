@@ -13,6 +13,7 @@ export type PendingSignup = {
 export type SignupDetails = {
   name: string
   nationalityCode: string
+  regionIds: number[]
 }
 
 export const GOOGLE_LOGIN_URL = '/oauth2/authorization/google'

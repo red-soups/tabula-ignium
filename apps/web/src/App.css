@@ -126,6 +126,16 @@
 .region-add-button { height: 40px; padding: 0 15px; border: 1px solid #718e77; border-radius: 7px; color: #dff1dc; background: #293d31; cursor: pointer; font-size: 12px; font-weight: 700; }
 .region-add-button:hover:not(:disabled) { background: #344d3d; }
 .region-add-button:disabled { opacity: .4; cursor: not-allowed; }
+.region-fetch-error { margin: 10px 0 0; color: #f0a5a5; font-size: 11px; }
+.searchable-select { min-width: 0; position: relative; }
+.searchable-select input[type="search"] { padding-right: 28px; }
+.searchable-select-list { position: absolute; z-index: 30; width: 100%; max-height: 220px; top: calc(100% + 4px); left: 0; overflow-y: auto; border: 1px solid #465a57; border-radius: 8px; background: #111b1e; box-shadow: 0 12px 28px rgb(0 0 0 / 36%); }
+.searchable-select-option, .searchable-select-empty, .searchable-select-hint { padding: 9px 10px; color: #dbe7df; font-size: 11px; font-weight: 500; }
+.searchable-select-option { cursor: pointer; }
+.searchable-select-option:hover, .searchable-select-option.is-active { color: #eff8ef; background: #294036; }
+.searchable-select-option[aria-selected="true"] { color: var(--green); }
+.searchable-select-empty, .searchable-select-hint { color: var(--muted); }
+.searchable-select-hint { border-top: 1px solid var(--line); font-size: 10px; }
 .region-chips { min-height: 39px; margin-top: 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .region-chip { max-width: 100%; padding: 5px 6px 5px 9px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #4a6856; border-radius: 20px; color: #d9ebd7; background: #22362b; font-size: 10px; }
 .region-chip button { width: 21px; height: 21px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%; color: #bad0c0; background: transparent; cursor: pointer; }

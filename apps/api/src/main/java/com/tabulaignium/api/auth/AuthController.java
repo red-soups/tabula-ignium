@@ -4,8 +4,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import org.springframework.http.CacheControl;
@@ -61,7 +64,8 @@ class AuthController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown nationality code");
         }
 
-        long userId = accounts.completeSignup(principal, signup.name().strip(), signup.nationalityCode());
+        long userId = accounts.completeSignup(principal, signup.name().strip(),
+                signup.nationalityCode(), signup.regionIds());
         User user = users.findById(userId).orElseThrow();
         var registered = new AccountPrincipal(principal, userId);
         var context = SecurityContextHolder.createEmptyContext();
@@ -89,7 +93,8 @@ class AuthController {
     }
 
     record SignupRequest(@NotBlank @Size(max = 100) String name,
-            @NotBlank @Pattern(regexp = "[A-Z]{2}") String nationalityCode) {
+            @NotBlank @Pattern(regexp = "[A-Z]{2}") String nationalityCode,
+            @NotEmpty @Size(max = 5) List<@Positive Long> regionIds) {
     }
 
     record PendingSignup(boolean registrationRequired, String name, String email) {
