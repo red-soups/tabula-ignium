@@ -86,7 +86,7 @@ export function EditProfileModal({ user, busy, error, onClose, onSubmit }: EditP
         <RegionSelector
           title="관심 지역"
           inputName="regionIds"
-          initialRegions={user.interestedRegions}
+          initialSelections={user.interestedRegions}
           maxSelections={5}
           onSelectionChange={setRegionIds}
         />

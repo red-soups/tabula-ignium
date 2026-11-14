@@ -11,7 +11,10 @@ const SIDEBAR_DATA: { items: { id: ProjectFilter; label: string; icon: IconName 
   storageStatus: '브라우저에 저장',
 }
 
-type Props = { activeFilter: ProjectFilter; onFilterChange: (filter: ProjectFilter) => void }
+type Props = {
+  activeFilter: ProjectFilter
+  onFilterChange: (filter: ProjectFilter) => void
+}
 
 export function DashboardSidebar({ activeFilter, onFilterChange }: Props) {
   return (

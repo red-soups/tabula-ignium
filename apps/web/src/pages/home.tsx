@@ -21,9 +21,10 @@ import {
 } from '../components/DashboardSidebar'
 import { GlobePreview } from '../components/GlobePreview'
 import { HeroSection } from '../components/HeroSection'
-import { ProjectGrid, type Project } from '../components/ProjectGrid'
+import { ProjectGrid, type Project, type ProjectSort } from '../components/ProjectGrid'
 import { SignupModal } from '../components/SignupModal'
 import { EditProfileModal } from '../components/EditProfileModal'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 
 function getSignupErrorMessage(error: Error | null) {
   if (error instanceof AuthRequestError && error.status === 401) {
@@ -37,6 +38,7 @@ function getSignupErrorMessage(error: Error | null) {
 
 function Home() {
   const [filter, setFilter] = useState<ProjectFilter>('all')
+  const [sort, setSort] = useState<ProjectSort>('recent')
   const [query, setQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
@@ -48,6 +50,7 @@ function Home() {
       ? 'Google 로그인에 실패했습니다. 다시 시도해 주세요.'
       : '',
   )
+  const debouncedQuery = useDebouncedValue(query, 300)
 
   const accountQuery = useAccountQuery()
   const signupMutation = useCompleteSignupMutation()
@@ -112,34 +115,42 @@ function Home() {
 
   const projects = useMemo<Project[]>(() => {
     if (!user) return []
-    return (projectsQuery.data ?? []).map((project) => ({
-      ...project,
-      description: project.description ?? '',
-      updatedAt: `${new Intl.DateTimeFormat('ko-KR').format(new Date(project.updatedAt))} 수정`,
-      isRecent: true,
-    }))
+    return (projectsQuery.data ?? []).map((project) => {
+      const updatedAt = new Date(project.updatedAt)
+      return {
+        ...project,
+        description: project.description ?? '',
+        updatedAt: `${new Intl.DateTimeFormat('ko-KR').format(updatedAt)} 수정`,
+        updatedAtTimestamp: updatedAt.getTime(),
+        isRecent: true,
+      }
+    })
   }, [projectsQuery.data, user])
 
   const filteredProjects = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase('ko-KR')
+    const normalizedQuery = debouncedQuery.trim().toLocaleLowerCase('ko-KR')
 
-    return projects.filter((project) => {
-      const matchesFilter = filter === 'all' || project.isRecent
-      const matchesSearch =
-        normalizedQuery.length === 0 ||
-        [
-          project.name,
-          project.description,
-          ...project.regions.map((region) => region.name),
-          ...project.features.map((feature) => feature.name),
-        ]
-          .join(' ')
-          .toLocaleLowerCase('ko-KR')
-          .includes(normalizedQuery)
+    return projects
+      .filter((project) => {
+        const matchesFilter = filter === 'all' || project.isRecent
+        const matchesSearch =
+          normalizedQuery.length === 0 ||
+          [
+            project.name,
+            project.description,
+            ...project.regions.map((region) => region.name),
+            ...project.features.map((feature) => feature.name),
+          ]
+            .join(' ')
+            .toLocaleLowerCase('ko-KR')
+            .includes(normalizedQuery)
 
-      return matchesFilter && matchesSearch
-    })
-  }, [filter, projects, query])
+        return matchesFilter && matchesSearch
+      })
+      .sort((left, right) => sort === 'recent'
+        ? right.updatedAtTimestamp - left.updatedAtTimestamp
+        : left.updatedAtTimestamp - right.updatedAtTimestamp)
+  }, [debouncedQuery, filter, projects, sort])
 
   const openCreateModal = () => {
     if (!user) {
@@ -189,7 +200,9 @@ function Home() {
             projects={filteredProjects}
             filter={filter}
             query={query}
+            sort={sort}
             onQueryChange={setQuery}
+            onSortChange={setSort}
             onEditProject={openEditModal}
             onDeleteProject={(project) => {
               deleteProjectMutation.reset()

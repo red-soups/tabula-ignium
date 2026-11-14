@@ -12,14 +12,19 @@ const PROJECT_GRID_DATA = {
 export type Project = Omit<ProjectResponse, 'description'> & {
   description: string
   updatedAt: string
+  updatedAtTimestamp: number
   isRecent: boolean
 }
+
+export type ProjectSort = 'recent' | 'oldest'
 
 type ProjectGridProps = {
   projects: Project[]
   filter: ProjectFilter
   query: string
+  sort: ProjectSort
   onQueryChange: (query: string) => void
+  onSortChange: (sort: ProjectSort) => void
   onEditProject: (project: Project) => void
   onDeleteProject: (project: Project) => void
 }
@@ -61,12 +66,21 @@ function ProjectCard({ project, onEdit, onDelete }: {
   )
 }
 
-export function ProjectGrid({ projects, filter, query, onQueryChange, onEditProject, onDeleteProject }: ProjectGridProps) {
+export function ProjectGrid({ projects, filter, query, sort, onQueryChange, onSortChange, onEditProject, onDeleteProject }: ProjectGridProps) {
   return (
     <section className="project-index" aria-labelledby="project-list-title">
       <div className="index-top">
         <div className="index-title"><h2 id="project-list-title">{PROJECT_GRID_DATA.titles[filter]}</h2><span className="count-chip">{projects.length}</span></div>
-        <label className="project-search"><Icon name="search" size={18} /><input type="search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder={PROJECT_GRID_DATA.searchPlaceholder} aria-label={PROJECT_GRID_DATA.searchPlaceholder} /></label>
+        <div className="index-tools">
+          <label className="project-sort">
+            <span className="visually-hidden">프로젝트 정렬</span>
+            <select value={sort} onChange={(event) => onSortChange(event.target.value as ProjectSort)} aria-label="프로젝트 정렬">
+              <option value="recent">최근 수정 순</option>
+              <option value="oldest">오래된 순</option>
+            </select>
+          </label>
+          <label className="project-search"><Icon name="search" size={18} /><input type="search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder={PROJECT_GRID_DATA.searchPlaceholder} aria-label={PROJECT_GRID_DATA.searchPlaceholder} /></label>
+        </div>
       </div>
       {projects.length > 0 ? (
         <div className="project-grid">{projects.map((project) => <ProjectCard key={project.id} project={project} onEdit={onEditProject} onDelete={onDeleteProject} />)}</div>
