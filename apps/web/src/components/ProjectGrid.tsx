@@ -1,4 +1,5 @@
 import { Icon } from './Icon'
+import { ProjectMapThumbnail } from './ProjectMapThumbnail'
 import type { ProjectFilter } from './DashboardSidebar'
 import type { ProjectResponse } from '../api/projects'
 
@@ -36,20 +37,10 @@ function ProjectCard({ project, onEdit, onDelete, onOpen }: {
   onDelete: (project: Project) => void
   onOpen: (project: Project) => void
 }) {
-  const mapVariants = ['amazon', 'western-us', 'australia'] as const
-  const mapVariant = mapVariants[project.id % mapVariants.length]
-
   return (
     <article className="project-card">
       <button className="project-open" type="button" aria-label={`${project.name} 열기`} onClick={() => onOpen(project)}>
-        <span className={`project-preview map-${mapVariant}`}>
-          <span className="map-grid" aria-hidden="true" />
-          <span className="map-land land-one" aria-hidden="true" />
-          <span className="map-land land-two" aria-hidden="true" />
-          <span className="area-box" aria-hidden="true" />
-          <span className="fire-points" aria-hidden="true" />
-          <span className="project-area-tag">{project.regions.map((region) => region.name).join(' · ')}</span>
-        </span>
+        <ProjectMapThumbnail projectId={project.id} regionNames={project.regions.map((region) => region.name)} />
         <span className="project-card-body">
           <strong className="project-card-title">{project.name}</strong>
           <span className="project-description">{project.description}</span>

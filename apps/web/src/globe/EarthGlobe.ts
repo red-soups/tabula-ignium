@@ -187,7 +187,7 @@ export class EarthGlobe {
   private container: HTMLElement;
   private cb: GlobeCallbacks;
 
-  constructor(container: HTMLElement, cb: GlobeCallbacks = {}) {
+  constructor(container: HTMLElement, cb: GlobeCallbacks = {}, initialView: GeoView = HOME_VIEW) {
     this.container = container;
     this.cb = cb;
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -288,7 +288,7 @@ export class EarthGlobe {
     atmosphere.renderOrder = ORDER.atmosphere;
     this.scene.add(atmosphere);
 
-    this.controls = new GlobeControls(canvas, this.camera, (x, y) => this.pickLatLon(x, y), HOME_VIEW);
+    this.controls = new GlobeControls(canvas, this.camera, (x, y) => this.pickLatLon(x, y), initialView);
     this.controls.onInteract = () => {
       if (this.controls.autoRotate) {
         this.controls.autoRotate = false;

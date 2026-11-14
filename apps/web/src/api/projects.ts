@@ -17,6 +17,7 @@ export type ProjectMapResponse = {
     east: number
     south: number
     north: number
+    geometryGeoJson: string
   }>
 }
 
