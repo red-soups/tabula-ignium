@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: tabula-ignium-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/tabula_ignium}
+    username: ${DB_USER:tabula_ignium}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+mybatis:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
