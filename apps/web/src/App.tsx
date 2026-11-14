@@ -1,5 +1,5 @@
 import AuthHome from './pages/AuthHome'
-import './App.css'
+import './AuthHome.css'
 
 function App() {
   return <AuthHome />
