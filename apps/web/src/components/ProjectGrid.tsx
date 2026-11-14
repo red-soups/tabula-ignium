@@ -1,23 +1,18 @@
 import { Icon } from './Icon'
 import type { ProjectFilter } from './DashboardSidebar'
+import type { ProjectResponse } from '../api/projects'
 
-// 프로젝트 목록 문구와 빈 상태 예시 데이터입니다.
 const PROJECT_GRID_DATA = {
   titles: { all: '모든 프로젝트', recent: '최근 열어본 프로젝트' },
   searchPlaceholder: '프로젝트 검색',
-  emptyTitle: '프로젝트를 찾을 수 없어요',
-  emptyDescription: '검색어를 바꾸거나 다른 목록을 확인해 보세요.',
+  emptyTitle: '저장된 프로젝트가 없습니다',
+  emptyDescription: '새 프로젝트를 만들어 관측 지역과 기능을 저장해 보세요.',
 }
 
-export type Project = {
-  id: string
-  name: string
+export type Project = Omit<ProjectResponse, 'description'> & {
   description: string
-  regions: string[]
-  features: string[]
   updatedAt: string
   isRecent: boolean
-  mapVariant: 'amazon' | 'western-us' | 'australia'
 }
 
 type ProjectGridProps = {
@@ -25,36 +20,48 @@ type ProjectGridProps = {
   filter: ProjectFilter
   query: string
   onQueryChange: (query: string) => void
+  onEditProject: (project: Project) => void
+  onDeleteProject: (project: Project) => void
 }
 
-function ProjectCard({ project }: { project: Project }) {
+function ProjectCard({ project, onEdit, onDelete }: {
+  project: Project
+  onEdit: (project: Project) => void
+  onDelete: (project: Project) => void
+}) {
+  const mapVariants = ['amazon', 'western-us', 'australia'] as const
+  const mapVariant = mapVariants[project.id % mapVariants.length]
+
   return (
     <article className="project-card">
       <button className="project-open" type="button" aria-label={`${project.name} 열기`}>
-        <span className={`project-preview map-${project.mapVariant}`}>
+        <span className={`project-preview map-${mapVariant}`}>
           <span className="map-grid" aria-hidden="true" />
           <span className="map-land land-one" aria-hidden="true" />
           <span className="map-land land-two" aria-hidden="true" />
           <span className="area-box" aria-hidden="true" />
           <span className="fire-points" aria-hidden="true" />
-          <span className="project-area-tag">{project.regions.join(' · ')}</span>
+          <span className="project-area-tag">{project.regions.map((region) => region.name).join(' · ')}</span>
         </span>
         <span className="project-card-body">
           <strong className="project-card-title">{project.name}</strong>
           <span className="project-description">{project.description}</span>
           <span className="project-meta"><span>지역 {project.regions.length}개</span><span aria-hidden="true">·</span><span>기능 {project.features.length}개</span><span aria-hidden="true">·</span><span>{project.updatedAt}</span></span>
           <span className="project-tags">
-            {project.features.slice(0, 3).map((feature) => <span key={feature}>{feature}</span>)}
+            {project.features.slice(0, 3).map((feature) => <span key={feature.id}>{feature.name}</span>)}
             {project.features.length > 3 && <span>+{project.features.length - 3}</span>}
           </span>
         </span>
       </button>
-      <button className="project-config" type="button" aria-label={`${project.name} 설정`}><Icon name="settings" size={15} /></button>
+      <span className="project-card-actions">
+        <button className="project-config" type="button" aria-label={`${project.name} 수정`} onClick={() => onEdit(project)}><Icon name="settings" size={15} /></button>
+        <button className="project-delete" type="button" aria-label={`${project.name} 삭제`} onClick={() => onDelete(project)}><Icon name="trash" size={15} /></button>
+      </span>
     </article>
   )
 }
 
-export function ProjectGrid({ projects, filter, query, onQueryChange }: ProjectGridProps) {
+export function ProjectGrid({ projects, filter, query, onQueryChange, onEditProject, onDeleteProject }: ProjectGridProps) {
   return (
     <section className="project-index" aria-labelledby="project-list-title">
       <div className="index-top">
@@ -62,7 +69,7 @@ export function ProjectGrid({ projects, filter, query, onQueryChange }: ProjectG
         <label className="project-search"><Icon name="search" size={18} /><input type="search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder={PROJECT_GRID_DATA.searchPlaceholder} aria-label={PROJECT_GRID_DATA.searchPlaceholder} /></label>
       </div>
       {projects.length > 0 ? (
-        <div className="project-grid">{projects.map((project) => <ProjectCard key={project.id} project={project} />)}</div>
+        <div className="project-grid">{projects.map((project) => <ProjectCard key={project.id} project={project} onEdit={onEditProject} onDelete={onDeleteProject} />)}</div>
       ) : (
         <div className="grid-empty"><Icon name="map" size={25} /><strong>{PROJECT_GRID_DATA.emptyTitle}</strong><span>{PROJECT_GRID_DATA.emptyDescription}</span></div>
       )}

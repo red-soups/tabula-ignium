@@ -3,7 +3,7 @@ import { useRegionsQuery } from '../api/regionQueries'
 import { Icon } from './Icon'
 import { SearchableSelect } from './SearchableSelect'
 
-type SelectedRegion = {
+export type SelectedRegion = {
   id: number
   label: string
 }
@@ -12,7 +12,7 @@ type RegionSelectorProps = {
   title: string
   inputName: string
   maxSelections?: number
-  initialRegions?: SelectedRegion[]
+  initialSelections?: SelectedRegion[]
   onSelectionChange?: (regionIds: number[]) => void
 }
 
@@ -20,20 +20,28 @@ export function RegionSelector({
   title,
   inputName,
   maxSelections = 5,
-  initialRegions = [],
+  initialSelections = [],
   onSelectionChange,
 }: RegionSelectorProps) {
   const [countryId, setCountryId] = useState(0)
   const [cityId, setCityId] = useState(0)
   const [districtId, setDistrictId] = useState(0)
-  const [selectedRegions, setSelectedRegions] = useState<SelectedRegion[]>(initialRegions)
+  const [selectedRegions, setSelectedRegions] =
+    useState<SelectedRegion[]>(initialSelections)
 
   const countriesQuery = useRegionsQuery(null)
   const citiesQuery = useRegionsQuery(countryId || null, countryId > 0)
   const districtsQuery = useRegionsQuery(cityId || null, cityId > 0)
-  const country = countriesQuery.data?.find((item) => item.id === countryId)
-  const city = citiesQuery.data?.find((item) => item.id === cityId)
-  const district = districtsQuery.data?.find((item) => item.id === districtId)
+
+  const country = countriesQuery.data?.find(
+    (item) => item.id === countryId,
+  )
+  const city = citiesQuery.data?.find(
+    (item) => item.id === cityId,
+  )
+  const district = districtsQuery.data?.find(
+    (item) => item.id === districtId,
+  )
 
   const updateSelectedRegions = (nextRegions: SelectedRegion[]) => {
     setSelectedRegions(nextRegions)
@@ -42,65 +50,215 @@ export function RegionSelector({
 
   const addRegion = () => {
     const selected = district ?? city ?? country
-    if (!country || !selected || selectedRegions.length >= maxSelections) return
-    if (selectedRegions.some((region) => region.id === selected.id)) return
 
-    const label = [country.name, city?.name, district?.name].filter(Boolean).join(' ')
-    updateSelectedRegions([...selectedRegions, { id: selected.id, label }])
+    if (
+      !country ||
+      !selected ||
+      selectedRegions.length >= maxSelections
+    ) {
+      return
+    }
+
+    const isAlreadySelected = selectedRegions.some(
+      (region) => region.id === selected.id,
+    )
+
+    if (isAlreadySelected) {
+      return
+    }
+
+    const label = [
+      country.name,
+      city?.name,
+      district?.name,
+    ]
+      .filter(Boolean)
+      .join(' ')
+
+    updateSelectedRegions([
+      ...selectedRegions,
+      {
+        id: selected.id,
+        label,
+      },
+    ])
+
     setCountryId(0)
     setCityId(0)
     setDistrictId(0)
   }
 
-  const hasQueryError = countriesQuery.isError || citiesQuery.isError || districtsQuery.isError
+  const removeRegion = (regionId: number) => {
+    updateSelectedRegions(
+      selectedRegions.filter(
+        (region) => region.id !== regionId,
+      ),
+    )
+  }
+
+  const hasQueryError =
+    countriesQuery.isError ||
+    citiesQuery.isError ||
+    districtsQuery.isError
 
   return (
     <fieldset className="region-fieldset">
-      <legend>{title} <small>{selectedRegions.length}/{maxSelections}개 선택</small></legend>
+      <legend>
+        {title}{' '}
+        <small>
+          {selectedRegions.length}/{maxSelections}개 선택
+        </small>
+      </legend>
+
       <div className="region-selectors">
         <label>
           <span>국가</span>
+
           <SearchableSelect
             value={countryId ? String(countryId) : ''}
-            options={countriesQuery.data?.map((item) => ({ value: String(item.id), label: `${item.name} (${item.countryCode})` })) ?? []}
-            placeholder={countriesQuery.isPending ? '불러오는 중…' : '국가 검색'}
-            disabled={countriesQuery.isPending || countriesQuery.isError}
-            onChange={(value) => { setCountryId(Number(value)); setCityId(0); setDistrictId(0) }}
+            options={
+              countriesQuery.data?.map((item) => ({
+                value: String(item.id),
+                label: `${item.name} (${item.countryCode})`,
+              })) ?? []
+            }
+            placeholder={
+              countriesQuery.isPending
+                ? '불러오는 중…'
+                : '국가 검색'
+            }
+            disabled={
+              countriesQuery.isPending ||
+              countriesQuery.isError
+            }
+            onChange={(value) => {
+              setCountryId(Number(value))
+              setCityId(0)
+              setDistrictId(0)
+            }}
           />
         </label>
+
         <label>
-          <span>시·도 <small>선택</small></span>
+          <span>
+            시·도 <small>선택</small>
+          </span>
+
           <SearchableSelect
             value={cityId ? String(cityId) : ''}
-            options={citiesQuery.data?.map((item) => ({ value: String(item.id), label: item.name })) ?? []}
-            placeholder={!countryId ? '국가 먼저 선택' : citiesQuery.isPending ? '불러오는 중…' : '시·도 검색'}
-            disabled={!countryId || citiesQuery.isPending || citiesQuery.isError}
-            onChange={(value) => { setCityId(Number(value)); setDistrictId(0) }}
+            options={
+              citiesQuery.data?.map((item) => ({
+                value: String(item.id),
+                label: item.name,
+              })) ?? []
+            }
+            placeholder={
+              !countryId
+                ? '국가 먼저 선택'
+                : citiesQuery.isPending
+                  ? '불러오는 중…'
+                  : '시·도 검색'
+            }
+            disabled={
+              !countryId ||
+              citiesQuery.isPending ||
+              citiesQuery.isError
+            }
+            onChange={(value) => {
+              setCityId(Number(value))
+              setDistrictId(0)
+            }}
           />
         </label>
+
         <label>
-          <span>군·구 <small>선택</small></span>
+          <span>
+            군·구 <small>선택</small>
+          </span>
+
           <SearchableSelect
             value={districtId ? String(districtId) : ''}
-            options={districtsQuery.data?.map((item) => ({ value: String(item.id), label: item.name })) ?? []}
-            placeholder={!cityId ? '시·도 먼저 선택' : districtsQuery.isPending ? '불러오는 중…' : '군·구 검색'}
-            disabled={!cityId || districtsQuery.isPending || districtsQuery.isError}
-            onChange={(value) => setDistrictId(Number(value))}
+            options={
+              districtsQuery.data?.map((item) => ({
+                value: String(item.id),
+                label: item.name,
+              })) ?? []
+            }
+            placeholder={
+              !cityId
+                ? '시·도 먼저 선택'
+                : districtsQuery.isPending
+                  ? '불러오는 중…'
+                  : '군·구 검색'
+            }
+            disabled={
+              !cityId ||
+              districtsQuery.isPending ||
+              districtsQuery.isError
+            }
+            onChange={(value) => {
+              setDistrictId(Number(value))
+            }}
           />
         </label>
-        <button className="region-add-button" type="button" onClick={addRegion} disabled={!country || selectedRegions.length >= maxSelections}>추가</button>
+
+        <button
+          className="region-add-button"
+          type="button"
+          onClick={addRegion}
+          disabled={
+            !country ||
+            selectedRegions.length >= maxSelections
+          }
+        >
+          추가
+        </button>
       </div>
 
-      {hasQueryError && <p className="region-fetch-error" role="alert">지역 정보를 불러오지 못했습니다.</p>}
-      <div className="region-chips" aria-live="polite">
+      {hasQueryError && (
+        <p
+          className="region-fetch-error"
+          role="alert"
+        >
+          지역 정보를 불러오지 못했습니다.
+        </p>
+      )}
+
+      <div
+        className="region-chips"
+        aria-live="polite"
+      >
         {selectedRegions.map((region) => (
-          <span className="region-chip" key={region.id}>
+          <span
+            className="region-chip"
+            key={region.id}
+          >
             {region.label}
-            <button type="button" onClick={() => updateSelectedRegions(selectedRegions.filter((item) => item.id !== region.id))} aria-label={`${region.label} 삭제`}><Icon name="close" size={13} /></button>
-            <input type="hidden" name={inputName} value={region.id} />
+
+            <button
+              type="button"
+              onClick={() => removeRegion(region.id)}
+              aria-label={`${region.label} 삭제`}
+            >
+              <Icon
+                name="close"
+                size={13}
+              />
+            </button>
+
+            <input
+              type="hidden"
+              name={inputName}
+              value={region.id}
+            />
           </span>
         ))}
-        {selectedRegions.length === 0 && <span className="region-empty">선택한 지역이 없습니다.</span>}
+
+        {selectedRegions.length === 0 && (
+          <span className="region-empty">
+            선택한 지역이 없습니다.
+          </span>
+        )}
       </div>
     </fieldset>
   )

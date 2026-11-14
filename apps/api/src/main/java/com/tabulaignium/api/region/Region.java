@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "regions")
-class Region {
+public class Region {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,19 +34,19 @@ class Region {
     protected Region() {
     }
 
-    Long getId() {
+    public Long getId() {
         return id;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    String getCountryCode() {
+    public String getCountryCode() {
         return countryCode;
     }
 
-    Short getRegionLevel() {
+    public Short getRegionLevel() {
         return regionLevel;
     }
 

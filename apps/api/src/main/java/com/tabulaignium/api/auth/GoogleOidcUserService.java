@@ -11,7 +11,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
 @Service
-class GoogleOidcUserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
+public class GoogleOidcUserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
 
     static final String SIGNUP_REQUIRED = "SIGNUP_REQUIRED";
     static final String REGISTERED_USER = "REGISTERED_USER";
@@ -29,7 +29,7 @@ class GoogleOidcUserService implements OAuth2UserService<OidcUserRequest, OidcUs
         return new AccountPrincipal(googleUser, accounts.findExistingUser(googleUser));
     }
 
-    static final class AccountPrincipal extends DefaultOidcUser {
+    public static final class AccountPrincipal extends DefaultOidcUser {
 
         @Serial
         private static final long serialVersionUID = 1L;
@@ -42,7 +42,7 @@ class GoogleOidcUserService implements OAuth2UserService<OidcUserRequest, OidcUs
             this.userId = userId;
         }
 
-        Long userId() {
+        public Long userId() {
             return userId;
         }
     }
