@@ -60,7 +60,8 @@
 }
 
 .fire-globe-viewport canvas {
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -68,8 +69,10 @@
   touch-action: none;
 }
 
+.fire-globe-viewport .globe-labels { position: absolute; inset: 0; pointer-events: none; }
+.fire-globe-viewport-label, .fire-globe-status, .fire-globe-viewport-footer { z-index: 2; }
+
 .fire-globe-viewport canvas:active { cursor: grabbing; }
-.fire-globe-viewport canvas:focus-visible { outline: 2px solid #b5e5ac; outline-offset: -3px; }
 
 .fire-globe-viewport-label {
   position: absolute;
@@ -91,30 +94,6 @@
 .fire-globe-viewport-label small { color: #96aba9; font-size: 10px; font-weight: 500; }
 .fire-globe-live-dot { width: 6px; height: 6px; border-radius: 50%; background: #b7dfa8; box-shadow: 0 0 0 3px #b7dfa82b; }
 
-.fire-globe-tools {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  display: grid;
-  gap: 6px;
-}
-
-.fire-globe-tools button {
-  width: 34px;
-  height: 34px;
-  border: 1px solid #58716d7a;
-  border-radius: 7px;
-  background: #081218dc;
-  color: #e1eeed;
-  cursor: pointer;
-  font-size: 20px;
-  line-height: 1;
-}
-
-.fire-globe-tools button:hover:not(:disabled),
-.fire-globe-tools button:focus-visible { border-color: #a5d5bd; background: #18302f; }
-.fire-globe-tools button:disabled { opacity: .5; cursor: default; }
-
 .fire-globe-status {
   position: absolute;
   inset: 50% 18px auto;
@@ -125,26 +104,6 @@
   text-align: center;
   font-size: 13px;
 }
-
-.fire-globe-focus-label {
-  position: absolute;
-  left: 16px;
-  bottom: 46px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: calc(100% - 32px);
-  padding: 8px 10px;
-  border: 1px solid #bb735c7a;
-  border-radius: 7px;
-  background: #120f11d9;
-  color: #f5ede9;
-  font-size: 11px;
-  font-weight: 700;
-  pointer-events: none;
-}
-
-.fire-globe-focus-label small { margin-left: 3px; color: #d3aaa1; font-size: 10px; font-weight: 400; }
 
 .fire-globe-viewport-footer {
   position: absolute;
@@ -184,24 +143,17 @@
 .fire-globe-locations p { margin: 0 0 17px; color: #9baea9; font-size: 11px; line-height: 1.5; }
 .fire-globe-locations ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 5px; }
 
-.fire-globe-locations button {
+.fire-globe-location {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   width: 100%;
   padding: 11px 9px;
-  border: 1px solid transparent;
   border-radius: 8px;
-  background: transparent;
   color: #dce8e2;
-  cursor: pointer;
   text-align: left;
 }
 
-.fire-globe-locations button:hover:enabled { background: #1a2a2c; }
-.fire-globe-locations button.is-selected { border-color: #735349; background: #2c2423; }
-.fire-globe-locations button:focus-visible { outline: 2px solid #acd7a4; }
-.fire-globe-locations button:disabled { opacity: .5; cursor: default; }
 .fire-globe-locations strong, .fire-globe-locations small { display: block; }
 .fire-globe-locations strong { font-size: 12px; font-weight: 680; }
 .fire-globe-locations small { margin-top: 4px; color: #9aaca7; font-size: 10px; }
@@ -245,5 +197,4 @@
 @media (max-width: 440px) {
   .fire-globe-viewport-label small { display: none; }
   .fire-globe-locations ul { grid-template-columns: 1fr; }
-  .fire-globe-focus-label { flex-wrap: wrap; }
 }

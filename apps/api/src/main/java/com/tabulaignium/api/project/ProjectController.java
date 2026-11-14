@@ -26,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 class ProjectController {
 
     private final ProjectService projects;
+    private final ProjectMapService projectMaps;
 
-    ProjectController(ProjectService projects) {
+    ProjectController(ProjectService projects, ProjectMapService projectMaps) {
         this.projects = projects;
+        this.projectMaps = projectMaps;
     }
 
     @GetMapping
@@ -48,6 +50,22 @@ class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .cacheControl(CacheControl.noStore())
                 .body(project);
+    }
+
+    @GetMapping("/{projectId}")
+    ResponseEntity<ProjectService.ProjectView> project(
+            @AuthenticationPrincipal AccountPrincipal principal,
+            @PathVariable @Positive Long projectId) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(projects.findOne(principal.userId(), projectId));
+    }
+
+    @GetMapping("/{projectId}/map")
+    ResponseEntity<ProjectMapService.ProjectMap> map(
+            @AuthenticationPrincipal AccountPrincipal principal,
+            @PathVariable @Positive Long projectId) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(projectMaps.find(principal.userId(), projectId));
     }
 
     @PutMapping("/{projectId}")

@@ -36,7 +36,7 @@ function getSignupErrorMessage(error: Error | null) {
   return error ? '회원가입을 완료하지 못했습니다. 입력값을 확인하고 다시 시도해 주세요.' : ''
 }
 
-function Home() {
+function Home({ onOpenProject }: { onOpenProject: (projectId: number) => void }) {
   const [filter, setFilter] = useState<ProjectFilter>('all')
   const [sort, setSort] = useState<ProjectSort>('recent')
   const [query, setQuery] = useState('')
@@ -204,6 +204,7 @@ function Home() {
             onQueryChange={setQuery}
             onSortChange={setSort}
             onEditProject={openEditModal}
+            onOpenProject={(project) => onOpenProject(project.id)}
             onDeleteProject={(project) => {
               deleteProjectMutation.reset()
               setDeletingProject(project)

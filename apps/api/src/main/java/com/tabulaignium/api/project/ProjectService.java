@@ -37,6 +37,13 @@ class ProjectService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    ProjectView findOne(long userId, long projectId) {
+        return projects.findByIdAndUserId(projectId, userId)
+                .map(this::toView)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
+    }
+
     @Transactional
     ProjectView create(long userId, String name, String description,
             List<Long> regionIds, List<Long> featureIds) {
