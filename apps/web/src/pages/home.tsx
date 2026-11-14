@@ -69,16 +69,13 @@ function Home() {
   const [filter, setFilter] = useState<ProjectFilter>('all')
   const [query, setQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [redirectError, setRedirectError] = useState(() =>
   const [isGlobePreviewOpen, setIsGlobePreviewOpen] = useState(false)
-  const [account, setAccount] = useState<CurrentUser | PendingSignup | null>(null)
-  const [authBusy, setAuthBusy] = useState(true)
-  const [authError, setAuthError] = useState(() =>
-
+  const [redirectError, setRedirectError] = useState(() =>
     new URLSearchParams(window.location.search).get('login') === 'failed'
       ? 'Google 로그인에 실패했습니다. 다시 시도해 주세요.'
       : '',
   )
+
   const accountQuery = useAccountQuery()
   const signupMutation = useCompleteSignupMutation()
   const logoutMutation = useLogoutMutation()
