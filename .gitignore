@@ -95,3 +95,6 @@ venv/
 # GeoJSON 대용량 원본 제외
 /infra/data/regions/*.geojson
 
+# 화재 분석용 대용량 CSV 원본 제외
+/infra/data/*.csv
+
