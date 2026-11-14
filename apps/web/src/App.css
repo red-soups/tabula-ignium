@@ -137,3 +137,12 @@
 @media (max-width: 720px) { .create-modal { max-height: calc(100vh - 20px); }.region-option-grid, .feature-option-grid { grid-template-columns: 1fr; } }
 @media (max-width: 420px) { .header-create { width: 36px; overflow: hidden; white-space: nowrap; color: transparent; gap: 0; }.header-create .icon { color: var(--green-ink); }.hero-copy h1 { font-size: 31px; }.dashboard-nav button .icon { display: none; }.modal-backdrop { padding: 10px; }.modal-head, .create-modal form { padding-inline: 16px; }.signup-modal-head, .signup-form { padding-inline: 16px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+
+.header-user { max-width: 12ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.header-logout { min-height: 36px; padding: 7px 10px; font-size: 12px; white-space: nowrap; }
+.google-login-button:disabled, .signup-actions button:disabled { cursor: default; opacity: .55; }
+dialog.signup-modal { margin: auto; padding: 0; color: var(--text); }
+dialog.signup-modal::backdrop { background: var(--overlay); }
+.signup-form input[readonly] { color: var(--text-soft); background: var(--surface); }
+.signup-form label small { font-weight: 400; color: var(--muted); }
+.auth-error { color: var(--orange); font-size: 13px; }

@@ -1,0 +1,225 @@
+{
+  "info": {
+    "name": "Tabula Ignium · Google OAuth",
+    "description": "로컬 Spring Boot의 Google OAuth API입니다. 먼저 브라우저에서 http://localhost:8080/oauth2/authorization/google 을 열어 로그인하세요. 로그인 완료 후 브라우저의 JSESSIONID를 Postman Cookies에서 localhost에 추가합니다. 내 정보 조회 → CSRF 토큰 조회 → 로그아웃 순서로 실행할 수 있습니다. 실제 로그인에는 Google Cloud OAuth 클라이언트 설정이 필요합니다.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "oauthCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "oauthState",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Google 로그인 시작",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/oauth2/authorization/google",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "oauth2",
+            "authorization",
+            "google"
+          ]
+        },
+        "description": "Postman에서 보내면 Google로 향하는 302와 Location 헤더를 확인할 수 있습니다. 실제 로그인은 이 주소를 브라우저에서 직접 열어 진행하세요."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Google 로그인으로 이동 (302)\", () => {",
+              "    pm.response.to.have.status(302);",
+              "    pm.expect(pm.response.headers.get(\"Location\")).to.match(/^https:\\/\\/accounts\\.google\\.com\\//);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "Google OAuth 콜백 (참고)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/login/oauth2/code/google",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "login",
+            "oauth2",
+            "code",
+            "google"
+          ],
+          "query": [
+            {
+              "key": "code",
+              "value": "{{oauthCode}}",
+              "description": "Google이 전달하는 일회용 코드",
+              "disabled": true
+            },
+            {
+              "key": "state",
+              "value": "{{oauthState}}",
+              "description": "로그인 시작 요청의 state",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Google이 브라우저에 자동으로 호출하는 주소입니다. 로그인 시작 시 생성된 세션과 state, 1회용 code가 필요합니다. 값 없이 전송하면 API 단독 설정에서는 401을 반환합니다."
+      },
+      "response": [],
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      }
+    },
+    {
+      "name": "내 정보 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "me"
+          ]
+        },
+        "description": "로그인 후 받은 JSESSIONID를 localhost 쿠키로 설정하면 200과 id, name, email을 반환합니다. 세션 없이 보내면 401입니다."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"현재 사용자 또는 미로그인 응답\", () => {",
+              "    pm.expect([200, 401]).to.include(pm.response.code);",
+              "    if (pm.response.code === 200) {",
+              "        pm.expect(pm.response.json()).to.have.all.keys(\"id\", \"name\", \"email\");",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CSRF 토큰 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/csrf",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "csrf"
+          ]
+        },
+        "description": "활성 세션에서 요청하세요. 200이면 응답의 헤더 이름과 토큰을 로컬 컬렉션 변수에 담아 로그아웃 요청에 사용합니다."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.unset(\"csrfHeaderName\");",
+              "pm.collectionVariables.unset(\"csrfToken\");",
+              "pm.test(\"CSRF 토큰 또는 미로그인 응답\", () => {",
+              "    pm.expect([200, 401]).to.include(pm.response.code);",
+              "});",
+              "if (pm.response.code === 200) {",
+              "    const { headerName, token } = pm.response.json();",
+              "    pm.collectionVariables.set(\"csrfHeaderName\", headerName);",
+              "    pm.collectionVariables.set(\"csrfToken\", token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "로그아웃",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "logout"
+          ]
+        },
+        "description": "같은 세션에서 CSRF 토큰 조회를 먼저 실행하세요. 로그아웃이 완료되면 204를 반환합니다. CSRF 토큰이 없거나 유효하지 않으면 403입니다. 이어서 내 정보 조회를 보내면 401입니다."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const headerName = pm.collectionVariables.get(\"csrfHeaderName\");",
+              "const token = pm.collectionVariables.get(\"csrfToken\");",
+              "if (headerName && token) {",
+              "    pm.request.headers.upsert({ key: headerName, value: token });",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"로그아웃 완료 (204)\", () => pm.response.to.have.status(204));",
+              "if (pm.response.code === 204 || pm.response.code === 403) {",
+              "    pm.collectionVariables.unset(\"csrfHeaderName\");",
+              "    pm.collectionVariables.unset(\"csrfToken\");",
+              "}"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

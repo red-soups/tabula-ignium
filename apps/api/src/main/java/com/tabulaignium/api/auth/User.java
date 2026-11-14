@@ -21,12 +21,16 @@ class User {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
+    @Column(name = "nationality_code", length = 2)
+    private String nationalityCode;
+
     protected User() {
     }
 
-    User(String name, String email) {
+    User(String name, String email, String nationalityCode) {
         this.name = name;
         this.email = email;
+        this.nationalityCode = nationalityCode;
     }
 
     Long getId() {

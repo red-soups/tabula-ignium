@@ -1,3 +1,4 @@
+import type { CurrentUser } from '../api/auth'
 import { Icon } from './Icon'
 import { GoogleLoginButton } from './GoogleLoginButton'
 
@@ -9,10 +10,13 @@ const HEADER_DATA = {
 
 type AppHeaderProps = {
   onCreateProject: () => void
+  user: CurrentUser | null
+  authBusy: boolean
   onLogin: () => void
+  onLogout: () => void
 }
 
-export function AppHeader({ onCreateProject, onLogin }: AppHeaderProps) {
+export function AppHeader({ onCreateProject, user, authBusy, onLogin, onLogout }: AppHeaderProps) {
   return (
     <header className="app-header">
       <a className="wordmark" href="#top" aria-label="FireScope 프로젝트 홈">
@@ -23,7 +27,14 @@ export function AppHeader({ onCreateProject, onLogin }: AppHeaderProps) {
       <span className="header-crumb">{HEADER_DATA.currentPage}</span>
       <div className="header-actions">
         <button className="data-button" type="button"><span className="live-dot" /><span>{HEADER_DATA.dataLabel}</span></button>
-        <GoogleLoginButton onClick={onLogin} />
+        {user ? (
+          <>
+            <span className="header-user" title={user.email}>{user.name}</span>
+            <button className="quiet-button header-logout" type="button" onClick={onLogout} disabled={authBusy}>로그아웃</button>
+          </>
+        ) : (
+          <GoogleLoginButton onClick={onLogin} disabled={authBusy} />
+        )}
         <button className="accent-button header-create" type="button" onClick={onCreateProject}><Icon name="plus" size={16} />{HEADER_DATA.createLabel}</button>
       </div>
     </header>
