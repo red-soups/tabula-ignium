@@ -161,3 +161,15 @@ dialog.signup-modal::backdrop { background: var(--overlay); }
 .signup-form input[readonly] { color: var(--text-soft); background: var(--surface); }
 .signup-form label small { font-weight: 400; color: var(--muted); }
 .auth-error { color: var(--orange); font-size: 13px; }
+
+.auth-home { min-height: 100vh; background: #101719; color: #eaf1ea; }
+.auth-home-header { min-height: 68px; padding: 14px clamp(20px, 4vw, 64px); display: flex; justify-content: space-between; align-items: center; gap: 20px; border-bottom: 1px solid #34423c; }
+.auth-home-brand { color: #eaf1ea; font-size: 20px; font-weight: 760; text-decoration: none; letter-spacing: -.04em; }
+.auth-home-brand span { margin-left: 5px; color: #b4e6a7; font-size: 11px; letter-spacing: .08em; }
+.auth-home-actions { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.auth-home-actions > button:not(.google-login-button) { padding: 8px 10px; border: 1px solid #46584d; border-radius: 8px; background: transparent; color: #eaf1ea; cursor: pointer; }
+.auth-home-actions > button:disabled { opacity: .55; cursor: default; }
+.auth-home-main { max-width: 900px; margin: 0 auto; padding: clamp(80px, 16vh, 170px) 24px; }
+.auth-home-eyebrow { color: #b4e6a7; font-size: 12px; font-weight: 700; letter-spacing: .18em; }
+.auth-home-main h1 { max-width: 690px; margin: 20px 0 18px; font-size: clamp(32px, 5vw, 58px); letter-spacing: -.06em; line-height: 1.2; }
+.auth-home-main > p { color: #adbbb1; line-height: 1.8; }
