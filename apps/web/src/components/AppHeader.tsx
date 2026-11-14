@@ -10,13 +10,14 @@ const HEADER_DATA = {
 
 type AppHeaderProps = {
   onCreateProject: () => void
+  onGlobePreview: () => void
   user: CurrentUser | null
   authBusy: boolean
   onLogin: () => void
   onLogout: () => void
 }
 
-export function AppHeader({ onCreateProject, user, authBusy, onLogin, onLogout }: AppHeaderProps) {
+export function AppHeader({ onCreateProject, onGlobePreview, user, authBusy, onLogin, onLogout }: AppHeaderProps) {
   return (
     <header className="app-header">
       <a className="wordmark" href="#top" aria-label="FireScope 프로젝트 홈">
@@ -27,6 +28,16 @@ export function AppHeader({ onCreateProject, user, authBusy, onLogin, onLogout }
       <span className="header-crumb">{HEADER_DATA.currentPage}</span>
       <div className="header-actions">
         <button className="data-button" type="button"><span className="live-dot" /><span>{HEADER_DATA.dataLabel}</span></button>
+        <button
+          className="data-button globe-preview-trigger"
+          type="button"
+          onClick={onGlobePreview}
+          aria-label="지구본 미리보기"
+          aria-haspopup="dialog"
+        >
+          <Icon name="globe" size={16} />
+          <span>지구본 미리보기</span>
+        </button>
         {user ? (
           <>
             <span className="header-user" title={user.email}>{user.name}</span>

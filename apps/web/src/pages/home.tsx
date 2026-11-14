@@ -9,6 +9,7 @@ import {
   DashboardSidebar,
   type ProjectFilter,
 } from '../components/DashboardSidebar'
+import { GlobePreview } from '../components/GlobePreview'
 import { HeroSection } from '../components/HeroSection'
 import { ProjectGrid, type Project } from '../components/ProjectGrid'
 import { SignupModal } from '../components/SignupModal'
@@ -53,6 +54,7 @@ function Home() {
   const [filter, setFilter] = useState<ProjectFilter>('all')
   const [query, setQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isGlobePreviewOpen, setIsGlobePreviewOpen] = useState(false)
   const [account, setAccount] = useState<CurrentUser | PendingSignup | null>(null)
   const [authBusy, setAuthBusy] = useState(true)
   const [authError, setAuthError] = useState(() =>
@@ -131,6 +133,7 @@ function Home() {
     <div className="app-shell">
       <AppHeader
         onCreateProject={openCreateModal}
+        onGlobePreview={() => setIsGlobePreviewOpen(true)}
         user={user}
         authBusy={authBusy}
         onLogin={() => window.location.assign(GOOGLE_LOGIN_URL)}
@@ -149,6 +152,7 @@ function Home() {
           />
         </main>
       </div>
+      {isGlobePreviewOpen && <GlobePreview onClose={() => setIsGlobePreviewOpen(false)} />}
       <CreateProjectModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
