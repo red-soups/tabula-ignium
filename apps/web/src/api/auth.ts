@@ -2,6 +2,8 @@ export type CurrentUser = {
   id: number
   name: string
   email: string
+  nationalityCode: string
+  interestedRegions: { id: number; label: string }[]
 }
 
 export type PendingSignup = {
@@ -15,6 +17,8 @@ export type SignupDetails = {
   nationalityCode: string
   regionIds: number[]
 }
+
+export type ProfileDetails = SignupDetails
 
 export const GOOGLE_LOGIN_URL = '/oauth2/authorization/google'
 
@@ -34,7 +38,7 @@ export async function getAccount(signal: AbortSignal): Promise<CurrentUser | Pen
   return response.json()
 }
 
-async function sendAccountRequest(path: string, body?: SignupDetails) {
+async function sendAccountRequest(path: string, method: 'POST' | 'PUT', body?: SignupDetails) {
   const response = await fetch('/api/csrf')
   if (!response.ok) throw new AuthRequestError(response.status)
 
@@ -43,21 +47,27 @@ async function sendAccountRequest(path: string, body?: SignupDetails) {
   if (body) headers.set('Content-Type', 'application/json')
 
   return fetch(path, {
-    method: 'POST',
+    method,
     headers,
     body: body && JSON.stringify(body),
   })
 }
 
 export async function completeSignup(details: SignupDetails): Promise<CurrentUser> {
-  const response = await sendAccountRequest('/api/signup', details)
+  const response = await sendAccountRequest('/api/signup', 'POST', details)
+  if (!response.ok) throw new AuthRequestError(response.status)
+  return response.json()
+}
+
+export async function updateProfile(details: ProfileDetails): Promise<CurrentUser> {
+  const response = await sendAccountRequest('/api/me', 'PUT', details)
   if (!response.ok) throw new AuthRequestError(response.status)
   return response.json()
 }
 
 export async function logout() {
   try {
-    const response = await sendAccountRequest('/api/logout')
+    const response = await sendAccountRequest('/api/logout', 'POST')
     if (!response.ok) throw new AuthRequestError(response.status)
   } catch (error) {
     if (error instanceof AuthRequestError && error.status === 401) return

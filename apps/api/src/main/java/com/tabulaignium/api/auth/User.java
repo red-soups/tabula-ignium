@@ -44,4 +44,13 @@ class User {
     String getEmail() {
         return email;
     }
+
+    String getNationalityCode() {
+        return nationalityCode;
+    }
+
+    void updateProfile(String name, String nationalityCode) {
+        this.name = name;
+        this.nationalityCode = nationalityCode;
+    }
 }
