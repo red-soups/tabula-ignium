@@ -1,0 +1,93 @@
+
+# ============================================
+# Environment Variables / Secrets
+# ============================================
+
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+*.pem
+*.key
+
+
+# ============================================
+# OS Files
+# ============================================
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+
+# ============================================
+# IDE / Editor
+# ============================================
+
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+
+# ============================================
+# Logs / Temporary Files
+# ============================================
+
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+
+# ============================================
+# Frontend (Node.js)
+# ============================================
+
+node_modules/
+dist/
+.next/
+.nuxt/
+coverage/
+.npm/
+.pnpm-store/
+*.tsbuildinfo
+
+
+# ============================================
+# Backend (Spring Boot / Java)
+# ============================================
+
+.gradle/
+build/
+target/
+out/
+*.class
+
+# Gradle Wrapper는 Git에 포함해야 함
+!gradle/wrapper/gradle-wrapper.jar
+
+
+# ============================================
+# Python / Analysis Models
+# ============================================
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+
+# ============================================
+# Local Database Files
+# ============================================
+
+*.sqlite
+*.sqlite3
+*.db
