@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/red-soups/tabula-ignium/packages/shared-schemas/calendar-row.schema.json",
+  "title": "Calendar row",
+  "description": "One month of the burning activity calendar for a selected area",
+  "type": "object",
+  "required": ["period", "count", "low", "high", "normal", "percentile", "level", "anomaly", "source", "estimated"],
+  "properties": {
+    "period": {"type": "string", "pattern": "^\\d{4}-\\d{2}$"},
+    "count": {"type": "number", "minimum": 0},
+    "low": {"type": ["number", "null"]},
+    "high": {"type": ["number", "null"]},
+    "normal": {"type": ["number", "null"], "description": "Median of the same calendar month over the baseline years"},
+    "percentile": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+    "level": {"type": "integer", "minimum": 0, "maximum": 5, "description": "1 Very low … 5 Very high, 0 not ranked"},
+    "anomaly": {"type": "boolean", "description": "percentile >= anomaly_percentile (90)"},
+    "source": {"enum": ["modis", "terra_scaled", "viirs_model"]},
+    "estimated": {"type": "boolean"}
+  }
+}
