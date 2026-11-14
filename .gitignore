@@ -92,3 +92,6 @@ venv/
 *.sqlite3
 *.db
 
+# GeoJSON 대용량 원본 제외
+/infra/data/regions/*.geojson
+
