@@ -7,6 +7,19 @@ export type ProjectResponse = {
   updatedAt: string
 }
 
+export type ProjectMapResponse = {
+  projectId: number
+  regions: Array<{
+    id: number
+    name: string
+    level: number
+    west: number
+    east: number
+    south: number
+    north: number
+  }>
+}
+
 export type CreateProjectDetails = {
   name: string
   description: string
@@ -25,6 +38,18 @@ export class ProjectRequestError extends Error {
 
 export async function getProjects(signal: AbortSignal): Promise<ProjectResponse[]> {
   const response = await fetch('/api/projects', { signal })
+  if (!response.ok) throw new ProjectRequestError(response.status)
+  return response.json()
+}
+
+export async function getProject(projectId: number, signal: AbortSignal): Promise<ProjectResponse> {
+  const response = await fetch(`/api/projects/${projectId}`, { signal })
+  if (!response.ok) throw new ProjectRequestError(response.status)
+  return response.json()
+}
+
+export async function getProjectMap(projectId: number, signal: AbortSignal): Promise<ProjectMapResponse> {
+  const response = await fetch(`/api/projects/${projectId}/map`, { signal })
   if (!response.ok) throw new ProjectRequestError(response.status)
   return response.json()
 }

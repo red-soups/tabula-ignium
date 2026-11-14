@@ -27,19 +27,21 @@ type ProjectGridProps = {
   onSortChange: (sort: ProjectSort) => void
   onEditProject: (project: Project) => void
   onDeleteProject: (project: Project) => void
+  onOpenProject: (project: Project) => void
 }
 
-function ProjectCard({ project, onEdit, onDelete }: {
+function ProjectCard({ project, onEdit, onDelete, onOpen }: {
   project: Project
   onEdit: (project: Project) => void
   onDelete: (project: Project) => void
+  onOpen: (project: Project) => void
 }) {
   const mapVariants = ['amazon', 'western-us', 'australia'] as const
   const mapVariant = mapVariants[project.id % mapVariants.length]
 
   return (
     <article className="project-card">
-      <button className="project-open" type="button" aria-label={`${project.name} 열기`}>
+      <button className="project-open" type="button" aria-label={`${project.name} 열기`} onClick={() => onOpen(project)}>
         <span className={`project-preview map-${mapVariant}`}>
           <span className="map-grid" aria-hidden="true" />
           <span className="map-land land-one" aria-hidden="true" />
@@ -66,7 +68,7 @@ function ProjectCard({ project, onEdit, onDelete }: {
   )
 }
 
-export function ProjectGrid({ projects, filter, query, sort, onQueryChange, onSortChange, onEditProject, onDeleteProject }: ProjectGridProps) {
+export function ProjectGrid({ projects, filter, query, sort, onQueryChange, onSortChange, onEditProject, onDeleteProject, onOpenProject }: ProjectGridProps) {
   return (
     <section className="project-index" aria-labelledby="project-list-title">
       <div className="index-top">
@@ -83,7 +85,7 @@ export function ProjectGrid({ projects, filter, query, sort, onQueryChange, onSo
         </div>
       </div>
       {projects.length > 0 ? (
-        <div className="project-grid">{projects.map((project) => <ProjectCard key={project.id} project={project} onEdit={onEditProject} onDelete={onDeleteProject} />)}</div>
+        <div className="project-grid">{projects.map((project) => <ProjectCard key={project.id} project={project} onEdit={onEditProject} onDelete={onDeleteProject} onOpen={onOpenProject} />)}</div>
       ) : (
         <div className="grid-empty"><Icon name="map" size={25} /><strong>{PROJECT_GRID_DATA.emptyTitle}</strong><span>{PROJECT_GRID_DATA.emptyDescription}</span></div>
       )}
