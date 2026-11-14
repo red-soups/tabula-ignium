@@ -31,6 +31,7 @@ apps/model/
 │   ├── fetch_sample.py    최근 7일 샘플 받기 (MODIS + VIIRS NOAA-20) + 샘플 격자 만들기
 │   ├── fetch_firms_api.py 연도 파일 이후 기간(2026~)을 FIRMS API로 받기 (MAP_KEY 필요)
 │   ├── export_backend.py  백엔드용 ZIP: 감지점(MODIS·VIIRS 같은 열) + 조화 월별 표 (형식: packages/shared-schemas 3절)
+│   ├── build_static_sources.py 고정 열원(화산·플레어·공장) 위치표 → 지구본 NRT 점 거르기용 JSON
 │   ├── aggregate.py       FIRMS 과거 데이터 → 격자 표 (`--landcover`로 토지 피복까지)
 │   └── build_landcover.py MCD12C1 → 0.5° 칸별 토지 피복 표
 ├── tests/                 작은 가짜 데이터로 확인하는 테스트 (`.venv/bin/python -m pytest tests -q`)
@@ -349,6 +350,9 @@ cd ../web && node scripts/check_harmonized.ts   # 웹 계산 = Python 계산 확
   VIIRS 입력은 NOAA-20입니다(Suomi NPP 실시간 자료는 2026-11-12부터 비어 있고, 노트북 09에서 NOAA-20 입력을 검증).
 - 노트북 03이 쓴 원래 결과는 처음 한 번 `exports/harmonized_archive.parquet`로 보관하고, 다시 실행하면 그 위에 새로 붙입니다.
 - 노트북 10의 FRP 모델(`models/frp/`)이 있으면 `extend`가 FRP 열도 다시 붙입니다. 처음 한 번은 `main.py frp`로 붙입니다.
+- 지구본의 실시간 점(FIRMS 7일 파일)도 `type`이 없어서 가스 플레어·공장이 '화재'로 찍힙니다(점의 약 6%).
+  `scripts/build_static_sources.py`로 SP의 고정 열원 위치표(0.01° 칸, 2026 SP 기준 약 2.5만 칸, 255 kB / gzip 77 kB)를
+  만들어 웹 Worker에서 거르면 됩니다. 칸 규칙은 `fetch_firms_api.py`와 같습니다.
 
 ## 3) 토지 피복 (`landcover` 열)
 
