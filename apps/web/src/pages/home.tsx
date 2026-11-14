@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   AuthRequestError, GOOGLE_LOGIN_URL,
   type SignupDetails,
+  type ProfileDetails,
 } from '../api/auth'
 import {
   useAccountQuery,
   useCompleteSignupMutation,
   useLogoutMutation,
+  useUpdateProfileMutation,
 } from '../api/authQueries'
 import { useCreateProjectMutation, useDeleteProjectMutation, useProjectsQuery, useUpdateProjectMutation } from '../api/projectQueries'
 import type { CreateProjectDetails } from '../api/projects'
@@ -21,6 +23,7 @@ import { GlobePreview } from '../components/GlobePreview'
 import { HeroSection } from '../components/HeroSection'
 import { ProjectGrid, type Project } from '../components/ProjectGrid'
 import { SignupModal } from '../components/SignupModal'
+import { EditProfileModal } from '../components/EditProfileModal'
 
 function getSignupErrorMessage(error: Error | null) {
   if (error instanceof AuthRequestError && error.status === 401) {
@@ -39,6 +42,7 @@ function Home() {
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [deletingProject, setDeletingProject] = useState<Project | null>(null)
   const [isGlobePreviewOpen, setIsGlobePreviewOpen] = useState(false)
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
   const [redirectError, setRedirectError] = useState(() =>
     new URLSearchParams(window.location.search).get('login') === 'failed'
       ? 'Google 로그인에 실패했습니다. 다시 시도해 주세요.'
@@ -48,6 +52,7 @@ function Home() {
   const accountQuery = useAccountQuery()
   const signupMutation = useCompleteSignupMutation()
   const logoutMutation = useLogoutMutation()
+  const updateProfileMutation = useUpdateProfileMutation()
   const account = accountQuery.data ?? null
   const pendingSignup = account && 'registrationRequired' in account ? account : null
   const user = account && 'id' in account ? account : null
@@ -55,7 +60,7 @@ function Home() {
   const createProjectMutation = useCreateProjectMutation()
   const updateProjectMutation = useUpdateProjectMutation()
   const deleteProjectMutation = useDeleteProjectMutation()
-  const authBusy = accountQuery.isPending || signupMutation.isPending || logoutMutation.isPending
+  const authBusy = accountQuery.isPending || signupMutation.isPending || logoutMutation.isPending || updateProfileMutation.isPending
   const authError = redirectError
     || (accountQuery.error ? '로그인 상태를 확인하지 못했습니다.' : '')
     || getSignupErrorMessage(signupMutation.error)
@@ -76,9 +81,14 @@ function Home() {
   }
 
   function endSession() {
+    setIsEditProfileOpen(false)
     setRedirectError('')
     signupMutation.reset()
     logoutMutation.mutate()
+  }
+
+  function saveProfile(details: ProfileDetails) {
+    updateProfileMutation.mutate(details, { onSuccess: () => setIsEditProfileOpen(false) })
   }
 
   function startGoogleLogin() {
@@ -167,6 +177,7 @@ function Home() {
         authBusy={authBusy}
         onLogin={startGoogleLogin}
         onLogout={endSession}
+        onEditProfile={() => { updateProfileMutation.reset(); setIsEditProfileOpen(true) }}
       />
       <div className="dashboard-layout">
         <DashboardSidebar activeFilter={filter} onFilterChange={setFilter} />
@@ -220,6 +231,19 @@ function Home() {
           error={authError}
           onClose={endSession}
           onSubmit={finishSignup}
+        />
+      )}
+      {user && isEditProfileOpen && (
+        <EditProfileModal
+          user={user}
+          busy={updateProfileMutation.isPending}
+          error={updateProfileMutation.error
+            ? updateProfileMutation.error instanceof AuthRequestError && updateProfileMutation.error.status === 401
+              ? '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.'
+              : '회원정보를 저장하지 못했습니다. 입력값을 확인하고 다시 시도해 주세요.'
+            : ''}
+          onClose={() => setIsEditProfileOpen(false)}
+          onSubmit={saveProfile}
         />
       )}
     </div>

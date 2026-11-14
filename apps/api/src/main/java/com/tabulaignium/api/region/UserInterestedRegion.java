@@ -17,4 +17,8 @@ class UserInterestedRegion {
     UserInterestedRegion(long userId, long regionId) {
         this.id = new UserInterestedRegionId(userId, regionId);
     }
+
+    long getRegionId() {
+        return id.getRegionId();
+    }
 }

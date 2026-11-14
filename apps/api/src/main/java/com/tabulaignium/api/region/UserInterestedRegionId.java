@@ -26,6 +26,10 @@ class UserInterestedRegionId implements Serializable {
         this.regionId = regionId;
     }
 
+    Long getRegionId() {
+        return regionId;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (this == other) return true;

@@ -59,6 +59,7 @@ class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/me", "/api/csrf", "/api/regions").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/signup").hasAuthority(SIGNUP_REQUIRED)
+                        .requestMatchers(HttpMethod.PUT, "/api/me").hasAuthority(REGISTERED_USER)
                         .anyRequest().hasAuthority(REGISTERED_USER))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

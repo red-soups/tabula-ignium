@@ -4,8 +4,10 @@ import {
   completeSignup,
   getAccount,
   logout,
+  updateProfile,
   type CurrentUser,
   type PendingSignup,
+  type ProfileDetails,
   type SignupDetails,
 } from './auth'
 
@@ -17,6 +19,17 @@ export function useAccountQuery() {
   return useQuery({
     queryKey: AUTH_QUERY_KEY,
     queryFn: ({ signal }) => getAccount(signal),
+  })
+}
+
+export function useUpdateProfileMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (details: ProfileDetails) => updateProfile(details),
+    onSuccess: (user) => {
+      queryClient.setQueryData<Account>(AUTH_QUERY_KEY, user)
+    },
   })
 }
 

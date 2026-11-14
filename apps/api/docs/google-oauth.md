@@ -30,13 +30,16 @@ http://localhost:8080/login/oauth2/code/google
 
 ## API 계약
 
+회원정보 수정 요청과 응답의 상세 형식은 [회원정보 수정 API](user-profile.md)를 참고하세요.
+
 | 요청 | 결과 |
 | --- | --- |
 | `GET /oauth2/authorization/google` | 브라우저를 Google 로그인으로 리디렉션합니다. |
 | `GET /login/oauth2/code/google` | Google 인증 콜백입니다. `WEB_ORIGIN`이 비어 있으면 성공 시 `/api/me`로 이동하고 실패 시 `401`을 반환합니다. |
-| `GET /api/me` | 등록 사용자는 `200`과 `{ "id": 1, "name": "사용자", "email": "user@example.com" }`을 받습니다. 가입 대기 중에는 `200`과 `{ "registrationRequired": true, "name": "사용자", "email": "user@example.com" }`을 받습니다. 세션이 없으면 `401`입니다. |
+| `GET /api/me` | 등록 사용자는 `200`과 `id`, `name`, `email`, `nationalityCode`, `interestedRegions`를 받습니다. 관심 지역의 각 항목은 `id`와 계층 경로를 합친 `label`을 가집니다. 가입 대기 중에는 `registrationRequired`, `name`, `email`을 받습니다. 세션이 없으면 `401`입니다. |
 | `GET /api/csrf` | Google 인증이 완료된 세션에 `{ "headerName": "...", "token": "..." }`을 반환합니다. |
-| `POST /api/signup` | 가입 대기 세션에서 `{ "name": "사용자", "nationalityCode": "KR" }`을 보냅니다. 성공하면 세션이 갱신되고 `200`과 등록 사용자 정보가 반환됩니다. |
+| `POST /api/signup` | 가입 대기 세션에서 `{ "name": "사용자", "nationalityCode": "KR", "regionIds": [1] }`을 보냅니다. 성공하면 세션이 갱신되고 `200`과 등록 사용자 정보가 반환됩니다. |
+| `PUT /api/me` | 등록 사용자의 세션에서 `{ "name": "새 이름", "nationalityCode": "KR", "regionIds": [1, 2] }`를 보내 이름·국적·관심 지역을 한 트랜잭션에서 수정합니다. `email`은 요청 항목이 아니며 변경되지 않습니다. 추가 인증 단계는 없습니다. |
 | `POST /api/logout` | 세션을 종료하고 `204`를 반환합니다. 가입 대기 세션도 같은 방식으로 취소할 수 있습니다. |
 
-`POST` 요청에는 `/api/csrf`에서 받은 헤더와 토큰이 필요합니다. 가입 완료 시 세션 ID가 갱신되므로 Postman에서 수동으로 쿠키를 관리한다면 새 `JSESSIONID`를 사용하세요. 다음 `POST` 전에 새 CSRF 토큰을 조회합니다. [Spring Security CSRF 문서](https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html)
+`POST`와 `PUT` 요청에는 `/api/csrf`에서 받은 헤더와 토큰이 필요합니다. 가입 완료 시 세션 ID가 갱신되므로 Postman에서 수동으로 쿠키를 관리한다면 새 `JSESSIONID`를 사용하세요. 다음 변경 요청 전에 새 CSRF 토큰을 조회합니다. [Spring Security CSRF 문서](https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html)
