@@ -25,6 +25,7 @@ apps/model/
 ├── main.py              `export-web` (웹 파일 쓰기), `calendar` (상자 하나의 달력, 웹 계산의 기준)
 ├── scripts/
 │   ├── fetch_sample.py    최근 7일 샘플 받기 (MODIS + VIIRS NOAA-20) + 샘플 격자 만들기
+│   ├── fetch_firms_api.py 연도 파일 이후 기간(2026~)을 FIRMS API로 받기 (MAP_KEY 필요)
 │   ├── aggregate.py       FIRMS 과거 데이터 → 격자 표 (`--landcover`로 토지 피복까지)
 │   └── build_landcover.py MCD12C1 → 0.5° 칸별 토지 피복 표
 ├── tests/                 작은 가짜 데이터로 확인하는 테스트 (`.venv/bin/python -m pytest tests -q`)
@@ -256,6 +257,23 @@ NOAA-20 격자는 `--viirs "data/raw/archive/viirs_noaa20/**/*.csv" --out data/p
    토지 피복 표(아래 3)를 먼저 만들었다면 `--landcover`를 붙여 한 번에 붙일 수 있습니다.
 4. `notebooks/01_explore.ipynb`를 실행하면 발표용 그림이 `exports/figures/`에 PNG로 저장됩니다
    (git 제외, 팀 공유 드라이브에 올리기).
+
+### 연도 파일 이후 기간 채우기 (2026-01 ~ 오늘)
+
+국가별 연도 파일은 2025년까지라, 그 뒤는 FIRMS Area API로 받습니다 (MODIS + VIIRS NOAA-20).
+```bash
+cd apps/model
+export FIRMS_MAP_KEY=...   # https://firms.modaps.eosdis.nasa.gov/api/map_key/ 에서 이메일로 받는 무료 키. 커밋 금지
+.venv/bin/python scripts/fetch_firms_api.py --start 2026-01-01 --end 2026-11-30
+.venv/bin/python scripts/aggregate.py --modis "data/raw/api/modis/**/*.csv" \
+    --viirs "data/raw/api/viirs_noaa20/**/*.csv" --res 0.5 --period month \
+    --out data/processed/grid_0.5_month_2026.parquet
+```
+- 날짜마다 확정(SP) 데이터가 있으면 SP, 없으면 실시간(NRT)을 받습니다. 하루를 둘 다 받으면 같은 불이 두 번 세어집니다.
+- **NRT 파일에는 `type` 열이 없어서**, SP와 같이 집계하면 NRT 행이 `type = 0` 필터에 전부 걸러집니다(NRT 달이 통째로 0).
+  그래서 같은 기간 SP의 고정 열원(화산·공장·해상) 위치를 약 1 km 칸으로 모아, NRT 탐지에 `type`을 채웁니다(`type_inferred = 1`).
+- 5일씩(API 한도) 받고, 끊겨도 다시 실행하면 이어 받습니다. 받을 수 없는 날이 있으면 끝에 알려 줍니다.
+- 마지막 달은 진행 중인 달이라 합계가 평년의 한 달 전체보다 작습니다. "이번 달 vs 평년"에서는 평년도 같은 기간으로 맞추거나 진행 중 표시가 필요합니다.
 
 ## 3) 토지 피복 (`landcover` 열)
 
