@@ -4,6 +4,7 @@ import { useAccountQuery } from '../api/authQueries'
 import { getProject, getProjectMap, type ProjectMapResponse } from '../api/projects'
 import { EarthGlobe, type ViewInfo } from '../globe/EarthGlobe'
 import { formatLatLon } from '../globe/geo'
+import { DEFAULT_SATELLITES, SATELLITES, formatUtc, loadHotspots, type FirmsResult } from '../data/firms'
 import './ProjectPage.css'
 
 function regionView(region: ProjectMapResponse['regions'][number], width: number, height: number) {
@@ -49,6 +50,9 @@ function ProjectGlobe({ map, selectedId, focusRequest, onFocusFirst }: {
   const [unavailable, setUnavailable] = useState(false)
   const [view, setView] = useState<ViewInfo | null>(null)
   const [autoRotate, setAutoRotate] = useState(false)
+  const [fires, setFires] = useState<FirmsResult | null>(null)
+  const [firesPercent, setFiresPercent] = useState(0)
+  const [firesError, setFiresError] = useState(false)
 
   useEffect(() => {
     if (!stage.current) return
@@ -69,6 +73,23 @@ function ProjectGlobe({ map, selectedId, focusRequest, onFocusFirst }: {
       queueMicrotask(() => setUnavailable(true))
     }
   }, [])
+
+  // FIRMS 최근 7일 실제 탐지 (MODIS + NOAA-20). 고정 열원은 Worker에서 걸러진다. src/data/firms.ts
+  useEffect(() => {
+    if (!ready) return
+    let cancelled = false
+    loadHotspots('7d', DEFAULT_SATELLITES, (p) => {
+      if (!cancelled && p.total) setFiresPercent(Math.min(99, Math.round((p.loaded / p.total) * 100)))
+    })
+      .then((result) => {
+        if (cancelled || !globe.current) return
+        globe.current.setData(result.hotspots, [])
+        globe.current.setLayers({ heatmap: false, hotspots: true, clouds: true, labels: false, realSun: false })
+        setFires(result)
+      })
+      .catch(() => { if (!cancelled) setFiresError(true) })
+    return () => { cancelled = true }
+  }, [ready])
 
   useEffect(() => {
     const element = stage.current
@@ -92,7 +113,9 @@ function ProjectGlobe({ map, selectedId, focusRequest, onFocusFirst }: {
     <div className="project-globe-stage" ref={stage}>
       {!ready && !unavailable && <p className="project-globe-loading" role="status">지구본 영상을 불러오는 중입니다.</p>}
       {unavailable && <p className="project-globe-loading" role="alert">이 브라우저에서 3D 지구본을 표시할 수 없습니다.</p>}
-      <div className="project-globe-caption"><span className="project-globe-indicator" /> 위성 지구본 <small>FireScope 방식</small></div>
+      <div className="project-globe-caption"><span className="project-globe-indicator" /> 위성 지구본 <small>{fires
+        ? `FIRMS 최근 7일 · ${fires.count.toLocaleString('ko-KR')}건 (${DEFAULT_SATELLITES.map((s) => SATELLITES[s].label).join(' + ')})`
+        : firesError ? 'FIRMS 화재 데이터를 불러오지 못했습니다' : ready ? `FIRMS 화재 데이터 불러오는 중 ${firesPercent}%` : 'FireScope 방식'}</small></div>
       <div className="project-globe-tools" aria-label="지구본 조작">
         <button type="button" onClick={() => globe.current?.zoom(0.65)} aria-label="확대" disabled={unavailable}>+</button>
         <button type="button" onClick={() => globe.current?.zoom(1.5)} aria-label="축소" disabled={unavailable}>−</button>
@@ -100,7 +123,7 @@ function ProjectGlobe({ map, selectedId, focusRequest, onFocusFirst }: {
         <button type="button" onClick={() => { const next = !autoRotate; globe.current?.setAutoRotate(next); setAutoRotate(next) }} aria-label="자동 회전" aria-pressed={autoRotate} disabled={unavailable}>⟳</button>
       </div>
       {view && <div className="project-globe-hud">고도 {Math.round(view.altKm).toLocaleString('ko-KR')} km · {formatLatLon(view.lat, view.lon)} · {view.level > 0 ? `Sentinel-2 L${view.level}` : '기본 지구 영상'}</div>}
-      <div className="project-globe-credit">Sentinel-2 cloudless © EOX · NASA 지구 영상</div>
+      <div className="project-globe-credit">Sentinel-2 cloudless © EOX · NASA 지구 영상{fires?.newest != null && ` · 화재: NASA FIRMS, 최신 ${formatUtc(fires.newest)}`}</div>
     </div>
   )
 }
