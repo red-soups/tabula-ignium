@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from .features import MODIS_RELIABLE_UNTIL
+from .intervals import contain
 from .splits import block_id
 
 COLUMNS = ["row", "col", "lat", "lon", "period", "modis_n", "viirs_n",
@@ -90,6 +91,8 @@ def export_harmonized(df: pd.DataFrame, predicted, low, high, out: Path,
     res["source"] = pd.Series(np.select([modis_ok, terra_only, model_ok],
                                         ["modis", "terra_scaled", "viirs_model"], default=""),
                               index=res.index).replace("", pd.NA).astype("string")
+    lo, hi = contain(res.loc[model_ok, "harmonized"], res.loc[model_ok, "low"], res.loc[model_ok, "high"])
+    res.loc[model_ok, "low"], res.loc[model_ok, "high"] = lo, hi
     out.parent.mkdir(parents=True, exist_ok=True)
     res[COLUMNS].to_parquet(out, index=False)
     return res[COLUMNS]

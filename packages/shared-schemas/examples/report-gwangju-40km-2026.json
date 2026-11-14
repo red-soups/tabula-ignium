@@ -1,0 +1,268 @@
+{
+ "meta": {
+  "document_id": "TI-829163EED7",
+  "title": "산불 이력 확인서",
+  "name": "광주 반경 40 km, 진행 중인 달 포함 (대조용)",
+  "issued_at": "2026-11-15T01:20:36+09:00",
+  "period": {
+   "start": "2026-01-01",
+   "end": "2026-11-13"
+  },
+  "data_through": "2026-11-13",
+  "record_start": "2000-11",
+  "area": {
+   "kind": "circle",
+   "center": [
+    35.2,
+    126.9
+   ],
+   "radius_km": 40.0,
+   "area_km2": 5026.5,
+   "bbox": [
+    34.8407,
+    35.5593,
+    126.4603,
+    127.3397
+   ]
+  },
+  "items": [
+   "A3",
+   "B2",
+   "B3",
+   "B5"
+  ]
+ },
+ "items": {
+  "A3": {
+   "title": "가장 가까운 화재",
+   "found": true,
+   "reference_point": [
+    35.2,
+    126.9
+   ],
+   "distance_km": 1.99,
+   "nearest": {
+    "sensor": "VIIRS",
+    "satellite": "NOAA-20",
+    "acq_datetime_kst": "2026-10-15 13:27",
+    "latitude": 35.20475,
+    "longitude": 126.87887,
+    "confidence_level": "nominal",
+    "frp": 3.48,
+    "daynight": "D",
+    "data_source": "NRT"
+   },
+   "counts_within_km": {
+    "1": 0,
+    "5": 4,
+    "10": 13
+   }
+  },
+  "B2": {
+   "title": "월별 달력",
+   "months": [
+    {
+     "period": "2026-01",
+     "harmonized": 0.3,
+     "low": 0.0,
+     "high": 1.2,
+     "normal": 0.0,
+     "percentile": 38.1,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-02",
+     "harmonized": 2.8,
+     "low": 1.0,
+     "high": 5.3,
+     "normal": 3.0,
+     "percentile": 52.4,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-03",
+     "harmonized": 4.1,
+     "low": 0.0,
+     "high": 8.2,
+     "normal": 5.0,
+     "percentile": 38.1,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-04",
+     "harmonized": 3.3,
+     "low": 0.0,
+     "high": 8.0,
+     "normal": 5.0,
+     "percentile": 11.9,
+     "level": "낮음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-05",
+     "harmonized": 1.7,
+     "low": 0.0,
+     "high": 7.5,
+     "normal": 3.0,
+     "percentile": 38.1,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-06",
+     "harmonized": 3.0,
+     "low": 1.0,
+     "high": 9.9,
+     "normal": 2.0,
+     "percentile": 78.6,
+     "level": "높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-07",
+     "harmonized": 4.1,
+     "low": 0.5,
+     "high": 10.6,
+     "normal": 2.0,
+     "percentile": 81.0,
+     "level": "높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-08",
+     "harmonized": 5.3,
+     "low": 0.0,
+     "high": 15.6,
+     "normal": 2.0,
+     "percentile": 76.2,
+     "level": "높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-09",
+     "harmonized": 3.5,
+     "low": 0.2,
+     "high": 9.8,
+     "normal": 1.0,
+     "percentile": 97.6,
+     "level": "매우 높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-10",
+     "harmonized": 1.5,
+     "low": 0.0,
+     "high": 3.7,
+     "normal": 1.0,
+     "percentile": 52.4,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2026-11",
+     "harmonized": 0.0,
+     "low": 0.0,
+     "high": 0.0,
+     "normal": 0.0,
+     "percentile": 28.6,
+     "level": "낮음",
+     "days_observed": 13.0,
+     "projected": 0.0,
+     "source": "viirs_model"
+    }
+   ],
+   "baseline_years": [
+    2003,
+    2023
+   ],
+   "level_edges": [
+    10,
+    30,
+    70,
+    90
+   ]
+  },
+  "B3": {
+   "title": "큰 산불 발생 빈도",
+   "years_considered": [
+    2001,
+    2025
+   ],
+   "rule": "평년의 3배 이상이면서 5건 이상 탄 달",
+   "years_with_large_fire": [
+    2001,
+    2004,
+    2007,
+    2008,
+    2009,
+    2010,
+    2013,
+    2015,
+    2016,
+    2018,
+    2019,
+    2024,
+    2025
+   ],
+   "count": 13,
+   "return_period_years": 1.9,
+   "years_with_any_fire": 25,
+   "largest_months": [
+    {
+     "period": "2009-04",
+     "harmonized": 18.0,
+     "times_normal": 3.6
+    },
+    {
+     "period": "2019-03",
+     "harmonized": 15.0,
+     "times_normal": 3.0
+    },
+    {
+     "period": "2006-03",
+     "harmonized": 12.0,
+     "times_normal": 2.4
+    }
+   ]
+  },
+  "B5": {
+   "title": "최근 추세",
+   "recent_years": [
+    2021,
+    2025
+   ],
+   "recent_mean": 21.5,
+   "baseline_years": [
+    2003,
+    2023
+   ],
+   "baseline_mean": 28.7,
+   "ratio": 0.75,
+   "last_year": 2025,
+   "last_year_ratio": 0.82
+  }
+ }
+}

@@ -17,15 +17,20 @@ apps/model/
 │   ├── gbm.py             LightGBM 모델 (단조 제약 + Tweedie) 공용 설정·학습
 │   ├── compare.py         반복 시험(교차검증)과 AI vs 규칙 판정 기준
 │   ├── intervals.py       보정된 오차 범위 (conformalized quantile regression)
+│   ├── frp.py             FRP(불 세기) 조화: 같은 모델 구조로 MODIS FRP 합계 맞히기, 결과 표에 FRP 열 붙이기
+│   ├── korea.py           한국: 감지점마다 MODIS 기준 가중치, 0.1° × 월 표, 임의 지역(다각형·반경·사각형)의 월별 값과 달력
+│   ├── points.py          FIRMS 감지점 → 백엔드 공통 18개 열 (MODIS·VIIRS 같은 열)
+│   ├── report.py          산불 이력 확인서: 체크한 항목(A 감지 사실, B 장기 이력, C 신뢰성)을 지역·기간별 JSON으로
 │   ├── explain.py         LightGBM 기여도(SHAP)를 규칙 모델의 모듈 단위로 요약
 │   ├── evaluate.py        지표, 그래프 (칸 단위 + 달력 합계 단위), 달력 지표(정점 월·이상 판정)
 │   ├── export.py          팀에 넘기는 결과 파일 저장 (칸-월마다 더 믿을 수 있는 값 선택, `source` 열)
 │   ├── activity.py        화재 활동 지수: 평년(2003~2023) 대비 백분위·5단계 (달력에 보여 줄 값)
 │   └── webexport.py       결과 파일 → 웹이 읽는 1° × 월 파일 (형식: packages/shared-schemas)
-├── main.py              `export-web` (웹 파일 쓰기), `calendar` (상자 하나의 달력, 웹 계산의 기준)
+├── main.py              `extend` (2026~ 이어 붙이기), `frp` (FRP 열 붙이기), `korea` (한국 가중치·0.1° 표), `export-web` (웹 파일 쓰기), `calendar` (상자 하나의 달력, 웹 계산의 기준)
 ├── scripts/
 │   ├── fetch_sample.py    최근 7일 샘플 받기 (MODIS + VIIRS NOAA-20) + 샘플 격자 만들기
 │   ├── fetch_firms_api.py 연도 파일 이후 기간(2026~)을 FIRMS API로 받기 (MAP_KEY 필요)
+│   ├── export_backend.py  백엔드용 ZIP: 감지점(MODIS·VIIRS 같은 열) + 조화 월별 표 (형식: packages/shared-schemas 3절)
 │   ├── aggregate.py       FIRMS 과거 데이터 → 격자 표 (`--landcover`로 토지 피복까지)
 │   └── build_landcover.py MCD12C1 → 0.5° 칸별 토지 피복 표
 ├── tests/                 작은 가짜 데이터로 확인하는 테스트 (`.venv/bin/python -m pytest tests -q`)
@@ -38,7 +43,8 @@ apps/model/
 │   ├── 06_model_v2.ipynb  LightGBM 개선 실험: 단조 제약·Tweedie·오차 범위 보정·모듈별 기여도
 │   ├── 07_reference_satellite.ipynb  기준 위성 비교: MODIS 전체 vs Aqua (Terra 궤도 변화 대응)
 │   ├── 08_activity_index.ipynb  화재 활동 지수 정의·검증 (VIIRS 환산 지수 vs 실제 MODIS 지수), 달력 예시
-│   └── 09_noaa20_transfer.ipynb  NOAA-20 대체 검증: NPP로 학습한 모델에 NOAA-20을 넣어도 되나
+│   ├── 09_noaa20_transfer.ipynb  NOAA-20 대체 검증: NPP로 학습한 모델에 NOAA-20을 넣어도 되나
+│   └── 10_frp_model.ipynb FRP 조화: 미리 정한 기준으로 판정, 최종 FRP 모델 저장 (`models/frp/`)
 └── data/ models/ exports/ (git에 올리지 않음)
 ```
 
@@ -211,6 +217,63 @@ LightGBM으로 연도별 5회 시험했고, 판단 기준은 결과를 보기 �
 NOAA-20 격자는 `--viirs "data/raw/archive/viirs_noaa20/**/*.csv" --out data/processed/grid_0.5_month_noaa20.parquet`로 만듭니다.
 원본은 FIRMS 국가별 연도 파일 `viirs-jpss1_<연도>_all_countries.zip`(2018–2025, 압축 약 2.8 GB)입니다.
 
+## FRP 조화 (`10_frp_model.ipynb`, `fsml/frp.py`)
+
+탐지 수와 같은 모델 구조(특징, Tweedie, 단조 제약)에서 맞힐 대상만 칸 × 월의 **MODIS FRP 합계(MW)** 로 바꿨습니다.
+탐지 수는 VIIRS가 MODIS의 약 4.4배지만 FRP 합계는 전 세계로 1.0배 안팎입니다(VIIRS는 같은 불을 작은 화소 여러 개로 나눠 셈).
+그래도 칸 × 월로는 VIIRS FRP가 MODIS의 2배 이내인 경우가 54%뿐이라 그대로 쓸 수 없습니다.
+
+기준은 실행 전에 정했습니다(05·09와 같은 연도별 시험 2020–2024, 규칙 모델은 탐지 수 전용이라 비율 기준선과 비교):
+
+| 시험 2020–2024 (평균) | 합계 MAE (MW, 10° 블록 × 월) | 칸 R²(log) | 편향 |
+| --- | --- | --- | --- |
+| **AI · NPP 입력** | **8,838** | 0.654 | −0.1% |
+| AI · NOAA-20 입력 (학습에 안 씀) | 7,446 | 0.646 | +1.8% |
+| 비율 기준선 (위도대 × 월) · NPP 입력 | 14,531 | 0.559 | −1.1% |
+| VIIRS FRP 그대로 · NPP 입력 | 19,036 | 0.544 | +0.7% |
+
+판정 (`models/frp/decision.json`): **기준 5개 모두 통과**.
+- 채택: 합계 오차 39.2% 개선(기준 10%), 5년 중 5년 우세(기준 4년), |편향| 차이 +0.1%p(기준 5%p 이하).
+- 2026년(NOAA-20) 적용: NOAA-20 오차 = NPP의 0.84배(기준 1.10배 이하), 기준선보다 5년 모두 우세.
+- 80% 범위: 2023–2024 시험 포함률 83.4%(기준 75–85%), 평균 폭 881 MW.
+- NOAA-20이 더 좋게 나온 이유는 09와 같습니다(2022·2024년 NPP 자료가 빠진 달).
+
+결과 표에는 `python main.py frp`로 열 5개를 붙입니다(`extend`도 FRP 모델이 있으면 자동으로 붙임):
+`modis_frp_sum`, `viirs_frp_sum`(원본 합계), `harmonized_frp`(`modis` 행은 실제 MODIS, `viirs_model` 행은 모델 값,
+`terra_scaled` 행은 비움: 격자에 위성별 FRP가 없어 Terra만의 FRP를 보정할 수 없음), `frp_low`, `frp_high`(80% 범위, `viirs_model` 행만).
+연 합계로 보면 탐지 1건당 MW가 2019–2024년 41–49, 모델 값인 2025·2026년 45·43으로 이어집니다.
+FRP는 MW라서 탐지 수와 더하거나 같은 축에 놓지 않습니다.
+
+## 한국 상세 (`fsml/korea.py`, `main.py korea`)
+
+모델은 0.5° 칸 × 월에서 검증했으므로 다시 학습하지 않고, 0.5° 값을 그 값을 만든 **감지점마다 나눠 줍니다**(가중치 `weight`).
+어떤 지역이든(0.1° 칸, 그린 다각형, 사업장 반경) MODIS 기준 값 = 그 안 감지점의 `weight` 합입니다.
+
+| 기간 | 값을 나르는 점 | 점 하나의 가중치 |
+| --- | --- | --- |
+| 2000-11 ~ 2002-06 (`terra_scaled`) | MODIS(Terra) | 칸의 (Terra + Aqua) ÷ Terra 비율 |
+| 2002-07 ~ 2024-12 (`modis`) | MODIS | 1 (실제 MODIS 개수 그대로) |
+| 2025-01 ~ (`viirs_model`) | VIIRS (2025 Suomi NPP, 2026 NOAA-20) | 칸의 AI 값 ÷ 칸 안 VIIRS 점 수 (VIIRS 점이 없으면 MODIS 점) |
+
+- 0.5° 칸마다 가중치 합 = 결과 표의 `harmonized` (오차 0, `korea.check`로 매번 확인).
+- 나누는 방법 검증 (한국 2013~2024, 실제 MODIS 0.5° 합을 나눠 실제 MODIS 0.1° 값과 비교): VIIRS 점 비율로 나누면
+  상관 0.78·오차 0.165, 면적으로 똑같이 나누면 0.32·0.231. 0.2°(약 20 km)로 묶으면 0.87 vs 0.45.
+- 0.05°보다 잘게는 나누지 않습니다. MODIS 화소(1~5 km) 위치 오차보다 작아져 의미가 없습니다.
+- 범위는 0.5° 칸 범위를 같은 비율로 나눈 근사값이고, FRP는 VIIRS FRP 비율로 나눕니다.
+- 상자(33~39°N, 124.5~131°E)에 북한·일본 가장자리가 들어가니 한국 경계로 자릅니다(백엔드).
+
+```bash
+.venv/bin/python main.py korea                       # 약 2분 → exports/korea_points.parquet, korea_monthly_0.1deg.parquet
+.venv/bin/python scripts/export_backend.py --korea   # → exports/backend/korea/*.zip (형식: packages/shared-schemas 4절)
+```
+
+**산불 이력 확인서** (`fsml/report.py`): 지역·기간·체크 항목(A1~C4)을 받아 항목별 값을 JSON으로 돌려줍니다.
+형식과 항목표는 `packages/shared-schemas` 5절, 전체 예시는 `packages/shared-schemas/examples/report-uiseong-2025.json`.
+```bash
+.venv/bin/python main.py report --circle 36.35 128.70 10 --start 2025-03-01 --end 2025-04-30 --items A1,B2,B3
+.venv/bin/python main.py serve --port 8001   # 백엔드용: POST /report, GET /items, GET /health (localhost)
+```
+
 ## 규칙 기반 모델 (`fsml/rules.py`)
 
 `MODIS ≈ Σ(낮·밤) [ Σ(FRP 구간) 계수 × VIIRS 탐지 수 + 이웃 계수 × 이웃 8칸 VIIRS 탐지 수 ]`
@@ -273,7 +336,19 @@ export FIRMS_MAP_KEY=...   # https://firms.modaps.eosdis.nasa.gov/api/map_key/ �
 - **NRT 파일에는 `type` 열이 없어서**, SP와 같이 집계하면 NRT 행이 `type = 0` 필터에 전부 걸러집니다(NRT 달이 통째로 0).
   그래서 같은 기간 SP의 고정 열원(화산·공장·해상) 위치를 약 1 km 칸으로 모아, NRT 탐지에 `type`을 채웁니다(`type_inferred = 1`).
 - 5일씩(API 한도) 받고, 끊겨도 다시 실행하면 이어 받습니다. 받을 수 없는 날이 있으면 끝에 알려 줍니다.
-- 마지막 달은 진행 중인 달이라 합계가 평년의 한 달 전체보다 작습니다. "이번 달 vs 평년"에서는 평년도 같은 기간으로 맞추거나 진행 중 표시가 필요합니다.
+- 마지막 달은 진행 중인 달이라 합계가 평년의 한 달 전체보다 작습니다. 그래서 웹 파일에는 그 달을 `partial`(관측한 날 수)로 적고,
+  달력은 "이 속도면 한 달 전체" 값(`projected`)으로 순위를 매깁니다. 관측한 날이 7일 미만이면 웹이 "추정치"로 표시합니다.
+
+그다음 최종 모델로 환산해 결과 파일에 이어 붙이고, 웹 파일을 다시 씁니다:
+```bash
+.venv/bin/python main.py extend data/processed/grid_0.5_month_2026.parquet --through 2026-11-13
+.venv/bin/python main.py export-web
+cd ../web && node scripts/check_harmonized.ts   # 웹 계산 = Python 계산 확인
+```
+- `extend`는 노트북 03의 최종 모델(`models/lgbm_harmonize.txt`)과 같은 80% 범위 모델(`models/interval/`, 없으면 03과 같은 분할로 한 번 맞추고 저장)을 씁니다.
+  VIIRS 입력은 NOAA-20입니다(Suomi NPP 실시간 자료는 2026-11-12부터 비어 있고, 노트북 09에서 NOAA-20 입력을 검증).
+- 노트북 03이 쓴 원래 결과는 처음 한 번 `exports/harmonized_archive.parquet`로 보관하고, 다시 실행하면 그 위에 새로 붙입니다.
+- 노트북 10의 FRP 모델(`models/frp/`)이 있으면 `extend`가 FRP 열도 다시 붙입니다. 처음 한 번은 `main.py frp`로 붙입니다.
 
 ## 3) 토지 피복 (`landcover` 열)
 
@@ -357,6 +432,7 @@ Terra는 2000-11부터 있습니다. 운영 기간은 데이터에서 그 위성
 | `low`, `high` | 예측의 80% 범위 (10% / 90%) |
 | `harmonized` | 달력의 바탕 값 (MODIS 기준 탐지 수). `source`에 따라 고름 |
 | `source` | `modis`: 실제 MODIS (2002-07 ~ 2024-12) · `terra_scaled`: Terra만 있던 2000-11 ~ 2002-06, 10° 블록 × 월별 (Terra + Aqua) ÷ Terra 비율로 보정 · `viirs_model`: VIIRS 환산 (2025-01 ~, Terra 궤도 변화로 MODIS를 믿을 수 없는 시기와 MODIS 종료 이후) |
+| `modis_frp_sum`, `viirs_frp_sum`, `harmonized_frp`, `frp_low`, `frp_high` | FRP(MW): 원본 합계, MODIS 기준 FRP, 80% 범위 (`main.py frp`, 위 "FRP 조화") |
 
 **달력에는 `harmonized`를 그대로 쓰지 말고 화재 활동 지수로 바꿔 보여 줍니다** (`fsml.activity.activity_index`):
 
@@ -381,6 +457,7 @@ Terra는 2000-11부터 있습니다. 운영 기간은 데이터에서 그 위성
 - [x] 2024년 이후 Terra 감소 대응: Aqua 기준 비교 → MODIS 전체 유지 (07)
 - [x] Terra 감소 이후(2025~)와 Terra만 있던 시기(~2002-06) 처리 → 결과 파일 `source` 열 (VIIRS 환산 / 블록 × 월 보정)
 - [x] 화재 활동 지수(평년 대비 백분위·5단계)와 검증 (08)
+- [x] FRP(불 세기)도 MODIS 기준으로 조화, 미리 정한 기준 통과 (10)
 - [ ] 다경 님 PR 병합 후 달력 지표(`season_peak_error`, `anomaly_agreement`)를 08의 시험 연도 예측에 연결
 - [ ] 시간 분할 + 공간 분할 둘 다로 검증 (시간 분할 완료)
 - [ ] 결과 형식과 활동 지수 계산을 데이터 엔지니어와 확정, 발표용 검증 그래프 정리

@@ -29,6 +29,10 @@ export interface Manifest {
   };
   files: { cells: string; counts: string; range: string };
   credit: string;
+  /** Last day the data covers, "YYYY-MM-DD". */
+  through?: string;
+  /** Months observed for only part of their days, e.g. {"2026-11": {days: 13, of: 30}}. */
+  partial?: Record<string, { days: number; of: number }>;
 }
 
 export interface HarmonizedGrid {
@@ -63,9 +67,21 @@ export interface CalendarRow {
   anomaly: boolean;
   source: Source;
   estimated: boolean;
+  /** Days observed when the month is partial (the latest month), else null. */
+  days: number | null;
+  /** count × days in month / days observed for a partial month, else null. The ranking uses it. */
+  projected: number | null;
 }
 
 export const DATA_URL = '/data/harmonized';
+
+/** Fewer observed days than this and a partial month's projection swings too much to read as more than a rough guess. */
+export const EARLY_ESTIMATE_DAYS = 7;
+
+/** True for a partial month with too few days: show its level as "estimate", visibly. */
+export function isEarlyEstimate(row: CalendarRow): boolean {
+  return row.days !== null && row.days < EARLY_ESTIMATE_DAYS;
+}
 
 function monthsFrom(start: string, count: number): string[] {
   const [y0, m0] = start.split('-').map(Number);
@@ -169,7 +185,13 @@ export function calendar(g: HarmonizedGrid, box: Box): CalendarRow[] {
     const off = i * nt;
     for (let t = 0; t < nt; t++) totals[t] += g.counts[off + t];
   }
-  const rounded = Array.from(totals, roundHalfEven);
+  // A partial month is ranked on its projected total; baseline years are always complete.
+  const partial = periods.map((p) => m.partial?.[p] ?? null);
+  const projected = periods.map((_, t) => {
+    const pt = partial[t];
+    return pt ? (totals[t] * pt.of) / pt.days : null;
+  });
+  const rounded = periods.map((_, t) => roundHalfEven(projected[t] ?? totals[t]));
 
   const [y0, y1] = m.index.baseline_years;
   const raw: number[][] = Array.from({ length: 12 }, () => []);
@@ -223,6 +245,8 @@ export function calendar(g: HarmonizedGrid, box: Box): CalendarRow[] {
       anomaly: percentile !== null && percentile >= m.index.anomaly_percentile,
       source,
       estimated: estimated.has(source),
+      days: partial[t]?.days ?? null,
+      projected: projected[t],
     };
   });
 }
@@ -234,6 +258,7 @@ export function between(rows: CalendarRow[], from: string, to: string): Calendar
 
 const CSV_FIELDS: (keyof CalendarRow)[] = [
   'period', 'count', 'low', 'high', 'normal', 'percentile', 'level', 'anomaly', 'source', 'estimated',
+  'days', 'projected',
 ];
 
 export function toCSV(rows: CalendarRow[]): string {
@@ -249,7 +274,7 @@ export interface CalendarSummary {
   peakMonth: number | null;
   /** Months at or above the anomaly percentile. */
   anomalies: CalendarRow[];
-  /** Last month in the rows and how it compares with its normal. */
+  /** Last month in the rows and how it compares with its normal (projected when the month is partial). */
   latest: CalendarRow | null;
   latestVsNormal: number | null;
 }
@@ -281,6 +306,6 @@ export function summarize(rows: CalendarRow[]): CalendarSummary {
     peakMonth,
     anomalies: rows.filter((r) => r.anomaly),
     latest,
-    latestVsNormal: latest && latest.normal ? latest.count / latest.normal : null,
+    latestVsNormal: latest && latest.normal ? (latest.projected ?? latest.count) / latest.normal : null,
   };
 }

@@ -46,7 +46,8 @@ for (const [name, box] of Object.entries(BOXES)) {
     return (
       r.period !== w.period || r.level !== w.level || r.anomaly !== w.anomaly || r.source !== w.source ||
       r.estimated !== w.estimated || !close(r.count, w.count) || !close(r.normal, w.normal) ||
-      !close(r.percentile, w.percentile) || !close(r.low, w.low) || !close(r.high, w.high)
+      !close(r.percentile, w.percentile) || !close(r.low, w.low) || !close(r.high, w.high) ||
+      !close(r.days, w.days) || !close(r.projected, w.projected)
     );
   });
   const levels = [1, 2, 3, 4, 5].map((l) => got.filter((r) => r.level === l).length).join('/');

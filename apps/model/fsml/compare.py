@@ -42,11 +42,11 @@ def default_models(columns=()) -> dict[str, Callable[[], object]]:
     return models
 
 
-def _scores(test: pd.DataFrame, pred: np.ndarray, block_deg: float) -> dict[str, float]:
-    cell = evaluate.metrics(test["modis_n"], pred)
-    totals = test.assign(pred=pred).groupby([block_id(test, block_deg), "period"])[["modis_n", "pred"]].sum()
+def _scores(test: pd.DataFrame, pred: np.ndarray, block_deg: float, target: str = "modis_n") -> dict[str, float]:
+    cell = evaluate.metrics(test[target], pred)
+    totals = test.assign(pred=pred).groupby([block_id(test, block_deg), "period"])[[target, "pred"]].sum()
     return {
-        PRIMARY: evaluate.metrics(totals["modis_n"], totals["pred"])["MAE"],
+        PRIMARY: evaluate.metrics(totals[target], totals["pred"])["MAE"],
         "칸 MAE": cell["MAE"],
         "칸 R²(log)": cell["R² (log)"],
         "편향 %": cell["Bias %"],

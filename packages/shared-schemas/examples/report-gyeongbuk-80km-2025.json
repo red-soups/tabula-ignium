@@ -1,0 +1,1004 @@
+{
+ "meta": {
+  "document_id": "TI-70C1BBDAEB",
+  "title": "산불 이력 확인서",
+  "name": "경북 중부 반경 80 km (대조용)",
+  "issued_at": "2026-11-15T01:20:35+09:00",
+  "period": {
+   "start": "2025-01-01",
+   "end": "2025-12-31"
+  },
+  "data_through": "2026-11-13",
+  "record_start": "2000-11",
+  "area": {
+   "kind": "circle",
+   "center": [
+    36.5,
+    128.75
+   ],
+   "radius_km": 80.0,
+   "area_km2": 20106.2,
+   "bbox": [
+    35.7814,
+    37.2186,
+    127.856,
+    129.644
+   ]
+  },
+  "items": [
+   "A3",
+   "B1",
+   "B2",
+   "B3",
+   "B4",
+   "B5",
+   "B6",
+   "B7"
+  ]
+ },
+ "items": {
+  "A3": {
+   "title": "가장 가까운 화재",
+   "found": true,
+   "reference_point": [
+    36.5,
+    128.75
+   ],
+   "distance_km": 1.95,
+   "nearest": {
+    "sensor": "VIIRS",
+    "satellite": "Suomi NPP",
+    "acq_datetime_kst": "2025-03-26 02:26",
+    "latitude": 36.50181,
+    "longitude": 128.77167,
+    "confidence_level": "nominal",
+    "frp": 0.59,
+    "daynight": "N",
+    "data_source": "SP"
+   },
+   "counts_within_km": {
+    "1": 0,
+    "5": 25,
+    "10": 195
+   }
+  },
+  "B1": {
+   "title": "연도별 화재 추이",
+   "unit": "MODIS(Terra+Aqua) 기준 감지 수",
+   "years": [
+    {
+     "year": 2000,
+     "harmonized": 6.3,
+     "low": null,
+     "high": null,
+     "complete": false,
+     "sources": [
+      "terra_scaled"
+     ]
+    },
+    {
+     "year": 2001,
+     "harmonized": 59.6,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "terra_scaled"
+     ]
+    },
+    {
+     "year": 2002,
+     "harmonized": 50.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis",
+      "terra_scaled"
+     ]
+    },
+    {
+     "year": 2003,
+     "harmonized": 34.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2004,
+     "harmonized": 51.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2005,
+     "harmonized": 73.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2006,
+     "harmonized": 66.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2007,
+     "harmonized": 76.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2008,
+     "harmonized": 73.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2009,
+     "harmonized": 103.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2010,
+     "harmonized": 71.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2011,
+     "harmonized": 89.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2012,
+     "harmonized": 78.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2013,
+     "harmonized": 72.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2014,
+     "harmonized": 84.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2015,
+     "harmonized": 82.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2016,
+     "harmonized": 133.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2017,
+     "harmonized": 90.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2018,
+     "harmonized": 78.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2019,
+     "harmonized": 64.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2020,
+     "harmonized": 61.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2021,
+     "harmonized": 80.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2022,
+     "harmonized": 188.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2023,
+     "harmonized": 90.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2024,
+     "harmonized": 82.0,
+     "low": null,
+     "high": null,
+     "complete": true,
+     "sources": [
+      "modis"
+     ]
+    },
+    {
+     "year": 2025,
+     "harmonized": 561.9,
+     "low": 243.7,
+     "high": 776.9,
+     "complete": true,
+     "sources": [
+      "viirs_model"
+     ]
+    },
+    {
+     "year": 2026,
+     "harmonized": 112.4,
+     "low": 12.5,
+     "high": 257.9,
+     "complete": false,
+     "sources": [
+      "viirs_model"
+     ]
+    }
+   ]
+  },
+  "B2": {
+   "title": "월별 달력",
+   "months": [
+    {
+     "period": "2025-01",
+     "harmonized": 0.4,
+     "low": 0.0,
+     "high": 1.1,
+     "normal": 2.0,
+     "percentile": 4.8,
+     "level": "매우 낮음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-02",
+     "harmonized": 6.2,
+     "low": 3.0,
+     "high": 12.4,
+     "normal": 4.0,
+     "percentile": 69.0,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-03",
+     "harmonized": 467.3,
+     "low": 228.0,
+     "high": 573.5,
+     "normal": 12.0,
+     "percentile": 100.0,
+     "level": "매우 높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-04",
+     "harmonized": 22.2,
+     "low": 1.0,
+     "high": 50.3,
+     "normal": 11.0,
+     "percentile": 90.5,
+     "level": "매우 높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-05",
+     "harmonized": 9.5,
+     "low": 1.0,
+     "high": 24.0,
+     "normal": 9.0,
+     "percentile": 47.6,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-06",
+     "harmonized": 5.8,
+     "low": 1.7,
+     "high": 13.9,
+     "normal": 4.0,
+     "percentile": 59.5,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-07",
+     "harmonized": 17.4,
+     "low": 0.8,
+     "high": 34.9,
+     "normal": 7.0,
+     "percentile": 85.7,
+     "level": "높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-08",
+     "harmonized": 14.9,
+     "low": 1.1,
+     "high": 28.6,
+     "normal": 11.0,
+     "percentile": 71.4,
+     "level": "높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-09",
+     "harmonized": 3.6,
+     "low": 2.0,
+     "high": 8.0,
+     "normal": 3.0,
+     "percentile": 69.0,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-10",
+     "harmonized": 6.1,
+     "low": 1.0,
+     "high": 13.4,
+     "normal": 2.0,
+     "percentile": 90.5,
+     "level": "매우 높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-11",
+     "harmonized": 7.8,
+     "low": 4.0,
+     "high": 14.8,
+     "normal": 3.0,
+     "percentile": 97.6,
+     "level": "매우 높음",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    },
+    {
+     "period": "2025-12",
+     "harmonized": 0.7,
+     "low": 0.0,
+     "high": 2.0,
+     "normal": 2.0,
+     "percentile": 31.0,
+     "level": "보통",
+     "days_observed": null,
+     "projected": null,
+     "source": "viirs_model"
+    }
+   ],
+   "baseline_years": [
+    2003,
+    2023
+   ],
+   "level_edges": [
+    10,
+    30,
+    70,
+    90
+   ]
+  },
+  "B3": {
+   "title": "큰 산불 발생 빈도",
+   "years_considered": [
+    2001,
+    2025
+   ],
+   "rule": "평년의 3배 이상이면서 5건 이상 탄 달",
+   "years_with_large_fire": [
+    2007,
+    2009,
+    2016,
+    2017,
+    2018,
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "count": 9,
+   "return_period_years": 2.8,
+   "years_with_any_fire": 25,
+   "largest_months": [
+    {
+     "period": "2025-03",
+     "harmonized": 467.3,
+     "times_normal": 38.9
+    },
+    {
+     "period": "2022-03",
+     "harmonized": 123.0,
+     "times_normal": 10.2
+    },
+    {
+     "period": "2009-04",
+     "harmonized": 51.0,
+     "times_normal": 4.6
+    }
+   ]
+  },
+  "B4": {
+   "title": "고위험 시기",
+   "baseline_years": [
+    2003,
+    2023
+   ],
+   "high_risk_months": [
+    3,
+    4,
+    5,
+    8
+   ],
+   "peak_month": 3,
+   "months": [
+    {
+     "month": 1,
+     "mean": 2.05,
+     "share": 0.025
+    },
+    {
+     "month": 2,
+     "mean": 4.1,
+     "share": 0.05
+    },
+    {
+     "month": 3,
+     "mean": 16.81,
+     "share": 0.203
+    },
+    {
+     "month": 4,
+     "mean": 13.14,
+     "share": 0.159
+    },
+    {
+     "month": 5,
+     "mean": 10.43,
+     "share": 0.126
+    },
+    {
+     "month": 6,
+     "mean": 5.52,
+     "share": 0.067
+    },
+    {
+     "month": 7,
+     "mean": 8.24,
+     "share": 0.1
+    },
+    {
+     "month": 8,
+     "mean": 11.9,
+     "share": 0.144
+    },
+    {
+     "month": 9,
+     "mean": 3.43,
+     "share": 0.041
+    },
+    {
+     "month": 10,
+     "mean": 2.52,
+     "share": 0.031
+    },
+    {
+     "month": 11,
+     "mean": 2.9,
+     "share": 0.035
+    },
+    {
+     "month": 12,
+     "mean": 1.62,
+     "share": 0.02
+    }
+   ],
+   "rule": "평년 월평균이 1년 평균(1/12)의 1.5배 이상인 달"
+  },
+  "B5": {
+   "title": "최근 추세",
+   "recent_years": [
+    2021,
+    2025
+   ],
+   "recent_mean": 200.4,
+   "baseline_years": [
+    2003,
+    2023
+   ],
+   "baseline_mean": 82.7,
+   "ratio": 2.42,
+   "last_year": 2025,
+   "last_year_ratio": 6.8
+  },
+  "B6": {
+   "title": "불 세기(FRP) 이력",
+   "unit": "MW (MODIS 기준 FRP 합계)",
+   "years": [
+    {
+     "year": 2000,
+     "harmonized_frp": null,
+     "mw_per_detection": null,
+     "complete": false
+    },
+    {
+     "year": 2001,
+     "harmonized_frp": null,
+     "mw_per_detection": null,
+     "complete": false
+    },
+    {
+     "year": 2002,
+     "harmonized_frp": 212.7,
+     "mw_per_detection": 4.3,
+     "complete": false
+    },
+    {
+     "year": 2003,
+     "harmonized_frp": 369.2,
+     "mw_per_detection": 10.9,
+     "complete": true
+    },
+    {
+     "year": 2004,
+     "harmonized_frp": 1286.9,
+     "mw_per_detection": 25.2,
+     "complete": true
+    },
+    {
+     "year": 2005,
+     "harmonized_frp": 1322.9,
+     "mw_per_detection": 18.1,
+     "complete": true
+    },
+    {
+     "year": 2006,
+     "harmonized_frp": 709.0,
+     "mw_per_detection": 10.7,
+     "complete": true
+    },
+    {
+     "year": 2007,
+     "harmonized_frp": 1924.2,
+     "mw_per_detection": 25.3,
+     "complete": true
+    },
+    {
+     "year": 2008,
+     "harmonized_frp": 975.7,
+     "mw_per_detection": 13.4,
+     "complete": true
+    },
+    {
+     "year": 2009,
+     "harmonized_frp": 6572.6,
+     "mw_per_detection": 63.8,
+     "complete": true
+    },
+    {
+     "year": 2010,
+     "harmonized_frp": 1045.7,
+     "mw_per_detection": 14.7,
+     "complete": true
+    },
+    {
+     "year": 2011,
+     "harmonized_frp": 3438.5,
+     "mw_per_detection": 38.6,
+     "complete": true
+    },
+    {
+     "year": 2012,
+     "harmonized_frp": 957.7,
+     "mw_per_detection": 12.3,
+     "complete": true
+    },
+    {
+     "year": 2013,
+     "harmonized_frp": 683.0,
+     "mw_per_detection": 9.5,
+     "complete": true
+    },
+    {
+     "year": 2014,
+     "harmonized_frp": 944.8,
+     "mw_per_detection": 11.2,
+     "complete": true
+    },
+    {
+     "year": 2015,
+     "harmonized_frp": 921.3,
+     "mw_per_detection": 11.2,
+     "complete": true
+    },
+    {
+     "year": 2016,
+     "harmonized_frp": 1680.6,
+     "mw_per_detection": 12.6,
+     "complete": true
+    },
+    {
+     "year": 2017,
+     "harmonized_frp": 1123.2,
+     "mw_per_detection": 12.5,
+     "complete": true
+    },
+    {
+     "year": 2018,
+     "harmonized_frp": 978.4,
+     "mw_per_detection": 12.5,
+     "complete": true
+    },
+    {
+     "year": 2019,
+     "harmonized_frp": 667.1,
+     "mw_per_detection": 10.4,
+     "complete": true
+    },
+    {
+     "year": 2020,
+     "harmonized_frp": 588.4,
+     "mw_per_detection": 9.6,
+     "complete": true
+    },
+    {
+     "year": 2021,
+     "harmonized_frp": 849.7,
+     "mw_per_detection": 10.6,
+     "complete": true
+    },
+    {
+     "year": 2022,
+     "harmonized_frp": 9109.5,
+     "mw_per_detection": 48.5,
+     "complete": true
+    },
+    {
+     "year": 2023,
+     "harmonized_frp": 874.7,
+     "mw_per_detection": 9.7,
+     "complete": true
+    },
+    {
+     "year": 2024,
+     "harmonized_frp": 1062.7,
+     "mw_per_detection": 13.0,
+     "complete": true
+    },
+    {
+     "year": 2025,
+     "harmonized_frp": 23228.5,
+     "mw_per_detection": 41.3,
+     "complete": true
+    },
+    {
+     "year": 2026,
+     "harmonized_frp": 1261.6,
+     "mw_per_detection": 11.2,
+     "complete": false
+    }
+   ],
+   "note": "2002년 6월까지(Terra만 있던 시기)는 위성별 FRP가 없어 비워 둡니다."
+  },
+  "B7": {
+   "title": "센서 교체 보정",
+   "switch_year": 2012,
+   "raw_viirs_to_modis_ratio": 2.26,
+   "ratio_based_on": {
+    "raw_modis": 1182,
+    "raw_viirs": 2667
+   },
+   "years": [
+    {
+     "year": 2000,
+     "raw_modis": 2,
+     "raw_viirs": null,
+     "raw_stitched": 2,
+     "harmonized": 6.3
+    },
+    {
+     "year": 2001,
+     "raw_modis": 26,
+     "raw_viirs": null,
+     "raw_stitched": 26,
+     "harmonized": 59.6
+    },
+    {
+     "year": 2002,
+     "raw_modis": 31,
+     "raw_viirs": null,
+     "raw_stitched": 31,
+     "harmonized": 50.0
+    },
+    {
+     "year": 2003,
+     "raw_modis": 34,
+     "raw_viirs": null,
+     "raw_stitched": 34,
+     "harmonized": 34.0
+    },
+    {
+     "year": 2004,
+     "raw_modis": 51,
+     "raw_viirs": null,
+     "raw_stitched": 51,
+     "harmonized": 51.0
+    },
+    {
+     "year": 2005,
+     "raw_modis": 73,
+     "raw_viirs": null,
+     "raw_stitched": 73,
+     "harmonized": 73.0
+    },
+    {
+     "year": 2006,
+     "raw_modis": 66,
+     "raw_viirs": null,
+     "raw_stitched": 66,
+     "harmonized": 66.0
+    },
+    {
+     "year": 2007,
+     "raw_modis": 76,
+     "raw_viirs": null,
+     "raw_stitched": 76,
+     "harmonized": 76.0
+    },
+    {
+     "year": 2008,
+     "raw_modis": 73,
+     "raw_viirs": null,
+     "raw_stitched": 73,
+     "harmonized": 73.0
+    },
+    {
+     "year": 2009,
+     "raw_modis": 103,
+     "raw_viirs": null,
+     "raw_stitched": 103,
+     "harmonized": 103.0
+    },
+    {
+     "year": 2010,
+     "raw_modis": 71,
+     "raw_viirs": null,
+     "raw_stitched": 71,
+     "harmonized": 71.0
+    },
+    {
+     "year": 2011,
+     "raw_modis": 89,
+     "raw_viirs": null,
+     "raw_stitched": 89,
+     "harmonized": 89.0
+    },
+    {
+     "year": 2012,
+     "raw_modis": 78,
+     "raw_viirs": 95,
+     "raw_stitched": 95,
+     "harmonized": 78.0
+    },
+    {
+     "year": 2013,
+     "raw_modis": 72,
+     "raw_viirs": 108,
+     "raw_stitched": 108,
+     "harmonized": 72.0
+    },
+    {
+     "year": 2014,
+     "raw_modis": 84,
+     "raw_viirs": 146,
+     "raw_stitched": 146,
+     "harmonized": 84.0
+    },
+    {
+     "year": 2015,
+     "raw_modis": 82,
+     "raw_viirs": 155,
+     "raw_stitched": 155,
+     "harmonized": 82.0
+    },
+    {
+     "year": 2016,
+     "raw_modis": 133,
+     "raw_viirs": 197,
+     "raw_stitched": 197,
+     "harmonized": 133.0
+    },
+    {
+     "year": 2017,
+     "raw_modis": 90,
+     "raw_viirs": 150,
+     "raw_stitched": 150,
+     "harmonized": 90.0
+    },
+    {
+     "year": 2018,
+     "raw_modis": 78,
+     "raw_viirs": 149,
+     "raw_stitched": 149,
+     "harmonized": 78.0
+    },
+    {
+     "year": 2019,
+     "raw_modis": 64,
+     "raw_viirs": 140,
+     "raw_stitched": 140,
+     "harmonized": 64.0
+    },
+    {
+     "year": 2020,
+     "raw_modis": 61,
+     "raw_viirs": 186,
+     "raw_stitched": 186,
+     "harmonized": 61.0
+    },
+    {
+     "year": 2021,
+     "raw_modis": 80,
+     "raw_viirs": 163,
+     "raw_stitched": 163,
+     "harmonized": 80.0
+    },
+    {
+     "year": 2022,
+     "raw_modis": 188,
+     "raw_viirs": 883,
+     "raw_stitched": 883,
+     "harmonized": 188.0
+    },
+    {
+     "year": 2023,
+     "raw_modis": 90,
+     "raw_viirs": 167,
+     "raw_stitched": 167,
+     "harmonized": 90.0
+    },
+    {
+     "year": 2024,
+     "raw_modis": 82,
+     "raw_viirs": 128,
+     "raw_stitched": 128,
+     "harmonized": 82.0
+    },
+    {
+     "year": 2025,
+     "raw_modis": 681,
+     "raw_viirs": 2504,
+     "raw_stitched": 2504,
+     "harmonized": 561.9
+    },
+    {
+     "year": 2026,
+     "raw_modis": 96,
+     "raw_viirs": 206,
+     "raw_stitched": 206,
+     "harmonized": 112.4
+    }
+   ],
+   "note": "원본을 이어 붙이면(2011년까지 MODIS, 2012년부터 VIIRS) 센서가 바뀐 해에 숫자가 뛰어 산불이 는 것처럼 보입니다. harmonized는 전 기간을 MODIS 기준 한 눈금으로 맞춘 값입니다."
+  }
+ }
+}

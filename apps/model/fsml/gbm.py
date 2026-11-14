@@ -48,12 +48,13 @@ def variants() -> dict[str, dict]:
 
 
 def fit(data: pd.DataFrame, features: list[str], train: np.ndarray, valid: np.ndarray,
-        params: dict | None = None, log_every: int = 200) -> lgb.Booster:
-    """`params` overrides PARAMS; pass `monotone=False` to train without the monotone constraints."""
+        params: dict | None = None, log_every: int = 200, target: str = "modis_n") -> lgb.Booster:
+    """`params` overrides PARAMS; pass `monotone=False` to train without the monotone constraints.
+    `target` is the MODIS column to learn (fsml.frp learns the FRP total)."""
     params = {**PARAMS, **(params or {})}
     if params.pop("monotone", True):
         params.update(monotone(features))
-    y = data["modis_n"].astype(float)
+    y = data[target].astype(float)
     dtrain = lgb.Dataset(data.loc[train, features], y[train])
     dvalid = lgb.Dataset(data.loc[valid, features], y[valid])
     callbacks = [lgb.early_stopping(100, verbose=log_every > 0)]

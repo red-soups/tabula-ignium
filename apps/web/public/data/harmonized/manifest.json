@@ -1,6 +1,6 @@
 {
  "format": 1,
- "generated": "2026-11-14T01:43:47Z",
+ "generated": "2026-11-14T08:45:28Z",
  "unit": "MODIS-equivalent active fire detections per cell per month",
  "grid": {
   "res": 1.0,
@@ -10,9 +10,9 @@
  },
  "periods": {
   "start": "2000-11",
-  "count": 302
+  "count": 313
  },
- "n_cells": 16429,
+ "n_cells": 16863,
  "source": [
   "terra_scaled",
   "terra_scaled",
@@ -315,6 +315,17 @@
   "viirs_model",
   "viirs_model",
   "viirs_model",
+  "viirs_model",
+  "viirs_model",
+  "viirs_model",
+  "viirs_model",
+  "viirs_model",
+  "viirs_model",
+  "viirs_model",
+  "viirs_model",
+  "viirs_model",
+  "viirs_model",
+  "viirs_model",
   "viirs_model"
  ],
  "sources": {
@@ -338,9 +349,28 @@
   "2025-09",
   "2025-10",
   "2025-11",
-  "2025-12"
+  "2025-12",
+  "2026-01",
+  "2026-02",
+  "2026-03",
+  "2026-04",
+  "2026-05",
+  "2026-06",
+  "2026-07",
+  "2026-08",
+  "2026-09",
+  "2026-10",
+  "2026-11"
  ],
  "range_note": "80% interval per cell; the area range is the sum of cell bounds, so it is wider than the true interval",
+ "through": "2026-11-13",
+ "partial": {
+  "2026-11": {
+   "days": 13,
+   "of": 30
+  }
+ },
+ "partial_note": "a partial month is ranked on its projected total (count \u00d7 of / days)",
  "index": {
   "baseline_years": [
    2003,
@@ -368,5 +398,5 @@
   "counts": "counts.bin.gz",
   "range": "range.bin.gz"
  },
- "credit": "NASA FIRMS MODIS C6.1 and VIIRS S-NPP 375 m archives, harmonized by Tabula Ignium (Red Soups)"
+ "credit": "NASA FIRMS MODIS C6.1 and VIIRS 375 m (S-NPP to 2025, NOAA-20 from 2026), harmonized by Tabula Ignium (Red Soups)"
 }

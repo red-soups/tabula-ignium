@@ -3,55 +3,190 @@
   "$id": "https://github.com/red-soups/tabula-ignium/packages/shared-schemas/manifest.schema.json",
   "title": "Harmonized grid manifest",
   "type": "object",
-  "required": ["format", "unit", "grid", "periods", "n_cells", "source", "estimated_sources", "range_periods", "index", "files"],
+  "required": [
+    "format",
+    "unit",
+    "grid",
+    "periods",
+    "n_cells",
+    "source",
+    "estimated_sources",
+    "range_periods",
+    "index",
+    "files"
+  ],
   "properties": {
-    "format": {"const": 1},
-    "generated": {"type": "string", "format": "date-time"},
-    "unit": {"type": "string"},
+    "format": {
+      "const": 1
+    },
+    "generated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "unit": {
+      "type": "string"
+    },
     "grid": {
       "type": "object",
-      "required": ["res"],
-      "properties": {"res": {"type": "number", "exclusiveMinimum": 0}}
+      "required": [
+        "res"
+      ],
+      "properties": {
+        "res": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
     },
     "periods": {
       "type": "object",
-      "required": ["start", "count"],
+      "required": [
+        "start",
+        "count"
+      ],
       "properties": {
-        "start": {"type": "string", "pattern": "^\\d{4}-\\d{2}$"},
-        "count": {"type": "integer", "minimum": 1}
+        "start": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}$"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
     },
-    "n_cells": {"type": "integer", "minimum": 0},
+    "n_cells": {
+      "type": "integer",
+      "minimum": 0
+    },
     "source": {
       "description": "Source of each month, same length as periods.count",
       "type": "array",
-      "items": {"enum": ["modis", "terra_scaled", "viirs_model"]}
+      "items": {
+        "enum": [
+          "modis",
+          "terra_scaled",
+          "viirs_model"
+        ]
+      }
     },
-    "sources": {"type": "object", "additionalProperties": {"type": "string"}},
-    "estimated_sources": {"type": "array", "items": {"type": "string"}},
-    "range_periods": {"type": "array", "items": {"type": "string", "pattern": "^\\d{4}-\\d{2}$"}},
-    "range_note": {"type": "string"},
+    "sources": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "estimated_sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "range_periods": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}$"
+      }
+    },
+    "range_note": {
+      "type": "string"
+    },
     "index": {
       "type": "object",
-      "required": ["baseline_years", "min_baseline_years", "level_edges", "level_names", "anomaly_percentile"],
+      "required": [
+        "baseline_years",
+        "min_baseline_years",
+        "level_edges",
+        "level_names",
+        "anomaly_percentile"
+      ],
       "properties": {
-        "baseline_years": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2},
-        "min_baseline_years": {"type": "integer"},
-        "level_edges": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4},
-        "level_names": {"type": "array", "items": {"type": "string"}, "minItems": 5, "maxItems": 5},
-        "anomaly_percentile": {"type": "number"},
-        "rounding": {"type": "string"}
+        "baseline_years": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "min_baseline_years": {
+          "type": "integer"
+        },
+        "level_edges": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "level_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 5,
+          "maxItems": 5
+        },
+        "anomaly_percentile": {
+          "type": "number"
+        },
+        "rounding": {
+          "type": "string"
+        }
       }
     },
     "files": {
       "type": "object",
-      "required": ["cells", "counts", "range"],
+      "required": [
+        "cells",
+        "counts",
+        "range"
+      ],
       "properties": {
-        "cells": {"type": "string"},
-        "counts": {"type": "string"},
-        "range": {"type": "string"}
+        "cells": {
+          "type": "string"
+        },
+        "counts": {
+          "type": "string"
+        },
+        "range": {
+          "type": "string"
+        }
       }
     },
-    "credit": {"type": "string"}
+    "credit": {
+      "type": "string"
+    },
+    "through": {
+      "type": "string",
+      "format": "date",
+      "description": "Last day the data covers"
+    },
+    "partial": {
+      "type": "object",
+      "description": "Months observed for part of their days",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "days",
+          "of"
+        ],
+        "properties": {
+          "days": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "of": {
+            "type": "integer",
+            "minimum": 28
+          }
+        }
+      }
+    },
+    "partial_note": {
+      "type": "string"
+    }
   }
 }

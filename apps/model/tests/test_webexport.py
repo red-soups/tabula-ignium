@@ -44,3 +44,15 @@ def test_calendar_sums_cells_in_box_and_ranks(tmp_path):
     est = cal[cal["source"] == "viirs_model"]
     assert est["estimated"].all() and (est["low"] < est["count"]).all() and (est["high"] > est["count"]).all()
     assert cal.loc[cal["source"] == "modis", "low"].isna().all()
+
+
+def test_partial_month_is_ranked_on_its_projected_total(tmp_path):
+    h = _table()
+    h.attrs = {"partial": {"2025-02": [14, 28]}, "through": "2025-02-14"}
+    webexport.write(h, tmp_path)
+    w = webexport.read(tmp_path)
+    assert w["manifest"]["partial"] == {"2025-02": {"days": 14, "of": 28}}
+    cal = webexport.calendar(w, 10, 11, 20, 21).set_index("period")
+    feb = cal.loc["2025-02-01"]
+    assert feb["days"] == 14 and feb["projected"] == feb["count"] * 2
+    assert cal.drop(index="2025-02-01")["projected"].isna().all()

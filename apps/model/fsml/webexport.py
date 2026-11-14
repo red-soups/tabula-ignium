@@ -85,6 +85,9 @@ def build(h: pd.DataFrame, res: float = RES) -> dict:
         "estimated_sources": list(ESTIMATED),
         "range_periods": [periods[t].strftime("%Y-%m") for t in est],
         "range_note": "80% interval per cell; the area range is the sum of cell bounds, so it is wider than the true interval",
+        "through": h.attrs.get("through", periods[-1].strftime("%Y-%m-%d")),
+        "partial": {p: {"days": d, "of": n} for p, (d, n) in h.attrs.get("partial", {}).items()},
+        "partial_note": "a partial month is ranked on its projected total (count × of / days)",
         "index": {
             "baseline_years": list(activity.BASELINE_YEARS),
             "min_baseline_years": activity.MIN_BASELINE_YEARS,
@@ -94,7 +97,7 @@ def build(h: pd.DataFrame, res: float = RES) -> dict:
             "rounding": "area totals are rounded half to even before ranking",
         },
         "files": {"cells": "cells.bin", "counts": "counts.bin.gz", "range": "range.bin.gz"},
-        "credit": "NASA FIRMS MODIS C6.1 and VIIRS S-NPP 375 m archives, harmonized by Tabula Ignium (Red Soups)",
+        "credit": "NASA FIRMS MODIS C6.1 and VIIRS 375 m (S-NPP to 2025, NOAA-20 from 2026), harmonized by Tabula Ignium (Red Soups)",
     }
     return {"manifest": manifest, "cells": cells, "counts": counts, "range": rng, "periods": periods}
 
@@ -131,11 +134,21 @@ def cells_in(w: dict, south: float, north: float, west: float, east: float) -> n
 
 
 def calendar(w: dict, south: float, north: float, west: float, east: float) -> pd.DataFrame:
-    """Monthly calendar for a box, from the web files, using activity.py for the index."""
+    """Monthly calendar for a box, from the web files, using activity.py for the index.
+
+    A partial last month (manifest "partial") is ranked on its projected total, count × of / days;
+    `days` and `projected` say so, `count` stays what was observed."""
     idx = cells_in(w, south, north, west, east)
     m = w["manifest"]
-    t = pd.DataFrame({"area": "aoi", "period": w["periods"], "count": w["counts"][idx].sum(0, dtype=np.float64)})
+    count = w["counts"][idx].sum(0, dtype=np.float64)
+    key = w["periods"].strftime("%Y-%m")
+    days = np.array([m.get("partial", {}).get(p, {}).get("days", np.nan) for p in key], float)
+    of = np.array([m.get("partial", {}).get(p, {}).get("of", np.nan) for p in key], float)
+    projected = np.where(np.isnan(days), np.nan, count * of / days)
+    ranked = np.where(np.isnan(days), count, projected)
+    t = pd.DataFrame({"area": "aoi", "period": w["periods"], "count": ranked})
     t = activity.activity_index(t, "count", "area")
+    t["count"], t["days"], t["projected"] = count, days, projected
     t["level"] = t["level"].cat.codes + 1  # 1–5, 0 = not ranked
     t["source"] = m["source"]
     t["estimated"] = t["source"].isin(m["estimated_sources"])
@@ -148,4 +161,5 @@ def calendar(w: dict, south: float, north: float, west: float, east: float) -> p
         lo[has], hi[has] = r[:, 0], r[:, 1]
     t["low"], t["high"] = lo, hi
     t["anomaly"] = t["percentile"] >= m["index"]["anomaly_percentile"]
-    return t[["period", "count", "low", "high", "normal", "percentile", "level", "anomaly", "source", "estimated"]]
+    return t[["period", "count", "low", "high", "normal", "percentile", "level", "anomaly", "source", "estimated",
+              "days", "projected"]]

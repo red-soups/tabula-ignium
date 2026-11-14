@@ -1,0 +1,122 @@
+{
+ "title": "산불 이력 확인서",
+ "items": {
+  "A1": "화재 감지 목록",
+  "A2": "감지 지도",
+  "A3": "가장 가까운 화재",
+  "B1": "연도별 화재 추이",
+  "B2": "월별 달력",
+  "B3": "큰 산불 발생 빈도",
+  "B4": "고위험 시기",
+  "B5": "최근 추세",
+  "B6": "불 세기(FRP) 이력",
+  "B7": "센서 교체 보정",
+  "C1": "불확실성 범위",
+  "C2": "데이터 출처와 방법",
+  "C3": "한계",
+  "C4": "인용 문구"
+ },
+ "notes": {
+  "A1": "MODIS와 VIIRS는 같은 불을 각각 감지하므로 두 센서의 건수를 더하지 않습니다.",
+  "A3": "조회 기간에 한국 범위 안에서 감지된 화재가 없습니다.",
+  "B6": "2002년 6월까지(Terra만 있던 시기)는 위성별 FRP가 없어 비워 둡니다.",
+  "B7": "원본을 이어 붙이면(2011년까지 MODIS, 2012년부터 VIIRS) 센서가 바뀐 해에 숫자가 뛰어 산불이 는 것처럼 보입니다. harmonized는 전 기간을 MODIS 기준 한 눈금으로 맞춘 값입니다."
+ },
+ "satellites": {
+  "T": "Terra",
+  "Terra": "Terra",
+  "A": "Aqua",
+  "Aqua": "Aqua",
+  "N": "Suomi NPP",
+  "N20": "NOAA-20",
+  "N21": "NOAA-21"
+ },
+ "rules": {
+  "baseline_years": [
+   2003,
+   2023
+  ],
+  "level_edges": [
+   10,
+   30,
+   70,
+   90
+  ],
+  "level_names": [
+   "매우 낮음",
+   "낮음",
+   "보통",
+   "높음",
+   "매우 높음"
+  ],
+  "full_years": [
+   2001,
+   2025
+  ],
+  "recent_years": 5,
+  "large_fire_month": {
+   "times_normal": 3.0,
+   "min_detections": 5.0
+  },
+  "high_risk_share": 0.125,
+  "near_km": [
+   1,
+   5,
+   10
+  ],
+  "max_detections": 5000
+ },
+ "C1": {
+  "level": 0.8,
+  "tested_coverage": {
+   "count": 0.814,
+   "frp": 0.834
+  },
+  "note": "범위(low~high)는 AI가 VIIRS로 계산한 달(2025년~)에만 있습니다. 실제 값이 이 범위 안에 들 확률이 약 80%가 되도록 맞췄습니다. 작은 지역의 범위는 0.5° 칸 범위를 감지점 비율로 나눈 근사값이며, 여러 점을 합친 범위는 실제보다 조금 넓습니다."
+ },
+ "C2": {
+  "data": [
+   {
+    "name": "NASA FIRMS MODIS Collection 6.1 (MCD14)",
+    "satellites": "Terra, Aqua",
+    "period": "2000-11 ~"
+   },
+   {
+    "name": "NASA FIRMS VIIRS 375 m (VNP14IMG)",
+    "satellites": "Suomi NPP",
+    "period": "2012-01 ~ 2025-12"
+   },
+   {
+    "name": "NASA FIRMS VIIRS 375 m (VJ114IMG)",
+    "satellites": "NOAA-20",
+    "period": "2026-01 ~"
+   }
+  ],
+  "filter": "식생 화재(type = 0)만 사용, 화산·공장 등 고정 열원 제외",
+  "model": "LightGBM(단조 제약, Tweedie)으로 VIIRS 0.5° 칸 × 월 값을 MODIS(Terra+Aqua) 기준으로 변환, 감지점 단위로 나눔",
+  "sources": {
+   "terra_scaled": "2000-11 ~ 2002-06: Terra만 있던 시기, Terra+Aqua 비율로 보정",
+   "modis": "2002-07 ~ 2024-12: 실제 MODIS",
+   "viirs_model": "2025-01 ~: VIIRS를 AI로 변환 (MODIS 위성 궤도 변화로 실제 MODIS를 쓰지 않음)"
+  },
+  "validation": {
+   "count": "2020–2024년을 한 해씩 가리고 시험: 10° 지역 월 합계 오차가 규칙 기반 방법보다 33% 작음(149.6 vs 221.1), 편향 −0.3%",
+   "noaa20": "NOAA-20(학습에 쓰지 않은 위성)을 넣어도 오차 118.9로 통과",
+   "calendar": "평년 대비 5단계 일치 67%, ±1단계 95%, '매우 높음' 판정 F1 0.67",
+   "frp": "FRP(불 세기): 비율 기준선보다 합계 오차 39% 작음, 5년 모두 우세",
+   "split": "0.5° 값을 감지점으로 나누기: 한국 2013–2024에서 실제 MODIS와 상관 0.78(면적으로 똑같이 나누면 0.32)",
+   "coverage": "80% 범위 시험 포함률: 탐지 수 81.4%, FRP 83.4%"
+  }
+ },
+ "C3": {
+  "items": [
+   "위성이 지나갈 때(하루 몇 번)만 관측하므로 그 사이에 시작되고 꺼진 불은 빠질 수 있습니다.",
+   "구름이나 짙은 연기 아래의 불, 아주 작은 불은 감지되지 않을 수 있습니다.",
+   "감지 위치는 화소 중심이며 MODIS는 1~5 km, VIIRS는 약 375 m의 위치 오차가 있습니다.",
+   "2025년부터의 값은 AI 추정치이며 범위를 함께 보아야 합니다.",
+   "농업 소각 등 산불이 아닌 식생 화재도 포함될 수 있습니다.",
+   "이 확인서는 위성 관측에 근거한 참고 자료이며 법적 효력이 있는 증명서가 아닙니다. 공식 통계는 산림청 자료를 따릅니다."
+  ]
+ },
+ "C4_template": "Tabula Ignium 산불 이력 확인서 {document_id} ({issued_date} 발급). NASA FIRMS MODIS C6.1·VIIRS 375 m 활성 화재 자료를 MODIS(Terra+Aqua) 기준으로 조화한 값, {data_through} 관측까지."
+}
