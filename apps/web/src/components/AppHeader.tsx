@@ -15,9 +15,10 @@ type AppHeaderProps = {
   authBusy: boolean
   onLogin: () => void
   onLogout: () => void
+  onEditProfile: () => void
 }
 
-export function AppHeader({ onCreateProject, onGlobePreview, user, authBusy, onLogin, onLogout }: AppHeaderProps) {
+export function AppHeader({ onCreateProject, onGlobePreview, user, authBusy, onLogin, onLogout, onEditProfile }: AppHeaderProps) {
   return (
     <header className="app-header">
       <a className="wordmark" href="#top" aria-label="FireScope 프로젝트 홈">
@@ -41,6 +42,7 @@ export function AppHeader({ onCreateProject, onGlobePreview, user, authBusy, onL
         {user ? (
           <>
             <span className="header-user" title={user.email}>{user.name}</span>
+            <button className="quiet-button header-logout" type="button" onClick={onEditProfile} disabled={authBusy} aria-haspopup="dialog">회원정보 수정</button>
             <button className="quiet-button header-logout" type="button" onClick={onLogout} disabled={authBusy}>로그아웃</button>
           </>
         ) : (

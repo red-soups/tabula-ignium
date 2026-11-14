@@ -49,4 +49,8 @@ class Region {
     Short getRegionLevel() {
         return regionLevel;
     }
+
+    Region getParent() {
+        return parent;
+    }
 }
