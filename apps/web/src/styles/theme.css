@@ -27,6 +27,9 @@
   --green-ink: #172a1b;
   --green-hover: #cbf0c1;
   --orange: #ff8f62;
+  --danger: #f27b7b;
+  --danger-hover: #ff9292;
+  --danger-surface: #3b2022;
 
   /* Utility */
   --white: #fff;

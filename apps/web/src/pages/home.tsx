@@ -8,8 +8,11 @@ import {
   useCompleteSignupMutation,
   useLogoutMutation,
 } from '../api/authQueries'
+import { useCreateProjectMutation, useDeleteProjectMutation, useProjectsQuery, useUpdateProjectMutation } from '../api/projectQueries'
+import type { CreateProjectDetails } from '../api/projects'
 import { AppHeader } from '../components/AppHeader'
-import { CreateProjectModal } from '../components/CreateProjectModal'
+import { ProjectModal } from '../components/CreateProjectModal'
+import { DeleteProjectModal } from '../components/DeleteProjectModal'
 import {
   DashboardSidebar,
   type ProjectFilter,
@@ -18,42 +21,6 @@ import { GlobePreview } from '../components/GlobePreview'
 import { HeroSection } from '../components/HeroSection'
 import { ProjectGrid, type Project } from '../components/ProjectGrid'
 import { SignupModal } from '../components/SignupModal'
-
-// API 연결 전 홈 화면에서 사용하는 예시 데이터입니다.
-const HOME_PAGE_DATA: { projects: Project[] } = {
-  projects: [
-    {
-      id: 'amazon',
-      name: '아마존 산불 관측',
-      description: '아마존 유역의 화재 감지 추이와 FRP 변화를 관측합니다.',
-      regions: ['아마존'],
-      features: ['감지점 지도', '기간 추이', 'FRP 분석', '감지 밀도'],
-      updatedAt: '2026. 11. 12 수정',
-      isRecent: true,
-      mapVariant: 'amazon',
-    },
-    {
-      id: 'western-us',
-      name: '미국 서부 센서 비교',
-      description: '미국 서부의 MODIS와 VIIRS 감지 결과를 비교합니다.',
-      regions: ['미국 서부', '캘리포니아'],
-      features: ['감지점 지도', '센서별 비교', '신뢰도 필터'],
-      updatedAt: '2026. 11. 10 수정',
-      isRecent: true,
-      mapVariant: 'western-us',
-    },
-    {
-      id: 'australia',
-      name: '호주 동남부 감지 밀도',
-      description: '호주 동남부의 계절별 화재 밀집 지역을 확인합니다.',
-      regions: ['호주 동남부'],
-      features: ['감지점 지도', '주야간 분포', '감지 밀도'],
-      updatedAt: '2026. 10. 30 수정',
-      isRecent: false,
-      mapVariant: 'australia',
-    },
-  ],
-}
 
 function getSignupErrorMessage(error: Error | null) {
   if (error instanceof AuthRequestError && error.status === 401) {
@@ -69,6 +36,8 @@ function Home() {
   const [filter, setFilter] = useState<ProjectFilter>('all')
   const [query, setQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null)
   const [isGlobePreviewOpen, setIsGlobePreviewOpen] = useState(false)
   const [redirectError, setRedirectError] = useState(() =>
     new URLSearchParams(window.location.search).get('login') === 'failed'
@@ -82,6 +51,10 @@ function Home() {
   const account = accountQuery.data ?? null
   const pendingSignup = account && 'registrationRequired' in account ? account : null
   const user = account && 'id' in account ? account : null
+  const projectsQuery = useProjectsQuery(Boolean(user))
+  const createProjectMutation = useCreateProjectMutation()
+  const updateProjectMutation = useUpdateProjectMutation()
+  const deleteProjectMutation = useDeleteProjectMutation()
   const authBusy = accountQuery.isPending || signupMutation.isPending || logoutMutation.isPending
   const authError = redirectError
     || (accountQuery.error ? '로그인 상태를 확인하지 못했습니다.' : '')
@@ -115,23 +88,75 @@ function Home() {
     window.location.assign(GOOGLE_LOGIN_URL)
   }
 
+  function saveProject(details: CreateProjectDetails) {
+    const closeModal = () => {
+      setIsModalOpen(false)
+      setEditingProject(null)
+    }
+    if (editingProject) {
+      updateProjectMutation.mutate({ projectId: editingProject.id, details }, { onSuccess: closeModal })
+    } else {
+      createProjectMutation.mutate(details, { onSuccess: closeModal })
+    }
+  }
+
+  const projects = useMemo<Project[]>(() => {
+    if (!user) return []
+    return (projectsQuery.data ?? []).map((project) => ({
+      ...project,
+      description: project.description ?? '',
+      updatedAt: `${new Intl.DateTimeFormat('ko-KR').format(new Date(project.updatedAt))} 수정`,
+      isRecent: true,
+    }))
+  }, [projectsQuery.data, user])
+
   const filteredProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase('ko-KR')
 
-    return HOME_PAGE_DATA.projects.filter((project) => {
+    return projects.filter((project) => {
       const matchesFilter = filter === 'all' || project.isRecent
       const matchesSearch =
         normalizedQuery.length === 0 ||
-        [project.name, project.description, ...project.regions, ...project.features]
+        [
+          project.name,
+          project.description,
+          ...project.regions.map((region) => region.name),
+          ...project.features.map((feature) => feature.name),
+        ]
           .join(' ')
           .toLocaleLowerCase('ko-KR')
           .includes(normalizedQuery)
 
       return matchesFilter && matchesSearch
     })
-  }, [filter, query])
+  }, [filter, projects, query])
 
-  const openCreateModal = () => setIsModalOpen(true)
+  const openCreateModal = () => {
+    if (!user) {
+      startGoogleLogin()
+      return
+    }
+    createProjectMutation.reset()
+    updateProjectMutation.reset()
+    setEditingProject(null)
+    setIsModalOpen(true)
+  }
+
+  const openEditModal = (project: Project) => {
+    createProjectMutation.reset()
+    updateProjectMutation.reset()
+    setEditingProject(project)
+    setIsModalOpen(true)
+  }
+
+  const projectMutation = editingProject ? updateProjectMutation : createProjectMutation
+
+  const confirmDeleteProject = () => {
+    if (!deletingProject) return
+    deleteProjectMutation.mutate(deletingProject.id, {
+      onSuccess: () => setDeletingProject(null),
+    })
+  }
 
   return (
     <div className="app-shell">
@@ -147,20 +172,47 @@ function Home() {
         <DashboardSidebar activeFilter={filter} onFilterChange={setFilter} />
         <main className="dashboard-content">
           {authError && !pendingSignup && <p className="auth-error" role="alert">{authError}</p>}
+          {projectsQuery.error && user && <p className="auth-error" role="alert">프로젝트 목록을 불러오지 못했습니다.</p>}
           <HeroSection onCreateProject={openCreateModal} />
           <ProjectGrid
             projects={filteredProjects}
             filter={filter}
             query={query}
             onQueryChange={setQuery}
+            onEditProject={openEditModal}
+            onDeleteProject={(project) => {
+              deleteProjectMutation.reset()
+              setDeletingProject(project)
+            }}
           />
         </main>
       </div>
       {isGlobePreviewOpen && <GlobePreview onClose={() => setIsGlobePreviewOpen(false)} />}
-      <CreateProjectModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      {isModalOpen && (
+        <ProjectModal
+          busy={projectMutation.isPending}
+          error={projectMutation.error ? '프로젝트를 저장하지 못했습니다. 입력값을 확인해 주세요.' : ''}
+          project={editingProject}
+          onClose={() => {
+            if (!projectMutation.isPending) {
+              setIsModalOpen(false)
+              setEditingProject(null)
+            }
+          }}
+          onSubmit={saveProject}
+        />
+      )}
+      {deletingProject && (
+        <DeleteProjectModal
+          project={deletingProject}
+          busy={deleteProjectMutation.isPending}
+          error={deleteProjectMutation.error ? '프로젝트를 삭제하지 못했습니다. 다시 시도해 주세요.' : ''}
+          onClose={() => {
+            if (!deleteProjectMutation.isPending) setDeletingProject(null)
+          }}
+          onConfirm={confirmDeleteProject}
+        />
+      )}
       {pendingSignup && (
         <SignupModal
           profile={pendingSignup}

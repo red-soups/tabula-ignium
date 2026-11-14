@@ -3,7 +3,7 @@ import { useRegionsQuery } from '../api/regionQueries'
 import { Icon } from './Icon'
 import { SearchableSelect } from './SearchableSelect'
 
-type SelectedRegion = {
+export type SelectedRegion = {
   id: number
   label: string
 }
@@ -12,6 +12,7 @@ type RegionSelectorProps = {
   title: string
   inputName: string
   maxSelections?: number
+  initialSelections?: SelectedRegion[]
   onSelectionChange?: (regionIds: number[]) => void
 }
 
@@ -19,12 +20,13 @@ export function RegionSelector({
   title,
   inputName,
   maxSelections = 5,
+  initialSelections = [],
   onSelectionChange,
 }: RegionSelectorProps) {
   const [countryId, setCountryId] = useState(0)
   const [cityId, setCityId] = useState(0)
   const [districtId, setDistrictId] = useState(0)
-  const [selectedRegions, setSelectedRegions] = useState<SelectedRegion[]>([])
+  const [selectedRegions, setSelectedRegions] = useState<SelectedRegion[]>(initialSelections)
 
   const countriesQuery = useRegionsQuery(null)
   const citiesQuery = useRegionsQuery(countryId || null, countryId > 0)
