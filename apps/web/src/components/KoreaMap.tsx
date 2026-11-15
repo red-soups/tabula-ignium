@@ -1,6 +1,7 @@
-import { useEffect, useEffectEvent, useMemo, useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import type { AnalysisBounds, FirePoint } from '../api/fireData'
 import type { RegionGeometry, RegionMap } from '../api/regions'
+import type { HeatCell } from '../api/fireTimelapse'
 
 export type MapSelection = AnalysisBounds
 
@@ -24,6 +25,8 @@ const MAX_CACHED_TILES = 160
 const DRAG_THRESHOLD = 4
 const NO_REGIONS: RegionMap[] = []
 const FIRE_MONTH_COLORS = ['#3b82f6', '#06b6d4', '#22c55e', '#facc15', '#f97316', '#e9011d']
+const HEAT_FULL = 40  // detections per cell-year drawn at full size
+const EMBER_GLOWS = ['#ff8a2a', '#ffb347', '#ffd166']  // weak → strong cells
 
 function fireObservationMonths(toPeriod: string) {
   const [year, month] = toPeriod.split('-').map(Number)
@@ -188,9 +191,10 @@ export function SatelliteMapAttribution() {
 
 export function KoreaMap({
   active, selecting = false, selection = null, focusBounds = null,
-  mapRegions = NO_REGIONS, observations, observationPeriod, onRegionClick, onAreaSelect,
+  mapRegions = NO_REGIONS, observations, observationPeriod, heat, onRegionClick, onAreaSelect,
 }: {
   active: boolean
+  heat?: HeatCell[]
   selecting?: boolean
   selection?: MapSelection | null
   focusBounds?: AnalysisBounds | null
@@ -362,7 +366,7 @@ export function KoreaMap({
   }
 
   return (
-    <div className={`korea-map${active ? ' is-active' : ''}${selecting ? ' is-selecting' : ''}`}>
+    <div className={`korea-map${active ? ' is-active' : ''}${selecting ? ' is-selecting' : ''}${heat ? ' is-night' : ''}`}>
       <svg ref={svg} className="korea-map-svg" viewBox={`${viewport.x} ${viewport.y} ${viewport.width} ${viewport.height}`}
         role="img" aria-label={observations ? '화재 관측 위치 위성 지도' : '대한민국 위성 지도'}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove}
@@ -378,6 +382,23 @@ export function KoreaMap({
           <path key={region.id} className="korea-clickable-region" d={path} fillRule="evenodd" aria-hidden="true"
             onClick={() => { if (!didPan.current) onRegionClick?.(region) }} />
         ))}
+        {heat && <defs>
+          {/* Ember: white-hot core, orange-to-gold glow fading out (same look as the old globe's hotspots). */}
+          {EMBER_GLOWS.map((glow, tier) => <radialGradient key={tier} id={`korea-ember-${tier}`}>
+            <stop offset="0" stopColor="#fff6dc" />
+            <stop offset="0.16" stopColor={glow} stopOpacity="0.95" />
+            <stop offset="0.45" stopColor="#ff5a14" stopOpacity="0.42" />
+            <stop offset="1" stopColor="#ff4710" stopOpacity="0" />
+          </radialGradient>)}
+        </defs>}
+        {shortSide > 0 && heat?.map((cell) => {
+          const strength = Math.sqrt(Math.min(cell.value, HEAT_FULL) / HEAT_FULL)
+          const tier = strength > 0.6 ? 2 : strength > 0.3 ? 1 : 0
+          const flicker = 1.1 + (Math.abs(cell.latitude * 37 + cell.longitude * 53) % 1) * 0.9
+          return <circle key={cell.key} className="korea-ember" cx={projectX(cell.longitude)} cy={projectY(cell.latitude)}
+            r={(3 + strength * 10) * view.size / shortSide} fill={`url(#korea-ember-${tier})`}
+            style={{ '--flicker': `${flicker.toFixed(2)}s` } as CSSProperties} />
+        })}
         {visibleSelection && <rect className="korea-analysis-area" {...visibleSelection} />}
         {shortSide > 0 && observationMarkers.map((marker) => (
           <circle key={marker.id} className="korea-fire-marker" cx={marker.x} cy={marker.y}

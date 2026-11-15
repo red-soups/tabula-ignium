@@ -120,6 +120,19 @@
 .korea-imagery { pointer-events: none; }
 .korea-clickable-region { fill: transparent; stroke: none; cursor: pointer; }
 .korea-analysis-area { fill: rgb(233 1 29 / 10%); stroke: var(--brand-red); stroke-width: 2; stroke-dasharray: 7 5; vector-effect: non-scaling-stroke; pointer-events: none; }
+.korea-imagery { transition: filter 500ms var(--ease); }
+.korea-map.is-night .korea-imagery { filter: brightness(.68) saturate(.85); }
+.korea-ember { mix-blend-mode: screen; transform-box: fill-box; transform-origin: center; pointer-events: none;
+  animation: ember-in 260ms var(--ease) both, ember-flicker var(--flicker, 1.4s) ease-in-out 260ms infinite alternate; }
+@keyframes ember-in { from { opacity: 0; transform: scale(.3); } }
+@keyframes ember-flicker { from { transform: scale(.84); } to { transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .korea-ember { animation: none; } }
+.fire-timelapse-label { position: absolute; z-index: 2; left: 16px; bottom: 16px; min-width: 220px; padding: 12px 16px 14px; display: grid; gap: 2px; border-radius: var(--radius-lg); background: rgb(19 20 22 / 72%); color: #fff; backdrop-filter: blur(4px); pointer-events: none; }
+.fire-timelapse-label small { color: rgb(255 255 255 / 78%); font-size: 12px; font-weight: 600; }
+.fire-timelapse-label strong { font-size: 40px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.fire-timelapse-label span { color: #ffd9a0; font-size: var(--text-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fire-timelapse-label i { height: 4px; margin-top: 8px; overflow: hidden; border-radius: 2px; background: rgb(255 255 255 / 22%); }
+.fire-timelapse-label b { height: 100%; display: block; background: linear-gradient(90deg, #ff5a14, #ffd166); transition: width 600ms linear; }
 .korea-map-controls { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: grid; gap: 6px; }
 .korea-map-controls button { width: 40px; height: 40px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface); color: var(--text); cursor: pointer; box-shadow: 0 2px 8px rgb(0 0 0 / 18%); font-size: 20px; line-height: 1; }
 .korea-map-controls button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }

@@ -33,6 +33,8 @@ import {
   PeriodComparisonPreviewModal,
 } from '../components/FireAdvancedPreviewModals'
 import { KoreaMap, SatelliteMapAttribution, type MapSelection } from '../components/KoreaMap'
+import { FireTimelapseLabel } from '../components/FireTimelapse'
+import { useFireTimelapse } from '../api/fireTimelapse'
 import { MapRegionSearch } from '../components/MapRegionSearch'
 import { SignupModal } from '../components/SignupModal'
 import type { RegionMap } from '../api/regions'
@@ -167,6 +169,7 @@ export default function AuthHome() {
     region.countryCode === 'KR' && region.level === 0)
   const provinceRegionsQuery = useRegionsQuery(korea?.id ?? null, Boolean(korea))
   const featuresQuery = useFeaturesQuery(step === 'features')
+  const timelapse = useFireTimelapse(step === 'home')
   const mapLayerParentId = focusedRegion?.level === 1
     ? focusedRegion.id
     : focusedRegion?.level === 2
@@ -557,8 +560,11 @@ export default function AuthHome() {
             <KoreaMap key={`${step === 'home' ? 'home' : 'document'}-${focusedRegion?.id ?? 'all'}`} active={step === 'region'}
               selecting={selectingArea} selection={selection}
               focusBounds={focusedRegion} mapRegions={mapRegionsQuery.data ?? []}
+              heat={step === 'home' ? timelapse?.cells : undefined}
               onRegionClick={clickAdministrativeRegion}
               onAreaSelect={(area) => { setSelection(area); setSelectingArea(false) }} />
+            {step === 'home' && timelapse && <FireTimelapseLabel year={timelapse.year}
+              index={timelapse.index} count={timelapse.count} through={timelapse.through} />}
           </div>
           <SatelliteMapAttribution />
           <div className="workspace-map-footer"><span><i /> {focusedRegion?.name ?? '대한민국 전역'}</span>
