@@ -101,9 +101,19 @@ export function FeatureSelectionPanel({
   return <div className="workspace-features">
     <div className="workspace-features-intro"><span>{t('feature.step')}</span><h2>{t('feature.title')}</h2>
       <p>{t('feature.description')}</p></div>
-    {isPending && <p className="workspace-feature-state" role="status">{t('feature.loading')}</p>}
+    {isPending && <div className="workspace-feature-grid workspace-feature-skeleton-grid"
+      role="status" aria-label={t('feature.loading')}>
+      {Array.from({ length: 8 }, (_, index) => <article className="workspace-feature-card workspace-feature-skeleton"
+        aria-hidden="true" key={index}>
+        <span className="workspace-feature-skeleton-icon" />
+        <span className="workspace-feature-skeleton-number" />
+        <span className="workspace-feature-skeleton-title" />
+        <span className="workspace-feature-skeleton-description" />
+        <span className="workspace-feature-skeleton-description is-short" />
+      </article>)}
+    </div>}
     {isError && <p className="workspace-feature-error" role="alert">{t('feature.loadError')}</p>}
-    <div className="workspace-feature-grid">{features?.map((feature, index) => {
+    {!isPending && <div className="workspace-feature-grid">{features?.map((feature, index) => {
       const selected = selectedFeatureIds.includes(feature.id)
       const isSummary = feature.code === 'FIRE_SUMMARY'
       const isPoints = feature.code === 'FIRE_LOCATION_MAP'
@@ -247,15 +257,15 @@ export function FeatureSelectionPanel({
           <PreviewButton disabled={invalidPeriod || !hasSelection} onClick={() => onPreviewFeature(feature.code)} />
         </div>}
       </article>
-    })}</div>
-    <div className="workspace-document-create">
+    })}</div>}
+    {!isPending && <div className="workspace-document-create">
       <div className="workspace-features-foot"><strong>{t('feature.selectedCount', { count: selectedFeatureIds.length })}</strong><span>{t('feature.layoutNote')}</span></div>
       <label><span>{t('feature.documentName')}</span><input value={documentName} maxLength={200}
         onChange={(event) => onDocumentNameChange(event.target.value)} placeholder={t('feature.documentNamePlaceholder')} /></label>
       {showHistoryButton && <button className="is-history" type="button" onClick={onOpenHistory}>{t('feature.history')}</button>}
       <button type="button" disabled={!hasSelection || selectedFeatureIds.length === 0 || !documentName.trim() || Boolean(selectedMonthlyPeriodInvalid)}
         onClick={onOpenDocumentPreview}>{t('feature.documentPreview')} <Icon name="chevron" size={18} /></button>
-    </div>
+    </div>}
   </div>
 }
 

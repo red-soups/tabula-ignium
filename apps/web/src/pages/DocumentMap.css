@@ -148,20 +148,30 @@
 .workspace-feature-state, .workspace-feature-error { margin: 24px 0 0; font-size: var(--text-sm); }
 .workspace-feature-state { color: var(--text-subtle); }
 .workspace-feature-error { color: var(--danger); }
+.workspace-feature-skeleton { height: 132px; display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: 16px 24px 14px 14px; column-gap: 14px; row-gap: 7px; overflow: hidden; pointer-events: none; }
+.workspace-feature-skeleton > span { display: block; border-radius: 999px; background: linear-gradient(100deg, var(--surface-muted) 20%, var(--border) 42%, var(--surface-muted) 64%); background-size: 260% 100%; animation: workspace-feature-shimmer 1.35s ease-in-out infinite; }
+.workspace-feature-skeleton-icon { grid-row: 1 / span 3; width: 44px; height: 44px; border-radius: var(--radius-lg) !important; }
+.workspace-feature-skeleton-number { width: 34px; }
+.workspace-feature-skeleton-title { width: min(72%, 190px); height: 20px; }
+.workspace-feature-skeleton-description { width: 94%; }
+.workspace-feature-skeleton-description.is-short { width: 68%; }
+@keyframes workspace-feature-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .workspace-feature-skeleton > span { animation: none; } }
 .workspace-feature-card { position: relative; padding: 18px 20px; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); transition: border-color 120ms var(--ease), background 120ms var(--ease); }
+.workspace-feature-card:not(.has-settings) { height: 132px; overflow: hidden; }
 .workspace-feature-card:hover { border-color: var(--accent-line); }
 .workspace-feature-card.is-selected { border-color: var(--accent); background: var(--surface-tint); box-shadow: inset 0 0 0 1px var(--accent); }
 .workspace-feature-card.is-disabled { opacity: .42; }
 .workspace-feature-card.is-disabled .workspace-feature-toggle { cursor: not-allowed; }
 .workspace-feature-card.has-settings { grid-column: 1 / -1; }
-.workspace-feature-toggle { position: relative; padding-right: 36px; display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 14px; row-gap: 2px; cursor: pointer; }
+.workspace-feature-toggle { position: relative; min-width: 0; padding-right: 36px; display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 14px; row-gap: 2px; cursor: pointer; }
 .workspace-feature-toggle > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .workspace-feature-card:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
 .workspace-feature-symbol { grid-row: 1 / span 3; width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--radius-lg); background: var(--surface-muted); color: var(--accent); }
 .workspace-feature-card.is-selected .workspace-feature-symbol { background: var(--surface); }
 .workspace-feature-number { color: var(--text-subtle); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.workspace-feature-toggle > strong { color: var(--text); font-size: 17px; font-weight: 700; line-height: 1.4; }
-.workspace-feature-toggle > small { margin-top: 2px; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.55; }
+.workspace-feature-toggle > strong { min-width: 0; overflow: hidden; color: var(--text); font-size: 17px; font-weight: 700; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-feature-toggle > small { min-width: 0; margin-top: 2px; display: -webkit-box; overflow: hidden; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.55; text-overflow: ellipsis; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .workspace-feature-check { position: absolute; top: 0; right: 0; width: 24px; height: 24px; display: grid; place-items: center; border: 1.5px solid var(--border-strong); border-radius: 50%; background: var(--surface); color: transparent; }
 .workspace-feature-card.is-selected .workspace-feature-check { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
 .workspace-feature-settings { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--accent-line); }
