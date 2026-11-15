@@ -40,13 +40,13 @@ systemctl restart "$service"
 for ((attempt = 0; attempt < 40; attempt++)); do
   if systemctl is-active --quiet "$service" &&
      response="$(curl -fsS --max-time 3 http://127.0.0.1:8080/api/regions 2>/dev/null)" &&
-     [[ "$response" == *'"countryCode":"KOR"'* ]]; then
+     [[ "$response" == *'"countryCode":"KR"'* ]]; then
     systemctl enable "$service"
-    echo "Deployed $revision. The regions API returned data for KOR."
+    echo "Deployed $revision. The regions API returned data for KR."
     exit 0
   fi
   sleep 3
 done
 
-echo "The regions API did not return data for KOR. Check journalctl -u $service on EC2." >&2
+echo "The regions API did not return data for KR. Check journalctl -u $service on EC2." >&2
 exit 1
