@@ -244,6 +244,12 @@ export default function AuthHome() {
               <h1>문서의 지역을<br />선택하세요.</h1>
               <p>행정구역으로 지도를 이동한 뒤, 지도에서 분석할 사각형 범위를 직접 그려 주세요.</p>
               <MapRegionSearch cityId={mapCityId} districtId={mapDistrictId} canReset={Boolean(mapCityId || mapDistrictId)}
+                areaAction={
+                  <button className="workspace-area-button" type="button" aria-pressed={selectingArea}
+                    onClick={() => setSelectingArea((current) => !current)}>
+                    {selection ? '범위 다시 그리기' : '범위 그리기'}
+                  </button>
+                }
                 onCityChange={(regionId) => {
                   setMapCityId(regionId)
                   setMapDistrictId(0)
@@ -252,10 +258,6 @@ export default function AuthHome() {
                 onDistrictChange={setMapDistrictId}
                 onRegionFocus={focusAdministrativeRegion}
                 onReset={resetRegionSelection} />
-              <button className={`workspace-area-button${selectingArea ? ' is-active' : ''}`} type="button"
-                onClick={() => setSelectingArea((current) => !current)}>
-                {selectingArea ? '지도에서 드래그하세요' : selection ? '분석 범위 다시 그리기' : '사각형 분석 범위 그리기'}
-              </button>
               {selection && <div className="workspace-selection-summary" role="status">
                 <span>선택된 분석 범위</span>
                 <div><small>지도 위치</small><strong>{selectedDistrictName ?? selectedCityName ?? '사용자 지정 범위'}</strong></div>
