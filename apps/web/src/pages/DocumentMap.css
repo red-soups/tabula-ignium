@@ -141,11 +141,9 @@
 .fire-chart-axis { margin-bottom: 7px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #68756d; font-size: 9px; font-weight: 700; }
 .fire-chart-axis span:first-child { color: var(--brand-green); }
 .fire-chart-axis span:last-child { color: var(--brand-charcoal); }
-.fire-point-map { overflow: hidden; border: 1px solid #d4dad5; border-radius: 10px; background: linear-gradient(145deg, #f4f3f0, #e8ece8); }
-.fire-point-map > .fire-chart-axis { margin: 0; padding: 8px 12px; border-bottom: 1px solid #d4dad5; background: #fff; }
-.fire-point-map svg { width: 100%; height: 330px; display: block; background-image: radial-gradient(circle, rgb(52 51 51 / 10%) 1px, transparent 1px); background-size: 18px 18px; }
-.fire-point-map circle { fill: rgb(233 1 29 / 64%); stroke: #fff; stroke-width: 1; vector-effect: non-scaling-stroke; }
-.fire-point-map-foot { padding: 10px 13px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid #d4dad5; background: #fff; }
+.fire-point-map-stage { height: clamp(260px, 45vh, 380px); position: relative; overflow: hidden; border-radius: 10px; background: #14242e; }
+.korea-fire-marker { fill: rgb(233 1 29 / 78%); stroke: #fff; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.fire-point-map-foot { padding-top: 9px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .fire-point-map-foot strong { color: var(--brand-red); font-size: 12px; }
 .fire-point-map-foot span { color: #727e76; font-size: 10px; }
 .fire-monthly-chart { height: 310px; padding: 22px 12px 4px; display: flex; align-items: stretch; gap: 7px; overflow-x: auto; border-bottom: 1px solid #bfc8c1; }

@@ -1,12 +1,8 @@
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type PointerEvent } from 'react'
+import type { AnalysisBounds, FirePoint } from '../api/fireData'
 import type { RegionGeometry, RegionMap } from '../api/regions'
 
-export type MapSelection = {
-  west: number
-  south: number
-  east: number
-  north: number
-}
+export type MapSelection = AnalysisBounds
 
 type Point = { x: number; y: number }
 type Size = { width: number; height: number }
@@ -26,6 +22,7 @@ const TILE_PIXELS = 256
 const TILE_REQUEST_DELAY_MS = 140
 const MAX_CACHED_TILES = 160
 const DRAG_THRESHOLD = 4
+const NO_REGIONS: RegionMap[] = []
 
 // Frame the country and its islands with space for the surrounding coast.
 const west = 124.5
@@ -57,12 +54,12 @@ function fitCenter(center: Point, size: number, aspect: Size): Point {
   }
 }
 
-function viewForRegion(region: RegionMap | null, aspect: Size): View {
-  if (!region) return nationalView
-  const left = projectX(region.west)
-  const right = projectX(region.east)
-  const top = projectY(region.north)
-  const bottom = projectY(region.south)
+function viewForBounds(bounds: AnalysisBounds | null, aspect: Size): View {
+  if (!bounds) return nationalView
+  const left = projectX(bounds.west)
+  const right = projectX(bounds.east)
+  const top = projectY(bounds.north)
+  const bottom = projectY(bounds.south)
   const size = clamp(Math.max((right - left) / aspect.width, (bottom - top) / aspect.height) * 1.28, MIN_VIEW_SIZE, WORLD)
   return { center: { x: (left + right) / 2, y: (top + bottom) / 2 }, size }
 }
@@ -172,14 +169,26 @@ function rectBetween(start: Point, end: Point): Rectangle {
   }
 }
 
-export function KoreaMap({ active, selecting, selection, focusRegion, mapRegions, onRegionClick, onAreaSelect }: {
+export function SatelliteMapAttribution() {
+  return <div className="workspace-map-attribution">
+    <a href="https://cloudless.eox.at" target="_blank" rel="noopener noreferrer">EOxCloudless</a>
+    {' by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024) · '}
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
+  </div>
+}
+
+export function KoreaMap({
+  active, selecting = false, selection = null, focusBounds = null,
+  mapRegions = NO_REGIONS, observations, onRegionClick, onAreaSelect,
+}: {
   active: boolean
-  selecting: boolean
-  selection: MapSelection | null
-  focusRegion: RegionMap | null
-  mapRegions: RegionMap[]
-  onRegionClick: (region: RegionMap) => void
-  onAreaSelect: (selection: MapSelection) => void
+  selecting?: boolean
+  selection?: MapSelection | null
+  focusBounds?: AnalysisBounds | null
+  mapRegions?: RegionMap[]
+  observations?: FirePoint[]
+  onRegionClick?: (region: RegionMap) => void
+  onAreaSelect?: (selection: MapSelection) => void
 }) {
   const svg = useRef<SVGSVGElement>(null)
   const drag = useRef<Drag | null>(null)
@@ -191,7 +200,8 @@ export function KoreaMap({ active, selecting, selection, focusRegion, mapRegions
   const aspect = screen && shortSide > 0
     ? { width: screen.width / shortSide, height: screen.height / shortSide }
     : { width: 1, height: 1 }
-  const view = manualView ?? viewForRegion(focusRegion, aspect)
+  const focusedView = viewForBounds(focusBounds, aspect)
+  const view = manualView ?? focusedView
   const center = fitCenter(view.center, view.size, aspect)
   const width = view.size * aspect.width
   const height = view.size * aspect.height
@@ -202,6 +212,17 @@ export function KoreaMap({ active, selecting, selection, focusRegion, mapRegions
   const regionPaths = useMemo(() => mapRegions.map((region) => ({
     region, path: pathFor(region.geometry),
   })), [mapRegions])
+  const observationMarkers = useMemo(() => {
+    if (!observations?.length) return []
+    const maximumFrp = Math.max(1, ...observations.map((point) => point.frp))
+    return observations.map((point) => ({
+      id: point.id,
+      x: projectX(point.longitude),
+      y: projectY(point.latitude),
+      radius: 2.2 + Math.sqrt(Math.max(0, point.frp) / maximumFrp) * 7,
+      label: `${point.sensor} · FRP ${point.frp.toFixed(2)} · ${point.confidenceLevel}`,
+    }))
+  }, [observations])
   const visibleSelection = draftRect ?? (selection && rectBetween(
     { x: projectX(selection.west), y: projectY(selection.north) },
     { x: projectX(selection.east), y: projectY(selection.south) },
@@ -319,7 +340,7 @@ export function KoreaMap({ active, selecting, selection, focusRegion, mapRegions
     const rect = rectBetween(current.start, areaPoint(event.clientX, event.clientY, bounds))
     if (rect.width * bounds.width / viewport.width >= DRAG_THRESHOLD &&
         rect.height * bounds.height / viewport.height >= DRAG_THRESHOLD) {
-      onAreaSelect({
+      onAreaSelect?.({
         west: longitudeAt(rect.x), south: latitudeAt(rect.y + rect.height),
         east: longitudeAt(rect.x + rect.width), north: latitudeAt(rect.y),
       })
@@ -329,7 +350,7 @@ export function KoreaMap({ active, selecting, selection, focusRegion, mapRegions
   return (
     <div className={`korea-map${active ? ' is-active' : ''}${selecting ? ' is-selecting' : ''}`}>
       <svg ref={svg} className="korea-map-svg" viewBox={`${viewport.x} ${viewport.y} ${viewport.width} ${viewport.height}`}
-        role="img" aria-label="대한민국 위성 지도"
+        role="img" aria-label={observations ? '화재 관측 위치 위성 지도' : '대한민국 위성 지도'}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}>
         <g className="korea-imagery" aria-hidden="true">
@@ -341,14 +362,21 @@ export function KoreaMap({ active, selecting, selection, focusRegion, mapRegions
         </g>
         {active && !selecting && regionPaths.map(({ region, path }) => (
           <path key={region.id} className="korea-clickable-region" d={path} fillRule="evenodd" aria-hidden="true"
-            onClick={() => { if (!didPan.current) onRegionClick(region) }} />
+            onClick={() => { if (!didPan.current) onRegionClick?.(region) }} />
         ))}
         {visibleSelection && <rect className="korea-analysis-area" {...visibleSelection} />}
+        {shortSide > 0 && observationMarkers.map((marker) => (
+          <circle key={marker.id} className="korea-fire-marker" cx={marker.x} cy={marker.y}
+            r={marker.radius * view.size / shortSide}>
+            <title>{marker.label}</title>
+          </circle>
+        ))}
       </svg>
       {active && <div className="korea-map-controls" aria-label="지도 확대 조작">
         <button type="button" aria-label="지도 확대" disabled={view.size <= MIN_VIEW_SIZE} onClick={() => zoom(0.75)}>+</button>
         <button type="button" aria-label="지도 축소" disabled={view.size >= WORLD} onClick={() => zoom(1 / 0.75)}>−</button>
-        <button type="button" aria-label="지도 원래 크기" onClick={() => setManualView(nationalView)}>⌂</button>
+        <button type="button" aria-label={observations ? '분석 범위로 돌아가기' : '지도 원래 크기'}
+          onClick={() => setManualView(observations ? focusedView : nationalView)}>⌂</button>
       </div>}
     </div>
   )

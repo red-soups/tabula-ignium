@@ -4,6 +4,7 @@ import {
   useConfidenceDistributionQuery, useFirePointsQuery, useMonthlyFireTrendQuery,
 } from '../api/fireDataQueries'
 import { Icon } from './Icon'
+import { KoreaMap, SatelliteMapAttribution } from './KoreaMap'
 
 export function PreviewShell({ title, context, onClose, children }: {
   title: string
@@ -50,34 +51,23 @@ export function FirePointsPreviewModal({ bounds, regionName, config, onClose }: 
 }) {
   const query = useFirePointsQuery(bounds, config)
   const points = query.data ?? []
-  const west = Math.min(...points.map((point) => point.longitude))
-  const east = Math.max(...points.map((point) => point.longitude))
-  const south = Math.min(...points.map((point) => point.latitude))
-  const north = Math.max(...points.map((point) => point.latitude))
-  const longitudeSpan = Math.max(east - west, 0.01)
-  const latitudeSpan = Math.max(north - south, 0.01)
-  const maximumFrp = Math.max(...points.map((point) => point.frp), 1)
 
   return <PreviewShell title="화재 관측 위치" onClose={onClose} context={<>
     <strong>{regionName}</strong><span>{config.period}</span>
     <span>{config.sensor === 'ALL' ? '전체 센서' : config.sensor}</span>
     <span>{config.confidenceLevel === 'ALL' ? '전체 신뢰도' : config.confidenceLevel}</span>
   </>}>
-    <QueryState pending={query.isPending} error={query.isError} empty={!query.isPending && points.length === 0}>
-      <div className="fire-point-map">
-        <div className="fire-chart-axis"><span>Y축 · 위도</span><span>X축 · 경도</span></div>
-        <svg viewBox="0 0 600 320" role="img" aria-label={`${regionName} 화재 관측점`}>
-          {points.map((point) => {
-            const x = 24 + (point.longitude - west) / longitudeSpan * 552
-            const y = 24 + (north - point.latitude) / latitudeSpan * 272
-            const radius = 2.2 + Math.sqrt(point.frp / maximumFrp) * 7
-            return <circle key={point.id} cx={x} cy={y} r={radius}>
-              <title>{`${point.sensor} · FRP ${point.frp.toFixed(2)} · ${point.confidenceLevel}`}</title>
-            </circle>
-          })}
-        </svg>
-        <div className="fire-point-map-foot"><strong>{points.length.toLocaleString('ko-KR')}건</strong><span>FRP가 높을수록 점이 크게 표시됩니다.</span></div>
+    <div className="fire-point-map">
+      <div className="fire-point-map-stage">
+        <KoreaMap active focusBounds={bounds} selection={bounds} observations={points} />
       </div>
+      <SatelliteMapAttribution />
+      {query.isSuccess && points.length > 0 &&
+        <div className="fire-point-map-foot"><strong>{points.length.toLocaleString('ko-KR')}건</strong><span>FRP가 높을수록 점이 크게 표시됩니다.</span></div>
+      }
+    </div>
+    <QueryState pending={query.isPending} error={query.isError} empty={query.isSuccess && points.length === 0}>
+      {null}
     </QueryState>
   </PreviewShell>
 }
