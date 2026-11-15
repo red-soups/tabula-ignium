@@ -2,6 +2,7 @@
 const ICON_PATHS = {
   close: <path d="m6 6 12 12M18 6 6 18" />,
   refresh: <><path d="M20 6v5h-5" /><path d="M18.2 15a7 7 0 1 1-.6-7.7L20 11" /></>,
+  download: <><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></>,
 } as const
 
 export type IconName = keyof typeof ICON_PATHS

@@ -23,6 +23,15 @@ const TILE_REQUEST_DELAY_MS = 140
 const MAX_CACHED_TILES = 160
 const DRAG_THRESHOLD = 4
 const NO_REGIONS: RegionMap[] = []
+const FIRE_MONTH_COLORS = ['#3b82f6', '#06b6d4', '#22c55e', '#facc15', '#f97316', '#e9011d']
+
+function fireObservationMonths(toPeriod: string) {
+  const [year, month] = toPeriod.split('-').map(Number)
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(year, month - 6 + index, 1)
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+  })
+}
 
 // Frame the country and its islands with space for the surrounding coast.
 const west = 124.5
@@ -179,7 +188,7 @@ export function SatelliteMapAttribution() {
 
 export function KoreaMap({
   active, selecting = false, selection = null, focusBounds = null,
-  mapRegions = NO_REGIONS, observations, onRegionClick, onAreaSelect,
+  mapRegions = NO_REGIONS, observations, observationPeriod, onRegionClick, onAreaSelect,
 }: {
   active: boolean
   selecting?: boolean
@@ -187,6 +196,7 @@ export function KoreaMap({
   focusBounds?: AnalysisBounds | null
   mapRegions?: RegionMap[]
   observations?: FirePoint[]
+  observationPeriod?: string
   onRegionClick?: (region: RegionMap) => void
   onAreaSelect?: (selection: MapSelection) => void
 }) {
@@ -212,6 +222,9 @@ export function KoreaMap({
   const regionPaths = useMemo(() => mapRegions.map((region) => ({
     region, path: pathFor(region.geometry),
   })), [mapRegions])
+  const observationMonths = useMemo(() => observationPeriod ? fireObservationMonths(observationPeriod) : [], [observationPeriod])
+  const observationColors = useMemo(() => new Map(observationMonths.map((period, index) =>
+    [period, FIRE_MONTH_COLORS[index]])), [observationMonths])
   const observationMarkers = useMemo(() => {
     if (!observations?.length) return []
     const maximumFrp = Math.max(1, ...observations.map((point) => point.frp))
@@ -220,9 +233,10 @@ export function KoreaMap({
       x: projectX(point.longitude),
       y: projectY(point.latitude),
       radius: 2.2 + Math.sqrt(Math.max(0, point.frp) / maximumFrp) * 7,
-      label: `${point.sensor} · FRP ${point.frp.toFixed(2)} · ${point.confidenceLevel}`,
+      color: observationColors.get(point.period) ?? FIRE_MONTH_COLORS[5],
+      label: `${point.period} · ${point.sensor} · FRP ${point.frp.toFixed(2)} · ${point.confidenceLevel}`,
     }))
-  }, [observations])
+  }, [observationColors, observations])
   const visibleSelection = draftRect ?? (selection && rectBetween(
     { x: projectX(selection.west), y: projectY(selection.north) },
     { x: projectX(selection.east), y: projectY(selection.south) },
@@ -355,7 +369,7 @@ export function KoreaMap({
         onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}>
         <g className="korea-imagery" aria-hidden="true">
           {tiles.map((tile) => (
-            <image key={tile.href} href={tile.href} x={tile.x} y={tile.y}
+            <image key={tile.href} href={tile.href} crossOrigin="anonymous" x={tile.x} y={tile.y}
               width={tile.width} height={tile.height} preserveAspectRatio="none"
               onLoad={() => rememberTile(tile)} />
           ))}
@@ -367,11 +381,16 @@ export function KoreaMap({
         {visibleSelection && <rect className="korea-analysis-area" {...visibleSelection} />}
         {shortSide > 0 && observationMarkers.map((marker) => (
           <circle key={marker.id} className="korea-fire-marker" cx={marker.x} cy={marker.y}
-            r={marker.radius * view.size / shortSide}>
+            r={marker.radius * view.size / shortSide} style={{ fill: marker.color }}>
             <title>{marker.label}</title>
           </circle>
         ))}
       </svg>
+      {observations && observationMonths.length > 0 && <div className="korea-fire-month-legend" aria-label="월별 화재 관측 색상">
+        {observationMonths.map((period, index) => <span key={period}>
+          <i style={{ backgroundColor: FIRE_MONTH_COLORS[index] }} />{period.replace('-', '.')}
+        </span>)}
+      </div>}
       {active && <div className="korea-map-controls" aria-label="지도 확대 조작">
         <button type="button" aria-label="지도 확대" disabled={view.size <= MIN_VIEW_SIZE} onClick={() => zoom(0.75)}>+</button>
         <button type="button" aria-label="지도 축소" disabled={view.size >= WORLD} onClick={() => zoom(1 / 0.75)}>−</button>

@@ -1,7 +1,6 @@
 package com.tabulaignium.api.region;
 
 import jakarta.validation.constraints.Positive;
-import java.time.Duration;
 import java.util.List;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -30,18 +29,18 @@ class RegionController {
             @RequestParam(required = false) @Positive Long parentId) {
         List<Region> result;
         if (parentId == null) {
-            result = regions.findByParentIsNullOrderByNameAsc();
+            result = regions.findByParentIsNullOrderByNameKoAsc();
         } else {
             regions.findById(parentId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Region not found"));
-            result = regions.findByParentIdOrderByNameAsc(parentId);
+            result = regions.findByParentIdOrderByNameKoAsc(parentId);
         }
 
         var response = result.stream()
                 .map(region -> new RegionResponse(region.getId(), region.getName(),
                         region.getCountryCode(), region.getRegionLevel()))
                 .toList();
-        return ResponseEntity.ok().cacheControl(CacheControl.maxAge(Duration.ofHours(1))).body(response);
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(response);
     }
 
     record RegionResponse(long id, String name, String countryCode, Short level) {
@@ -51,7 +50,7 @@ class RegionController {
     ResponseEntity<RegionMapService.RegionMap> regionMap(
             @PathVariable @Positive long regionId) {
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)))
+                .cacheControl(CacheControl.noStore())
                 .body(regionMaps.find(regionId));
     }
 
@@ -61,7 +60,7 @@ class RegionController {
         regions.findById(parentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Region not found"));
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)))
+                .cacheControl(CacheControl.noStore())
                 .body(regionMaps.findChildren(parentId));
     }
 }

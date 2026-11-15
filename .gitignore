@@ -98,3 +98,6 @@ venv/
 # 화재 분석용 대용량 CSV 원본 제외
 /infra/data/*.csv
 
+# 로컬 PDF 문서 저장소 (운영에서는 S3 object key로 대체)
+/data/documents/
+

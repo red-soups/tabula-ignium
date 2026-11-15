@@ -34,6 +34,16 @@ export type ConfidenceConfig = {
   sensor: SensorFilter
 }
 
+export type PeriodAnalysisConfig = {
+  fromPeriod: string
+  toPeriod: string
+  sensor: SensorFilter
+}
+
+export type HotspotConfig = PeriodAnalysisConfig & {
+  gridMeters: 2500 | 5000 | 10000
+}
+
 export type FireSummary = {
   observationCount: number
   observedDayCount: number
@@ -51,6 +61,7 @@ export type FirePoint = {
   frp: number
   confidenceLevel: string
   sensor: string
+  period: string
   observedAt: string
 }
 
@@ -105,6 +116,46 @@ export type NearestFire = {
   within1Km: number
   within5Km: number
   within10Km: number
+}
+
+export type FireIntensityDistribution = {
+  intensityLevel: string
+  observationCount: number
+  percentage: number
+  averageFrp: number
+  maximumFrp: number
+}
+
+export type DayNightDistribution = {
+  periodType: string
+  observationCount: number
+  percentage: number
+  averageFrp: number
+  maximumFrp: number
+}
+
+export type PeriodComparison = {
+  currentFromPeriod: string
+  currentToPeriod: string
+  previousFromPeriod: string
+  previousToPeriod: string
+  currentObservationCount: number
+  previousObservationCount: number
+  observationChangeRate: number | null
+  currentAverageFrp: number | null
+  previousAverageFrp: number | null
+  averageFrpChangeRate: number | null
+  currentMaximumFrp: number | null
+  previousMaximumFrp: number | null
+}
+
+export type FireHotspot = {
+  hotspotRank: number
+  centerLatitude: number
+  centerLongitude: number
+  observationCount: number
+  averageFrp: number
+  maximumFrp: number
 }
 
 export class FireDataRequestError extends Error {
@@ -169,6 +220,31 @@ export function getConfidenceDistribution(bounds: AnalysisBounds, config: Confid
     fromPeriod: config.fromPeriod, toPeriod: config.toPeriod, sensor: config.sensor,
   })
   return getJson<ConfidenceDistribution[]>(`/api/fire/confidence?${params}`, signal)
+}
+
+function periodAnalysisParams(bounds: AnalysisBounds, config: PeriodAnalysisConfig) {
+  return new URLSearchParams({
+    ...boundsParams(bounds), fromPeriod: config.fromPeriod,
+    toPeriod: config.toPeriod, sensor: config.sensor,
+  })
+}
+
+export function getFireIntensity(bounds: AnalysisBounds, config: PeriodAnalysisConfig, signal: AbortSignal) {
+  return getJson<FireIntensityDistribution[]>(`/api/fire/intensity?${periodAnalysisParams(bounds, config)}`, signal)
+}
+
+export function getDayNightDistribution(bounds: AnalysisBounds, config: PeriodAnalysisConfig, signal: AbortSignal) {
+  return getJson<DayNightDistribution[]>(`/api/fire/day-night?${periodAnalysisParams(bounds, config)}`, signal)
+}
+
+export function getPeriodComparison(bounds: AnalysisBounds, config: PeriodAnalysisConfig, signal: AbortSignal) {
+  return getJson<PeriodComparison>(`/api/fire/period-comparison?${periodAnalysisParams(bounds, config)}`, signal)
+}
+
+export function getFireHotspots(bounds: AnalysisBounds, config: HotspotConfig, signal: AbortSignal) {
+  const params = periodAnalysisParams(bounds, config)
+  params.set('gridMeters', String(config.gridMeters))
+  return getJson<FireHotspot[]>(`/api/fire/hotspots?${params}`, signal)
 }
 
 export function getYearlyFireTrend(bounds: AnalysisBounds, signal: AbortSignal) {

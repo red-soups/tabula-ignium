@@ -16,8 +16,10 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+            # 로그인 UI가 비활성화된 환경에서도 애플리케이션이 시작되도록 기본값을 둔다.
+            # 추후 로그인을 다시 켤 때는 기존 환경변수를 설정하면 된다.
+            client-id: ${GOOGLE_CLIENT_ID:login-disabled}
+            client-secret: ${GOOGLE_CLIENT_SECRET:login-disabled}
             redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/login/oauth2/code/google}
             scope: [openid, email, profile]
 
@@ -32,6 +34,8 @@ server:
 app:
   auth:
     web-origin: ${WEB_ORIGIN:}
+  documents:
+    storage-root: ${DOCUMENT_STORAGE_ROOT:../../data/documents}
 
 mybatis:
   mapper-locations: classpath*:/mapper/**/*.xml

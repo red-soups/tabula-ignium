@@ -12,7 +12,7 @@ class RegionMapService {
     private static final String REGION_MAP_SQL = """
             SELECT id,
                    parent_region_id,
-                   name,
+                   name_ko AS name,
                    region_level,
                    ST_XMin(Box3D(boundary)) AS west,
                    ST_XMax(Box3D(boundary)) AS east,
@@ -51,7 +51,7 @@ class RegionMapService {
 
     List<RegionMap> findChildren(long parentId) {
         String childrenSql = REGION_MAP_SQL.replace("WHERE id = ?", "WHERE parent_region_id = ?")
-                + " ORDER BY name";
+                + " ORDER BY name_ko";
         return jdbc.query(childrenSql, this::mapRegion, parentId);
     }
 

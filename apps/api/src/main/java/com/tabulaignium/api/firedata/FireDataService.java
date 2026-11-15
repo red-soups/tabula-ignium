@@ -1,6 +1,7 @@
 package com.tabulaignium.api.firedata;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,17 +19,48 @@ class FireDataService {
 
     List<FirePoint> points(FireBounds a, String period, String sensor, String confidence, int limit) {
         validateArea(a);
-        return fireData.findPoints(a.west(), a.south(), a.east(), a.north(), period, sensor, confidence, Math.min(limit, 2_000));
+        YearMonth toPeriod = YearMonth.parse(period);
+        return fireData.findPoints(a.west(), a.south(), a.east(), a.north(),
+                toPeriod.minusMonths(5).toString(), toPeriod.toString(), sensor, confidence, Math.min(limit, 2_000));
     }
 
     List<MonthlyFireTrend> monthlyTrend(FireBounds a, String from, String to, String sensor) {
-        validateArea(a); validatePeriodRange(from, to);
+        validateArea(a); validatePeriodRange(from, to); validateMaximumMonths(from, to, 12);
         return fireData.findMonthlyTrend(a.west(), a.south(), a.east(), a.north(), from, to, sensor);
     }
 
     List<ConfidenceDistribution> confidenceDistribution(FireBounds a, String from, String to, String sensor) {
         validateArea(a); validatePeriodRange(from, to);
         return fireData.findConfidenceDistribution(a.west(), a.south(), a.east(), a.north(), from, to, sensor);
+    }
+
+    List<FireIntensityDistribution> intensityDistribution(FireBounds a, String from, String to, String sensor) {
+        validateArea(a); validatePeriodRange(from, to);
+        return fireData.findIntensityDistribution(a.west(), a.south(), a.east(), a.north(), from, to, sensor);
+    }
+
+    List<DayNightDistribution> dayNightDistribution(FireBounds a, String from, String to, String sensor) {
+        validateArea(a); validatePeriodRange(from, to);
+        return fireData.findDayNightDistribution(a.west(), a.south(), a.east(), a.north(), from, to, sensor);
+    }
+
+    PeriodComparison periodComparison(FireBounds a, String from, String to, String sensor) {
+        validateArea(a); validatePeriodRange(from, to);
+        YearMonth currentFrom = YearMonth.parse(from);
+        YearMonth currentTo = YearMonth.parse(to);
+        long monthCount = currentFrom.until(currentTo, java.time.temporal.ChronoUnit.MONTHS) + 1;
+        YearMonth previousTo = currentFrom.minusMonths(1);
+        YearMonth previousFrom = previousTo.minusMonths(monthCount - 1);
+        return fireData.findPeriodComparison(a.west(), a.south(), a.east(), a.north(),
+                from, to, previousFrom.toString(), previousTo.toString(), sensor);
+    }
+
+    List<FireHotspot> hotspots(FireBounds a, String from, String to, String sensor, int gridMeters) {
+        validateArea(a); validatePeriodRange(from, to);
+        if (gridMeters != 2_500 && gridMeters != 5_000 && gridMeters != 10_000) {
+            badRequest("gridMeters must be one of 2500, 5000, 10000");
+        }
+        return fireData.findHotspots(a.west(), a.south(), a.east(), a.north(), from, to, sensor, gridMeters);
     }
 
     List<YearlyFireTrend> yearlyTrend(FireBounds a) {
@@ -69,6 +101,12 @@ class FireDataService {
 
     private void validatePeriodRange(String from, String to) {
         if (from != null && to != null && from.compareTo(to) > 0) badRequest("fromPeriod must not be later than toPeriod");
+    }
+
+    private void validateMaximumMonths(String from, String to, long maximumMonths) {
+        if (from == null || to == null) return;
+        long monthCount = YearMonth.parse(from).until(YearMonth.parse(to), java.time.temporal.ChronoUnit.MONTHS) + 1;
+        if (monthCount > maximumMonths) badRequest("period range must not exceed " + maximumMonths + " months");
     }
 
     private void badRequest(String message) {

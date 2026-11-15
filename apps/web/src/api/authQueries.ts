@@ -15,10 +15,11 @@ export const AUTH_QUERY_KEY = ['auth', 'me'] as const
 
 type Account = CurrentUser | PendingSignup | null
 
-export function useAccountQuery() {
+export function useAccountQuery(enabled = true) {
   return useQuery({
     queryKey: AUTH_QUERY_KEY,
     queryFn: ({ signal }) => getAccount(signal),
+    enabled,
   })
 }
 

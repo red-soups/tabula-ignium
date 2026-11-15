@@ -36,44 +36,57 @@
     </select>
 
     <select id="findPoints" resultType="com.tabulaignium.api.firedata.FirePoint">
-        SELECT
-            f.id,
-            f.latitude,
-            f.longitude,
-            f.frp,
-            f.confidence_level,
-            f.sensor,
-            f.acq_datetime_kst AS observed_at
-        FROM fire_points f
-        WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
-          AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
-          AND f.period = #{period}
-        <if test="sensor != null and sensor != 'ALL'">
-          AND f.sensor = #{sensor}
-        </if>
-        <if test="confidenceLevel != null and confidenceLevel != 'ALL'">
-          AND f.confidence_level = #{confidenceLevel}
-        </if>
-        ORDER BY f.acq_datetime_kst DESC, f.id DESC
+        WITH ranked AS (
+            SELECT
+                f.id, f.latitude, f.longitude, f.frp, f.confidence_level,
+                f.sensor, f.period, f.acq_datetime_kst AS observed_at,
+                ROW_NUMBER() OVER (PARTITION BY f.period ORDER BY f.acq_datetime_kst DESC, f.id DESC) AS month_rank
+            FROM fire_points f
+            WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
+              AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
+              AND f.period BETWEEN #{fromPeriod} AND #{toPeriod}
+            <if test="sensor != null and sensor != 'ALL'">
+              AND f.sensor = #{sensor}
+            </if>
+            <if test="confidenceLevel != null and confidenceLevel != 'ALL'">
+              AND f.confidence_level = #{confidenceLevel}
+            </if>
+        )
+        SELECT id, latitude, longitude, frp, confidence_level, sensor, period, observed_at
+        FROM ranked
+        WHERE month_rank &lt;= CEIL(#{limit} / 6.0)
+        ORDER BY observed_at DESC, id DESC
         LIMIT #{limit}
     </select>
 
     <select id="findMonthlyTrend" resultType="com.tabulaignium.api.firedata.MonthlyFireTrend">
-        SELECT
-            f.period,
-            COUNT(*) AS observation_count,
-            SUM(f.frp) AS total_frp,
-            AVG(f.frp) AS average_frp
-        FROM fire_points f
-        WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
-          AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
-          AND f.period &gt;= #{fromPeriod}
-          AND f.period &lt;= #{toPeriod}
-        <if test="sensor != null and sensor != 'ALL'">
-          AND f.sensor = #{sensor}
-        </if>
-        GROUP BY f.period
-        ORDER BY f.period
+        WITH months AS (
+            SELECT to_char(month, 'YYYY-MM') AS period
+            FROM generate_series(
+                to_date(#{fromPeriod}, 'YYYY-MM'),
+                to_date(#{toPeriod}, 'YYYY-MM'),
+                INTERVAL '1 month'
+            ) month
+        ), aggregated AS (
+            SELECT f.period, COUNT(*) AS observation_count,
+                   SUM(f.frp) AS total_frp, AVG(f.frp) AS average_frp
+            FROM fire_points f
+            WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
+              AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
+              AND f.period &gt;= #{fromPeriod}
+              AND f.period &lt;= #{toPeriod}
+            <if test="sensor != null and sensor != 'ALL'">
+              AND f.sensor = #{sensor}
+            </if>
+            GROUP BY f.period
+        )
+        SELECT months.period,
+               COALESCE(aggregated.observation_count, 0) AS observation_count,
+               COALESCE(aggregated.total_frp, 0) AS total_frp,
+               COALESCE(aggregated.average_frp, 0) AS average_frp
+        FROM months
+        LEFT JOIN aggregated USING (period)
+        ORDER BY months.period
     </select>
 
     <select id="findConfidenceDistribution" resultType="com.tabulaignium.api.firedata.ConfidenceDistribution">
@@ -96,6 +109,124 @@
             WHEN 'low' THEN 3
             ELSE 4
         END
+    </select>
+
+    <select id="findIntensityDistribution" resultType="com.tabulaignium.api.firedata.FireIntensityDistribution">
+        WITH classified AS (
+            SELECT
+                CASE
+                    WHEN f.frp &lt; 10 THEN '약함'
+                    WHEN f.frp &lt; 30 THEN '보통'
+                    WHEN f.frp &lt; 100 THEN '강함'
+                    ELSE '매우 강함'
+                END AS intensity_level,
+                CASE
+                    WHEN f.frp &lt; 10 THEN 1
+                    WHEN f.frp &lt; 30 THEN 2
+                    WHEN f.frp &lt; 100 THEN 3
+                    ELSE 4
+                END AS intensity_order,
+                f.frp
+            FROM fire_points f
+            WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
+              AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
+              AND f.period BETWEEN #{fromPeriod} AND #{toPeriod}
+            <if test="sensor != null and sensor != 'ALL'">
+              AND f.sensor = #{sensor}
+            </if>
+        ), grouped AS (
+            SELECT intensity_level, intensity_order, COUNT(*) AS observation_count,
+                   AVG(frp) AS average_frp, MAX(frp) AS maximum_frp
+            FROM classified
+            GROUP BY intensity_level, intensity_order
+        )
+        SELECT intensity_level, observation_count,
+               observation_count * 100.0 / SUM(observation_count) OVER () AS percentage,
+               average_frp, maximum_frp
+        FROM grouped
+        ORDER BY intensity_order
+    </select>
+
+    <select id="findDayNightDistribution" resultType="com.tabulaignium.api.firedata.DayNightDistribution">
+        WITH grouped AS (
+            SELECT CASE f.daynight WHEN 'D' THEN '주간' ELSE '야간' END AS period_type,
+                   f.daynight AS period_code, COUNT(*) AS observation_count,
+                   AVG(f.frp) AS average_frp, MAX(f.frp) AS maximum_frp
+            FROM fire_points f
+            WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
+              AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
+              AND f.period BETWEEN #{fromPeriod} AND #{toPeriod}
+            <if test="sensor != null and sensor != 'ALL'">
+              AND f.sensor = #{sensor}
+            </if>
+            GROUP BY f.daynight
+        )
+        SELECT period_type, observation_count,
+               observation_count * 100.0 / SUM(observation_count) OVER () AS percentage,
+               average_frp, maximum_frp
+        FROM grouped
+        ORDER BY period_code
+    </select>
+
+    <select id="findPeriodComparison" resultType="com.tabulaignium.api.firedata.PeriodComparison">
+        WITH filtered AS (
+            SELECT f.period, f.frp
+            FROM fire_points f
+            WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
+              AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
+              AND f.period BETWEEN #{previousFrom} AND #{currentTo}
+            <if test="sensor != null and sensor != 'ALL'">
+              AND f.sensor = #{sensor}
+            </if>
+        ), aggregate AS (
+            SELECT
+                COUNT(*) FILTER (WHERE period BETWEEN #{currentFrom} AND #{currentTo}) AS current_count,
+                COUNT(*) FILTER (WHERE period BETWEEN #{previousFrom} AND #{previousTo}) AS previous_count,
+                AVG(frp) FILTER (WHERE period BETWEEN #{currentFrom} AND #{currentTo}) AS current_average,
+                AVG(frp) FILTER (WHERE period BETWEEN #{previousFrom} AND #{previousTo}) AS previous_average,
+                MAX(frp) FILTER (WHERE period BETWEEN #{currentFrom} AND #{currentTo}) AS current_maximum,
+                MAX(frp) FILTER (WHERE period BETWEEN #{previousFrom} AND #{previousTo}) AS previous_maximum
+            FROM filtered
+        )
+        SELECT
+            #{currentFrom} AS current_from_period, #{currentTo} AS current_to_period,
+            #{previousFrom} AS previous_from_period, #{previousTo} AS previous_to_period,
+            current_count AS current_observation_count,
+            previous_count AS previous_observation_count,
+            CASE WHEN previous_count &gt; 0 THEN (current_count - previous_count) * 100.0 / previous_count END AS observation_change_rate,
+            current_average AS current_average_frp,
+            previous_average AS previous_average_frp,
+            CASE WHEN previous_average &gt; 0 THEN (current_average - previous_average) * 100.0 / previous_average END AS average_frp_change_rate,
+            current_maximum AS current_maximum_frp,
+            previous_maximum AS previous_maximum_frp
+        FROM aggregate
+    </select>
+
+    <select id="findHotspots" resultType="com.tabulaignium.api.firedata.FireHotspot">
+        WITH projected AS (
+            SELECT f.latitude, f.longitude, f.frp,
+                   FLOOR(ST_X(ST_Transform(f.location, 5179)) / #{gridMeters}) AS grid_x,
+                   FLOOR(ST_Y(ST_Transform(f.location, 5179)) / #{gridMeters}) AS grid_y
+            FROM fire_points f
+            WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
+              AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
+              AND f.period BETWEEN #{fromPeriod} AND #{toPeriod}
+            <if test="sensor != null and sensor != 'ALL'">
+              AND f.sensor = #{sensor}
+            </if>
+        ), grouped AS (
+            SELECT grid_x, grid_y, AVG(latitude) AS center_latitude, AVG(longitude) AS center_longitude,
+                   COUNT(*) AS observation_count, AVG(frp) AS average_frp, MAX(frp) AS maximum_frp
+            FROM projected
+            GROUP BY grid_x, grid_y
+        ), ranked AS (
+            SELECT ROW_NUMBER() OVER (ORDER BY observation_count DESC, maximum_frp DESC) AS hotspot_rank, *
+            FROM grouped
+        )
+        SELECT hotspot_rank, center_latitude, center_longitude, observation_count, average_frp, maximum_frp
+        FROM ranked
+        ORDER BY hotspot_rank
+        LIMIT 5
     </select>
 
     <select id="findYearlyTrend" resultType="com.tabulaignium.api.firedata.YearlyFireTrend">

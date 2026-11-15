@@ -59,6 +59,43 @@ class FireDataController {
         return ResponseEntity.ok(fireData.confidenceDistribution(area(west, south, east, north), fromPeriod, toPeriod, sensor));
     }
 
+    @GetMapping("/api/fire/intensity")
+    ResponseEntity<List<FireIntensityDistribution>> intensity(
+            @RequestParam double west, @RequestParam double south, @RequestParam double east, @RequestParam double north,
+            @RequestParam @Pattern(regexp = PERIOD) String fromPeriod,
+            @RequestParam @Pattern(regexp = PERIOD) String toPeriod,
+            @RequestParam(defaultValue = "ALL") @Pattern(regexp = SENSOR) String sensor) {
+        return ResponseEntity.ok(fireData.intensityDistribution(area(west, south, east, north), fromPeriod, toPeriod, sensor));
+    }
+
+    @GetMapping("/api/fire/day-night")
+    ResponseEntity<List<DayNightDistribution>> dayNight(
+            @RequestParam double west, @RequestParam double south, @RequestParam double east, @RequestParam double north,
+            @RequestParam @Pattern(regexp = PERIOD) String fromPeriod,
+            @RequestParam @Pattern(regexp = PERIOD) String toPeriod,
+            @RequestParam(defaultValue = "ALL") @Pattern(regexp = SENSOR) String sensor) {
+        return ResponseEntity.ok(fireData.dayNightDistribution(area(west, south, east, north), fromPeriod, toPeriod, sensor));
+    }
+
+    @GetMapping("/api/fire/period-comparison")
+    ResponseEntity<PeriodComparison> periodComparison(
+            @RequestParam double west, @RequestParam double south, @RequestParam double east, @RequestParam double north,
+            @RequestParam @Pattern(regexp = PERIOD) String fromPeriod,
+            @RequestParam @Pattern(regexp = PERIOD) String toPeriod,
+            @RequestParam(defaultValue = "ALL") @Pattern(regexp = SENSOR) String sensor) {
+        return ResponseEntity.ok(fireData.periodComparison(area(west, south, east, north), fromPeriod, toPeriod, sensor));
+    }
+
+    @GetMapping("/api/fire/hotspots")
+    ResponseEntity<List<FireHotspot>> hotspots(
+            @RequestParam double west, @RequestParam double south, @RequestParam double east, @RequestParam double north,
+            @RequestParam @Pattern(regexp = PERIOD) String fromPeriod,
+            @RequestParam @Pattern(regexp = PERIOD) String toPeriod,
+            @RequestParam(defaultValue = "ALL") @Pattern(regexp = SENSOR) String sensor,
+            @RequestParam(defaultValue = "5000") int gridMeters) {
+        return ResponseEntity.ok(fireData.hotspots(area(west, south, east, north), fromPeriod, toPeriod, sensor, gridMeters));
+    }
+
     @GetMapping("/api/fire/yearly")
     ResponseEntity<List<YearlyFireTrend>> yearly(
             @RequestParam double west, @RequestParam double south, @RequestParam double east, @RequestParam double north) {

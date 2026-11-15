@@ -21,6 +21,9 @@ public class Region {
     @Column(nullable = false, length = 200)
     private String name;
 
+    @Column(name = "name_ko", nullable = false, length = 200)
+    private String nameKo;
+
     @Column(name = "country_code", nullable = false, length = 2)
     private String countryCode;
 
@@ -39,6 +42,10 @@ public class Region {
     }
 
     public String getName() {
+        return nameKo;
+    }
+
+    public String getEnglishName() {
         return name;
     }
 

@@ -2,8 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import {
   getConfidenceDistribution, getFirePoints, getFireSummary, getMonthlyFireTrend,
   getHighRiskMonths, getLargeFireFrequency, getNearestFire, getYearlyFireTrend,
+  getDayNightDistribution, getFireHotspots, getFireIntensity, getPeriodComparison,
   type ConfidenceConfig, type FirePointsConfig, type FireSummaryConfig, type MonthlyTrendConfig,
-  type AnalysisBounds,
+  type AnalysisBounds, type HotspotConfig, type PeriodAnalysisConfig,
 } from './fireData'
 
 export const fireSummaryQueryKey = (bounds: AnalysisBounds, config: FireSummaryConfig) => [
@@ -73,6 +74,38 @@ export function useNearestFireQuery(bounds: AnalysisBounds, fromPeriod: string, 
   return useQuery({
     queryKey: ['fire-data', 'nearest', bounds, fromPeriod, toPeriod] as const,
     queryFn: ({ signal }) => getNearestFire(bounds, fromPeriod, toPeriod, signal),
+    staleTime: 5 * 60 * 1_000,
+  })
+}
+
+export function useFireIntensityQuery(bounds: AnalysisBounds, config: PeriodAnalysisConfig) {
+  return useQuery({
+    queryKey: ['fire-data', 'intensity', bounds, config] as const,
+    queryFn: ({ signal }) => getFireIntensity(bounds, config, signal),
+    staleTime: 5 * 60 * 1_000,
+  })
+}
+
+export function useDayNightDistributionQuery(bounds: AnalysisBounds, config: PeriodAnalysisConfig) {
+  return useQuery({
+    queryKey: ['fire-data', 'day-night', bounds, config] as const,
+    queryFn: ({ signal }) => getDayNightDistribution(bounds, config, signal),
+    staleTime: 5 * 60 * 1_000,
+  })
+}
+
+export function usePeriodComparisonQuery(bounds: AnalysisBounds, config: PeriodAnalysisConfig) {
+  return useQuery({
+    queryKey: ['fire-data', 'period-comparison', bounds, config] as const,
+    queryFn: ({ signal }) => getPeriodComparison(bounds, config, signal),
+    staleTime: 5 * 60 * 1_000,
+  })
+}
+
+export function useFireHotspotsQuery(bounds: AnalysisBounds, config: HotspotConfig) {
+  return useQuery({
+    queryKey: ['fire-data', 'hotspots', bounds, config] as const,
+    queryFn: ({ signal }) => getFireHotspots(bounds, config, signal),
     staleTime: 5 * 60 * 1_000,
   })
 }

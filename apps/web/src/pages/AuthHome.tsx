@@ -9,10 +9,14 @@ import {
 } from '../api/authQueries'
 import { useFeaturesQuery } from '../api/featureQueries'
 import type {
-  ConfidenceConfig, FirePointsConfig, FireSummaryConfig, MonthlyTrendConfig,
+  ConfidenceConfig, FirePointsConfig, FireSummaryConfig, HotspotConfig,
+  MonthlyTrendConfig, PeriodAnalysisConfig,
 } from '../api/fireData'
 import { useChildRegionMapsQuery, useRegionsQuery } from '../api/regionQueries'
 import { EditProfileModal } from '../components/EditProfileModal'
+import { DocumentHistoryModal } from '../components/DocumentHistoryModal'
+import { DocumentPreviewModal } from '../components/DocumentPreviewModal'
+import { PublicDocumentSearchModal } from '../components/PublicDocumentSearchModal'
 import { BrandLogo } from '../components/BrandLogo'
 import { GoogleLoginButton } from '../components/GoogleLoginButton'
 import { FireSummaryPreviewModal } from '../components/FireSummaryPreviewModal'
@@ -23,6 +27,10 @@ import {
   HighRiskPreviewModal, LargeFirePreviewModal, NearestFirePreviewModal,
   YearlyTrendPreviewModal,
 } from '../components/FireReportPreviewModals'
+import {
+  DayNightPreviewModal, FireHotspotsPreviewModal, FireIntensityPreviewModal,
+  PeriodComparisonPreviewModal,
+} from '../components/FireAdvancedPreviewModals'
 import { KoreaMap, SatelliteMapAttribution, type MapSelection } from '../components/KoreaMap'
 import { MapRegionSearch } from '../components/MapRegionSearch'
 import { SignupModal } from '../components/SignupModal'
@@ -30,6 +38,7 @@ import type { RegionMap } from '../api/regions'
 import './DocumentMap.css'
 
 type Step = 'home' | 'region' | 'features'
+const AUTH_FEATURES_ENABLED = false
 
 const FEATURE_SYMBOLS: Record<string, string> = {
   FIRE_SUMMARY: '◫',
@@ -40,14 +49,30 @@ const FEATURE_SYMBOLS: Record<string, string> = {
   LARGE_FIRE_FREQUENCY: '▲',
   HIGH_RISK_SEASON: '◐',
   NEAREST_FIRE: '◎',
+  FIRE_INTENSITY: '◆',
+  DAY_NIGHT_COMPARISON: '◒',
+  PERIOD_COMPARISON: '⇄',
+  FIRE_HOTSPOTS: '▦',
 }
-
-const MAX_FEATURE_SELECTIONS = 4
 
 function periodAt(offsetFromLatestCompleteMonth: number) {
   const now = new Date()
   const date = new Date(now.getFullYear(), now.getMonth() - 1 + offsetFromLatestCompleteMonth, 1)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+function shiftPeriod(period: string, offset: number) {
+  if (!period) return ''
+  const [year, month] = period.split('-').map(Number)
+  const date = new Date(year, month - 1 + offset, 1)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+function periodMonthCount(fromPeriod: string, toPeriod: string) {
+  if (!fromPeriod || !toPeriod) return 0
+  const [fromYear, fromMonth] = fromPeriod.split('-').map(Number)
+  const [toYear, toMonth] = toPeriod.split('-').map(Number)
+  return (toYear - fromYear) * 12 + toMonth - fromMonth + 1
 }
 
 const DEFAULT_SUMMARY_CONFIG: FireSummaryConfig = {
@@ -64,6 +89,34 @@ const DEFAULT_MONTHLY_CONFIG: MonthlyTrendConfig = {
 }
 const DEFAULT_CONFIDENCE_CONFIG: ConfidenceConfig = {
   fromPeriod: periodAt(-11), toPeriod: periodAt(0), sensor: 'ALL',
+}
+const DEFAULT_PERIOD_ANALYSIS_CONFIG: PeriodAnalysisConfig = {
+  fromPeriod: periodAt(-11), toPeriod: periodAt(0), sensor: 'ALL',
+}
+const DEFAULT_HOTSPOT_CONFIG: HotspotConfig = {
+  ...DEFAULT_PERIOD_ANALYSIS_CONFIG, gridMeters: 5000,
+}
+
+function PeriodAnalysisFields({ config, onChange, gridMeters, onGridChange }: {
+  config: PeriodAnalysisConfig
+  onChange: (config: PeriodAnalysisConfig) => void
+  gridMeters?: HotspotConfig['gridMeters']
+  onGridChange?: (gridMeters: HotspotConfig['gridMeters']) => void
+}) {
+  return <div className="workspace-feature-fields">
+    <label><span>시작 월</span><input type="month" value={config.fromPeriod}
+      onChange={(event) => onChange({ ...config, fromPeriod: event.target.value })} /></label>
+    <label><span>종료 월</span><input type="month" value={config.toPeriod}
+      onChange={(event) => onChange({ ...config, toPeriod: event.target.value })} /></label>
+    <label><span>센서</span><select value={config.sensor}
+      onChange={(event) => onChange({ ...config, sensor: event.target.value as PeriodAnalysisConfig['sensor'] })}>
+      <option value="ALL">전체</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
+    </select></label>
+    {gridMeters && onGridChange && <label><span>격자 크기</span><select value={gridMeters}
+      onChange={(event) => onGridChange(Number(event.target.value) as HotspotConfig['gridMeters'])}>
+      <option value={2500}>2.5km</option><option value={5000}>5km</option><option value={10000}>10km</option>
+    </select></label>}
+  </div>
 }
 
 function signupError(error: Error | null) {
@@ -90,12 +143,20 @@ export default function AuthHome() {
   const [monthlyConfig, setMonthlyConfig] = useState<MonthlyTrendConfig>(DEFAULT_MONTHLY_CONFIG)
   const [confidenceConfig, setConfidenceConfig] = useState<ConfidenceConfig>(DEFAULT_CONFIDENCE_CONFIG)
   const [nearestPeriod, setNearestPeriod] = useState({ fromPeriod: periodAt(-11), toPeriod: periodAt(0) })
+  const [intensityConfig, setIntensityConfig] = useState(DEFAULT_PERIOD_ANALYSIS_CONFIG)
+  const [dayNightConfig, setDayNightConfig] = useState(DEFAULT_PERIOD_ANALYSIS_CONFIG)
+  const [comparisonConfig, setComparisonConfig] = useState(DEFAULT_PERIOD_ANALYSIS_CONFIG)
+  const [hotspotConfig, setHotspotConfig] = useState(DEFAULT_HOTSPOT_CONFIG)
   const [previewFeatureCode, setPreviewFeatureCode] = useState<string | null>(null)
+  const [documentName, setDocumentName] = useState('산불 관측 분석 문서')
+  const [documentPreviewOpen, setDocumentPreviewOpen] = useState(false)
+  const [documentHistoryOpen, setDocumentHistoryOpen] = useState(false)
+  const [publicDocumentSearchOpen, setPublicDocumentSearchOpen] = useState(false)
   const [redirectError, setRedirectError] = useState(() =>
     new URLSearchParams(window.location.search).get('login') === 'failed'
       ? 'Google 로그인에 실패했습니다. 다시 시도해 주세요.' : '',
   )
-  const accountQuery = useAccountQuery()
+  const accountQuery = useAccountQuery(AUTH_FEATURES_ENABLED)
   const signupMutation = useCompleteSignupMutation()
   const logoutMutation = useLogoutMutation()
   const profileMutation = useUpdateProfileMutation()
@@ -115,12 +176,17 @@ export default function AuthHome() {
   const account = accountQuery.data ?? null
   const pendingSignup = account && 'registrationRequired' in account ? account : null
   const user = account && 'id' in account ? account : null
-  const busy = accountQuery.isPending || signupMutation.isPending
-    || logoutMutation.isPending || profileMutation.isPending
-  const error = redirectError
+  const selectedFeatureOptions = featuresQuery.data?.filter((feature) => selectedFeatures.includes(feature.id)) ?? []
+  const monthlyPeriodInvalid = monthlyConfig.fromPeriod > monthlyConfig.toPeriod
+    || periodMonthCount(monthlyConfig.fromPeriod, monthlyConfig.toPeriod) > 12
+  const selectedMonthlyPeriodInvalid = monthlyPeriodInvalid
+    && selectedFeatureOptions.some((feature) => feature.code === 'MONTHLY_FIRE_TREND')
+  const busy = AUTH_FEATURES_ENABLED && (accountQuery.isPending || signupMutation.isPending
+    || logoutMutation.isPending || profileMutation.isPending)
+  const error = AUTH_FEATURES_ENABLED ? redirectError
     || (accountQuery.error ? '로그인 상태를 확인하지 못했습니다.' : '')
     || signupError(signupMutation.error)
-    || (logoutMutation.error ? '로그아웃에 실패했습니다.' : '')
+    || (logoutMutation.error ? '로그아웃에 실패했습니다.' : '') : ''
 
   useEffect(() => {
     const url = new URL(window.location.href)
@@ -180,7 +246,6 @@ export default function AuthHome() {
     if (selectedFeatures.includes(id)) setPreviewFeatureCode(null)
     setSelectedFeatures((current) => {
       if (current.includes(id)) return current.filter((feature) => feature !== id)
-      if (current.length >= MAX_FEATURE_SELECTIONS) return current
       return [...current, id]
     })
   }
@@ -218,21 +283,25 @@ export default function AuthHome() {
             <span className="workspace-kicker">WORKSPACE / 00</span>
             <h1>데이터를 고르고,<br />문서로 정리하세요.</h1>
             <p>대한민국 지도에서 원하는 지역을 정하고 문서에 담을 데이터를 선택합니다.</p>
-            <button className="workspace-primary" type="button" disabled={!user || busy}
+            <button className="workspace-primary" type="button" disabled={AUTH_FEATURES_ENABLED && (!user || busy)}
               onClick={() => setStep('region')}>
               문서 생성 <span aria-hidden="true">↗</span>
             </button>
-            {!user && <small className="workspace-help">Google 로그인 후 문서를 생성할 수 있습니다.</small>}
+            <button className="workspace-public-search" type="button" onClick={() => setPublicDocumentSearchOpen(true)}>
+              해시번호로 문서 찾기 <span aria-hidden="true">⌕</span>
+            </button>
+            {AUTH_FEATURES_ENABLED && !user && <small className="workspace-help">Google 로그인 후 문서를 생성할 수 있습니다.</small>}
           </div>
-          <div className="workspace-auth">
+          {AUTH_FEATURES_ENABLED && <div className="workspace-auth">
             <span className="workspace-small-label">ACCOUNT</span>
             {user ? <>
               <strong title={user.email}>{user.name}</strong>
               <button type="button" onClick={() => { profileMutation.reset(); setEditingProfile(true) }} disabled={busy}>회원정보 수정</button>
+              <button type="button" onClick={() => setDocumentHistoryOpen(true)} disabled={busy}>PDF 다운로드 내역</button>
               <button type="button" onClick={logout} disabled={busy}>로그아웃</button>
             </> : <GoogleLoginButton onClick={login} disabled={busy} />}
             {error && !pendingSignup && <p className="auth-error" role="alert">{error}</p>}
-          </div>
+          </div>}
         </> : <>
           <button className="workspace-back" type="button" onClick={goBack}><span aria-hidden="true">←</span> 이전</button>
           <div className="workspace-sidebar-content">
@@ -291,7 +360,6 @@ export default function AuthHome() {
           {featuresQuery.isError && <p className="workspace-feature-error" role="alert">기능 목록을 불러오지 못했습니다.</p>}
           <div className="workspace-feature-grid">{featuresQuery.data?.map((feature, index) => {
             const selected = selectedFeatures.includes(feature.id)
-            const selectionDisabled = !selected && selectedFeatures.length >= MAX_FEATURE_SELECTIONS
             const isSummary = feature.code === 'FIRE_SUMMARY'
             const isPoints = feature.code === 'FIRE_LOCATION_MAP'
             const isMonthly = feature.code === 'MONTHLY_FIRE_TREND'
@@ -300,16 +368,25 @@ export default function AuthHome() {
             const isLargeFire = feature.code === 'LARGE_FIRE_FREQUENCY'
             const isHighRisk = feature.code === 'HIGH_RISK_SEASON'
             const isNearest = feature.code === 'NEAREST_FIRE'
+            const isIntensity = feature.code === 'FIRE_INTENSITY'
+            const isDayNight = feature.code === 'DAY_NIGHT_COMPARISON'
+            const isPeriodComparison = feature.code === 'PERIOD_COMPARISON'
+            const isHotspots = feature.code === 'FIRE_HOTSPOTS'
+            const isAdvanced = isIntensity || isDayNight || isPeriodComparison || isHotspots
             const hasSettings = isSummary || isPoints || isMonthly || isConfidence
-              || isYearly || isLargeFire || isHighRisk || isNearest
+              || isYearly || isLargeFire || isHighRisk || isNearest || isAdvanced
+            const advancedConfig = isIntensity ? intensityConfig
+              : isDayNight ? dayNightConfig : isPeriodComparison ? comparisonConfig : hotspotConfig
             const invalidPeriod = isMonthly
-              ? monthlyConfig.fromPeriod > monthlyConfig.toPeriod
+              ? monthlyPeriodInvalid
               : isConfidence
                 ? confidenceConfig.fromPeriod > confidenceConfig.toPeriod
-                : summaryConfig.fromPeriod > summaryConfig.toPeriod
-            return <article key={feature.id} className={`workspace-feature-card${selected ? ' is-selected' : ''}${selectionDisabled ? ' is-disabled' : ''}${selected && hasSettings ? ' has-settings' : ''}`}>
+                : isAdvanced
+                  ? advancedConfig.fromPeriod > advancedConfig.toPeriod
+                  : summaryConfig.fromPeriod > summaryConfig.toPeriod
+            return <article key={feature.id} className={`workspace-feature-card${selected ? ' is-selected' : ''}${selected && hasSettings ? ' has-settings' : ''}`}>
               <label className="workspace-feature-toggle">
-                <input type="checkbox" checked={selected} disabled={selectionDisabled}
+                <input type="checkbox" checked={selected}
                   onChange={() => toggleFeature(feature.id)} />
                 <span className="workspace-feature-number">{String(index + 1).padStart(2, '0')} / FIRE DATA</span>
                 <span className="workspace-feature-symbol" aria-hidden="true">{FEATURE_SYMBOLS[feature.code] ?? '◇'}</span>
@@ -338,7 +415,7 @@ export default function AuthHome() {
               </div>}
               {selected && isPoints && <div className="workspace-feature-settings">
                 <div className="workspace-feature-fields">
-                  <label><span>조회 월</span><input type="month" value={pointsConfig.period}
+                  <label><span>기준 월</span><input type="month" value={pointsConfig.period}
                     onChange={(event) => setPointsConfig((current) => ({ ...current, period: event.target.value }))} /></label>
                   <label><span>센서</span><select value={pointsConfig.sensor}
                     onChange={(event) => setPointsConfig((current) => ({ ...current, sensor: event.target.value as FirePointsConfig['sensor'] }))}>
@@ -349,14 +426,17 @@ export default function AuthHome() {
                     <option value="ALL">전체</option><option value="high">high</option><option value="nominal">nominal</option><option value="low">low</option>
                   </select></label>
                 </div>
+                <p className="workspace-feature-note">기준 월을 포함한 최근 6개월을 조회하며, 지도에서 월별로 다른 색상으로 표시합니다.</p>
                 <button className="workspace-preview-button" type="button" disabled={!pointsConfig.period || !selection}
                   onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
               </div>}
               {selected && isMonthly && <div className="workspace-feature-settings">
                 <div className="workspace-feature-fields">
                   <label><span>시작 월</span><input type="month" value={monthlyConfig.fromPeriod}
+                    min={shiftPeriod(monthlyConfig.toPeriod, -11)} max={monthlyConfig.toPeriod}
                     onChange={(event) => setMonthlyConfig((current) => ({ ...current, fromPeriod: event.target.value }))} /></label>
                   <label><span>종료 월</span><input type="month" value={monthlyConfig.toPeriod}
+                    min={monthlyConfig.fromPeriod} max={shiftPeriod(monthlyConfig.fromPeriod, 11)}
                     onChange={(event) => setMonthlyConfig((current) => ({ ...current, toPeriod: event.target.value }))} /></label>
                   <label><span>센서</span><select value={monthlyConfig.sensor}
                     onChange={(event) => setMonthlyConfig((current) => ({ ...current, sensor: event.target.value as MonthlyTrendConfig['sensor'] }))}>
@@ -367,7 +447,10 @@ export default function AuthHome() {
                     <option value="observationCount">관측 건수</option><option value="totalFrp">전체 FRP</option><option value="averageFrp">평균 FRP</option>
                   </select></label>
                 </div>
-                {invalidPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
+                {invalidPeriod && <small className="workspace-feature-validation" role="alert">
+                  {monthlyConfig.fromPeriod > monthlyConfig.toPeriod
+                    ? '시작 월은 종료 월보다 늦을 수 없습니다.' : '월별 관측 추이는 최대 12개월까지 선택할 수 있습니다.'}
+                </small>}
                 <button className="workspace-preview-button" type="button" disabled={invalidPeriod || !selection}
                   onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
               </div>}
@@ -403,9 +486,33 @@ export default function AuthHome() {
                   disabled={!selection || nearestPeriod.fromPeriod > nearestPeriod.toPeriod}
                   onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
               </div>}
+              {selected && isAdvanced && <div className="workspace-feature-settings">
+                {isIntensity && <p className="workspace-feature-note">
+                  FRP 기준 · 약함 10 MW 미만 · 보통 10–30 MW 미만 · 강함 30–100 MW 미만 · 매우 강함 100 MW 이상
+                </p>}
+                <PeriodAnalysisFields config={advancedConfig}
+                  gridMeters={isHotspots ? hotspotConfig.gridMeters : undefined}
+                  onGridChange={isHotspots ? (gridMeters) => setHotspotConfig((current) => ({ ...current, gridMeters })) : undefined}
+                  onChange={(config) => {
+                    if (isIntensity) setIntensityConfig(config)
+                    else if (isDayNight) setDayNightConfig(config)
+                    else if (isPeriodComparison) setComparisonConfig(config)
+                    else setHotspotConfig((current) => ({ ...current, ...config }))
+                  }} />
+                {invalidPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
+                <button className="workspace-preview-button" type="button" disabled={invalidPeriod || !selection}
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+              </div>}
             </article>
           })}</div>
-          <div className="workspace-features-foot"><strong>{selectedFeatures.length}/{MAX_FEATURE_SELECTIONS}개 항목 선택</strong><span>최대 4개까지 선택할 수 있습니다.</span></div>
+          <div className="workspace-features-foot"><strong>{selectedFeatures.length}개 항목 선택</strong><span>선택한 기능은 페이지마다 4개씩 2×2로 배치됩니다.</span></div>
+          <div className="workspace-document-create">
+            <label><span>문서 이름</span><input value={documentName} maxLength={200}
+              onChange={(event) => setDocumentName(event.target.value)} placeholder="문서 이름을 입력하세요" /></label>
+            {AUTH_FEATURES_ENABLED && <button className="is-history" type="button" onClick={() => setDocumentHistoryOpen(true)}>다운로드 내역</button>}
+            <button type="button" disabled={!selection || selectedFeatures.length === 0 || !documentName.trim() || selectedMonthlyPeriodInvalid}
+              onClick={() => setDocumentPreviewOpen(true)}>문서 미리보기 <span aria-hidden="true">↗</span></button>
+          </div>
         </div> : <div className="workspace-map-page">
           <div className="workspace-main-heading"><strong>대한민국 위성 지도</strong><span>Sentinel-2 · 2024</span></div>
           <div className="workspace-map-stage">
@@ -424,14 +531,22 @@ export default function AuthHome() {
           </div>
         </div>}
       </main>
-      {pendingSignup && <SignupModal profile={pendingSignup} busy={busy} error={error}
+      {AUTH_FEATURES_ENABLED && pendingSignup && <SignupModal profile={pendingSignup} busy={busy} error={error}
         onClose={logout} onSubmit={(details: SignupDetails) => signupMutation.mutate(details)} />}
-      {user && editingProfile && <EditProfileModal user={user} busy={profileMutation.isPending}
+      {AUTH_FEATURES_ENABLED && user && editingProfile && <EditProfileModal user={user} busy={profileMutation.isPending}
         error={profileMutation.error ? '회원정보를 저장하지 못했습니다.' : ''}
         onClose={() => setEditingProfile(false)} onSubmit={saveProfile} />}
+      {AUTH_FEATURES_ENABLED && user && documentHistoryOpen && <DocumentHistoryModal onClose={() => setDocumentHistoryOpen(false)} />}
+      {(user || !AUTH_FEATURES_ENABLED) && selection && documentPreviewOpen && selectedFeatureOptions.length > 0 && <DocumentPreviewModal
+        documentName={documentName.trim()} creatorName={user?.name ?? '산불24'} saveHistory bounds={selection}
+        features={selectedFeatureOptions} configs={{ summary: summaryConfig, points: pointsConfig,
+          monthly: monthlyConfig, confidence: confidenceConfig, nearest: nearestPeriod,
+          intensity: intensityConfig, dayNight: dayNightConfig, comparison: comparisonConfig, hotspots: hotspotConfig }}
+        onClose={() => setDocumentPreviewOpen(false)} />}
       {selection && previewFeatureCode === 'FIRE_SUMMARY' && <FireSummaryPreviewModal
         bounds={selection} regionName="선택한 분석 범위" config={summaryConfig}
         onClose={() => setPreviewFeatureCode(null)} />}
+      {publicDocumentSearchOpen && <PublicDocumentSearchModal onClose={() => setPublicDocumentSearchOpen(false)} />}
       {selection && previewFeatureCode === 'FIRE_LOCATION_MAP' && <FirePointsPreviewModal
         bounds={selection} regionName="선택한 분석 범위" config={pointsConfig}
         onClose={() => setPreviewFeatureCode(null)} />}
@@ -453,6 +568,18 @@ export default function AuthHome() {
       {selection && previewFeatureCode === 'NEAREST_FIRE' && <NearestFirePreviewModal
         bounds={selection} regionName="선택한 분석 범위"
         fromPeriod={nearestPeriod.fromPeriod} toPeriod={nearestPeriod.toPeriod}
+        onClose={() => setPreviewFeatureCode(null)} />}
+      {selection && previewFeatureCode === 'FIRE_INTENSITY' && <FireIntensityPreviewModal
+        bounds={selection} regionName="선택한 분석 범위" config={intensityConfig}
+        onClose={() => setPreviewFeatureCode(null)} />}
+      {selection && previewFeatureCode === 'DAY_NIGHT_COMPARISON' && <DayNightPreviewModal
+        bounds={selection} regionName="선택한 분석 범위" config={dayNightConfig}
+        onClose={() => setPreviewFeatureCode(null)} />}
+      {selection && previewFeatureCode === 'PERIOD_COMPARISON' && <PeriodComparisonPreviewModal
+        bounds={selection} regionName="선택한 분석 범위" config={comparisonConfig}
+        onClose={() => setPreviewFeatureCode(null)} />}
+      {selection && previewFeatureCode === 'FIRE_HOTSPOTS' && <FireHotspotsPreviewModal
+        bounds={selection} regionName="선택한 분석 범위" config={hotspotConfig}
         onClose={() => setPreviewFeatureCode(null)} />}
     </div>
   )

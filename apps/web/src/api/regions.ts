@@ -39,7 +39,7 @@ export async function getRegions(
   if (parentId !== null) params.set('parentId', String(parentId))
   const query = params.size > 0 ? `?${params}` : ''
 
-  const response = await fetch(`/api/regions${query}`, { signal })
+  const response = await fetch(`/api/regions${query}`, { signal, cache: 'no-store' })
   if (!response.ok) throw new RegionRequestError(response.status)
   return response.json()
 }
@@ -66,7 +66,7 @@ export async function getRegionMap(
   regionId: number,
   signal: AbortSignal,
 ): Promise<RegionMap> {
-  const response = await fetch(`/api/regions/${regionId}/map`, { signal })
+  const response = await fetch(`/api/regions/${regionId}/map`, { signal, cache: 'no-store' })
   if (!response.ok) throw new RegionRequestError(response.status)
   const data: RegionMapResponse = await response.json()
   return parseRegionMap(data)
@@ -76,7 +76,7 @@ export async function getChildRegionMaps(
   parentId: number,
   signal: AbortSignal,
 ): Promise<RegionMap[]> {
-  const response = await fetch(`/api/regions/${parentId}/children/map`, { signal })
+  const response = await fetch(`/api/regions/${parentId}/children/map`, { signal, cache: 'no-store' })
   if (!response.ok) throw new RegionRequestError(response.status)
   const data: RegionMapResponse[] = await response.json()
   return data.map(parseRegionMap)

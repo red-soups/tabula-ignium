@@ -20,7 +20,8 @@ interface FireDataMapper {
     List<FirePoint> findPoints(
             @Param("west") double west, @Param("south") double south,
             @Param("east") double east, @Param("north") double north,
-            @Param("period") String period,
+            @Param("fromPeriod") String fromPeriod,
+            @Param("toPeriod") String toPeriod,
             @Param("sensor") String sensor,
             @Param("confidenceLevel") String confidenceLevel,
             @Param("limit") int limit);
@@ -38,6 +39,31 @@ interface FireDataMapper {
             @Param("fromPeriod") String fromPeriod,
             @Param("toPeriod") String toPeriod,
             @Param("sensor") String sensor);
+
+    List<FireIntensityDistribution> findIntensityDistribution(
+            @Param("west") double west, @Param("south") double south,
+            @Param("east") double east, @Param("north") double north,
+            @Param("fromPeriod") String fromPeriod, @Param("toPeriod") String toPeriod,
+            @Param("sensor") String sensor);
+
+    List<DayNightDistribution> findDayNightDistribution(
+            @Param("west") double west, @Param("south") double south,
+            @Param("east") double east, @Param("north") double north,
+            @Param("fromPeriod") String fromPeriod, @Param("toPeriod") String toPeriod,
+            @Param("sensor") String sensor);
+
+    PeriodComparison findPeriodComparison(
+            @Param("west") double west, @Param("south") double south,
+            @Param("east") double east, @Param("north") double north,
+            @Param("currentFrom") String currentFrom, @Param("currentTo") String currentTo,
+            @Param("previousFrom") String previousFrom, @Param("previousTo") String previousTo,
+            @Param("sensor") String sensor);
+
+    List<FireHotspot> findHotspots(
+            @Param("west") double west, @Param("south") double south,
+            @Param("east") double east, @Param("north") double north,
+            @Param("fromPeriod") String fromPeriod, @Param("toPeriod") String toPeriod,
+            @Param("sensor") String sensor, @Param("gridMeters") int gridMeters);
 
     List<YearlyFireTrend> findYearlyTrend(
             @Param("west") double west, @Param("south") double south,

@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RegionRepository extends JpaRepository<Region, Long> {
 
-    List<Region> findByParentIsNullOrderByNameAsc();
+    List<Region> findByParentIsNullOrderByNameKoAsc();
 
-    List<Region> findByParentIdOrderByNameAsc(Long parentId);
+    List<Region> findByParentIdOrderByNameKoAsc(Long parentId);
 }

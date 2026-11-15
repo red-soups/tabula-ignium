@@ -9,5 +9,6 @@ public record FirePoint(
         double frp,
         String confidenceLevel,
         String sensor,
+        String period,
         LocalDateTime observedAt) {
 }

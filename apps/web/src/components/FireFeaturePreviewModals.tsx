@@ -51,19 +51,22 @@ export function FirePointsPreviewModal({ bounds, regionName, config, onClose }: 
 }) {
   const query = useFirePointsQuery(bounds, config)
   const points = query.data ?? []
+  const [year, month] = config.period.split('-').map(Number)
+  const rangeStart = new Date(year, month - 6, 1)
+  const fromPeriod = `${rangeStart.getFullYear()}-${String(rangeStart.getMonth() + 1).padStart(2, '0')}`
 
   return <PreviewShell title="화재 관측 위치" onClose={onClose} context={<>
-    <strong>{regionName}</strong><span>{config.period}</span>
+    <strong>{regionName}</strong><span>{fromPeriod} – {config.period}</span>
     <span>{config.sensor === 'ALL' ? '전체 센서' : config.sensor}</span>
     <span>{config.confidenceLevel === 'ALL' ? '전체 신뢰도' : config.confidenceLevel}</span>
   </>}>
     <div className="fire-point-map">
       <div className="fire-point-map-stage">
-        <KoreaMap active focusBounds={bounds} selection={bounds} observations={points} />
+        <KoreaMap active focusBounds={bounds} selection={bounds} observations={points} observationPeriod={config.period} />
       </div>
       <SatelliteMapAttribution />
       {query.isSuccess && points.length > 0 &&
-        <div className="fire-point-map-foot"><strong>{points.length.toLocaleString('ko-KR')}건</strong><span>FRP가 높을수록 점이 크게 표시됩니다.</span></div>
+        <div className="fire-point-map-foot"><strong>{points.length.toLocaleString('ko-KR')}건</strong><span>색상은 관측 월, 점 크기는 FRP를 나타냅니다.</span></div>
       }
     </div>
     <QueryState pending={query.isPending} error={query.isError} empty={query.isSuccess && points.length === 0}>
