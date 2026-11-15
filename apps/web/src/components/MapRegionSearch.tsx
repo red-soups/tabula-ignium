@@ -1,13 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { useRegionMapQuery, useRegionsQuery } from '../api/regionQueries'
 import type { RegionMap } from '../api/regions'
 import { Icon } from './Icon'
 import { SearchableSelect } from './SearchableSelect'
 
-export function MapRegionSearch({ cityId, districtId, canReset, onCityChange, onDistrictChange, onRegionFocus, onReset }: {
+export function MapRegionSearch({ cityId, districtId, canReset, areaAction, onCityChange, onDistrictChange, onRegionFocus, onReset }: {
   cityId: number
   districtId: number
   canReset: boolean
+  areaAction: ReactNode
   onCityChange: (regionId: number) => void
   onDistrictChange: (regionId: number) => void
   onRegionFocus: (region: RegionMap) => void
@@ -32,11 +33,13 @@ export function MapRegionSearch({ cityId, districtId, canReset, onCityChange, on
     <div className="workspace-region-search">
       <div className="workspace-region-search-head">
         <span className="workspace-small-label">행정구역 검색</span>
-        {canReset && <button className="workspace-region-reset" type="button" onClick={onReset}
-          aria-label="행정구역 다시 선택">
-          <Icon name="refresh" size={14} />
-          <small>다시 선택</small>
-        </button>}
+        <div className="workspace-region-search-actions">
+          {canReset && <button className="workspace-region-reset" type="button" onClick={onReset}
+            aria-label="행정구역 다시 선택" title="행정구역 다시 선택">
+            <Icon name="refresh" size={14} />
+          </button>}
+          {areaAction}
+        </div>
       </div>
       <div className="workspace-region-search-grid">
         <label>
