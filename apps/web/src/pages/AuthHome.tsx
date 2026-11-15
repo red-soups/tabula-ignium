@@ -23,7 +23,7 @@ import {
   HighRiskPreviewModal, LargeFirePreviewModal, NearestFirePreviewModal,
   YearlyTrendPreviewModal,
 } from '../components/FireReportPreviewModals'
-import { KoreaMap, type MapSelection } from '../components/KoreaMap'
+import { KoreaMap, SatelliteMapAttribution, type MapSelection } from '../components/KoreaMap'
 import { MapRegionSearch } from '../components/MapRegionSearch'
 import { SignupModal } from '../components/SignupModal'
 import type { RegionMap } from '../api/regions'
@@ -411,15 +411,11 @@ export default function AuthHome() {
           <div className="workspace-map-stage">
             <KoreaMap key={`${step === 'home' ? 'home' : 'document'}-${focusedRegion?.id ?? 'all'}`} active={step === 'region'}
               selecting={selectingArea} selection={selection}
-              focusRegion={focusedRegion} mapRegions={mapRegionsQuery.data ?? []}
+              focusBounds={focusedRegion} mapRegions={mapRegionsQuery.data ?? []}
               onRegionClick={clickAdministrativeRegion}
               onAreaSelect={(area) => { setSelection(area); setSelectingArea(false) }} />
           </div>
-          <div className="workspace-map-attribution">
-            <a href="https://cloudless.eox.at" target="_blank" rel="noopener noreferrer">EOxCloudless</a>
-            {' by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024) · '}
-            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
-          </div>
+          <SatelliteMapAttribution />
           <div className="workspace-map-footer"><span><i /> {focusedRegion?.name ?? '대한민국 전역'}</span>
             <p>{step === 'home' ? '문서 생성을 누르면 지도를 확대하고 지역을 선택할 수 있습니다.'
               : selectingArea ? '지도 위를 드래그해 분석할 범위를 지정하세요.'
