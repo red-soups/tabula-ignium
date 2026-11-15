@@ -228,7 +228,7 @@ export default function AuthHome() {
         {step === 'home' ? <>
           <div className="workspace-sidebar-content">
             <span className="workspace-kicker">{t('home.report')}</span>
-            <h1>{t('home.headline1')}<br />{t('home.headline2')}</h1>
+            <h1>{t('home.headline')}</h1>
             <p>{t('home.description')}</p>
             <div className="workspace-services">
               <button className="workspace-service is-primary" type="button" disabled={AUTH_FEATURES_ENABLED && (!user || busy)}

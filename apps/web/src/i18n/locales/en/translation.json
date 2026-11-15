@@ -35,8 +35,8 @@
   },
   "home": {
     "breadcrumb": "Current location", "home": "Home", "issueReport": "Issue wildfire history report", "workMenu": "Tasks",
-    "report": "Wildfire History Report", "headline1": "Choose your data,", "headline2": "turn it into a document.",
-    "description": "Choose an area on the map of South Korea and select the wildfire observations to include.",
+    "report": "Wildfire History Report", "headline": "Issue online",
+    "description": "Select a city or district, or draw an area on the map, to issue a report of satellite-observed wildfire records dating back to 2000.",
     "create": "Create document", "createDescription": "Choose an area and data items to create a report",
     "findByHash": "Find by hash", "findByHashDescription": "Find an issued document using its 12-character code",
     "process": "Issuance steps", "previous": "Previous step", "documentSteps": "Document creation steps",

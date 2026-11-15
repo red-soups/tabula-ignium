@@ -35,8 +35,8 @@
   },
   "home": {
     "breadcrumb": "현재 위치", "home": "홈", "issueReport": "산불 이력 확인서 발급", "workMenu": "작업 메뉴",
-    "report": "산불 이력 확인서", "headline1": "데이터를 고르고,", "headline2": "문서로 정리하세요.",
-    "description": "대한민국 지도에서 원하는 지역을 정하고 문서에 담을 데이터를 선택합니다.",
+    "report": "산불 이력 확인서", "headline": "온라인으로 발급",
+    "description": "시·군·구를 선택하거나 지도에 범위를 그리면, 2000년부터 위성으로 관측한 산불 기록을 확인서로 발급받을 수 있습니다.",
     "create": "문서 생성", "createDescription": "지역과 항목을 골라 확인서를 만듭니다",
     "findByHash": "해시번호로 문서 찾기", "findByHashDescription": "발급한 문서를 12자리 번호로 확인합니다",
     "process": "발급 절차", "previous": "이전 단계", "documentSteps": "문서 생성 단계",
