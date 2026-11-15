@@ -24,7 +24,7 @@ export function PreviewShell({ title, context, onClose, children }: {
     if (event.target === event.currentTarget) onClose()
   }}>
     <section className="fire-preview-modal" role="dialog" aria-modal="true" aria-label={title}>
-      <header className="fire-preview-head"><div><span>FIRE DATA PREVIEW</span><h2>{title}</h2></div>
+      <header className="fire-preview-head"><div><span>데이터 미리보기</span><h2>{title}</h2></div>
         <button type="button" aria-label="미리보기 닫기" onClick={onClose}><Icon name="close" /></button></header>
       <div className="fire-preview-context">{context}</div>
       <div className="fire-preview-body">{children}</div>

@@ -250,7 +250,7 @@ function configuration(feature: FeatureOption, configs: DocumentPreviewConfigs) 
 }
 
 function Panel({ feature, bounds, configs }: { feature: FeatureOption; bounds: AnalysisBounds; configs: DocumentPreviewConfigs }) {
-  return <article className="document-preview-panel"><header><span>FIRE DATA</span><h3>{feature.name}</h3><p>{feature.description}</p></header>
+  return <article className="document-preview-panel"><header><span>위성 관측 항목</span><h3>{feature.name}</h3><p>{feature.description}</p></header>
     <div className="document-preview-panel-body">
       {feature.code === 'FIRE_SUMMARY' && <SummaryPanel bounds={bounds} config={configs.summary} />}
       {feature.code === 'FIRE_LOCATION_MAP' && <PointsPanel bounds={bounds} config={configs.points} />}
@@ -338,7 +338,7 @@ export function DocumentPreviewModal({ documentName, creatorName, saveHistory = 
     </p>}
     <div className="document-preview-scroll">{pages.map((pageFeatures, pageIndex) => <div className="document-preview-page" key={pageIndex}
       ref={(element) => { pageRefs.current[pageIndex] = element }}>
-      <header className="document-page-header"><div><span>SANBUL 24 / FIRE REPORT · {pageIndex + 1}/{pages.length}</span><h2>{documentName}</h2></div><strong>산불24</strong></header>
+      <header className="document-page-header"><div><span>산불 이력 확인서 · {pageIndex + 1}/{pages.length}쪽</span><h2>{documentName}</h2></div><strong>산불24</strong></header>
       <div className="document-page-area"><span>사용자 지정 분석 범위</span><strong>{bounds.west.toFixed(4)}, {bounds.south.toFixed(4)} — {bounds.east.toFixed(4)}, {bounds.north.toFixed(4)}</strong></div>
       <main className="document-preview-grid">{pageFeatures.map((feature) => <Panel key={feature.id} feature={feature} bounds={bounds} configs={configs} />)}</main>
       <footer className="document-page-footer"><div><span>문서 생성일</span><strong>{createdAt}</strong></div><div><span>생성자</span><strong>{creatorName}</strong></div></footer>

@@ -19,6 +19,7 @@ import { DocumentPreviewModal } from '../components/DocumentPreviewModal'
 import { PublicDocumentSearchModal } from '../components/PublicDocumentSearchModal'
 import { BrandLogo } from '../components/BrandLogo'
 import { GoogleLoginButton } from '../components/GoogleLoginButton'
+import { Icon, type IconName } from '../components/Icon'
 import { FireSummaryPreviewModal } from '../components/FireSummaryPreviewModal'
 import {
   ConfidencePreviewModal, FirePointsPreviewModal, MonthlyTrendPreviewModal,
@@ -40,20 +41,21 @@ import './DocumentMap.css'
 type Step = 'home' | 'region' | 'features'
 const AUTH_FEATURES_ENABLED = false
 
-const FEATURE_SYMBOLS: Record<string, string> = {
-  FIRE_SUMMARY: '◫',
-  FIRE_LOCATION_MAP: '⌖',
-  MONTHLY_FIRE_TREND: '▥',
-  CONFIDENCE_ANALYSIS: '◉',
-  YEARLY_FIRE_TREND: '▥',
-  LARGE_FIRE_FREQUENCY: '▲',
-  HIGH_RISK_SEASON: '◐',
-  NEAREST_FIRE: '◎',
-  FIRE_INTENSITY: '◆',
-  DAY_NIGHT_COMPARISON: '◒',
-  PERIOD_COMPARISON: '⇄',
-  FIRE_HOTSPOTS: '▦',
+const FEATURE_ICONS: Record<string, IconName> = {
+  FIRE_SUMMARY: 'file',
+  FIRE_LOCATION_MAP: 'pin',
+  MONTHLY_FIRE_TREND: 'bars',
+  CONFIDENCE_ANALYSIS: 'gauge',
+  YEARLY_FIRE_TREND: 'trend',
+  LARGE_FIRE_FREQUENCY: 'flame',
+  HIGH_RISK_SEASON: 'calendar',
+  NEAREST_FIRE: 'target',
+  FIRE_INTENSITY: 'zap',
+  DAY_NIGHT_COMPARISON: 'daynight',
+  PERIOD_COMPARISON: 'swap',
+  FIRE_HOTSPOTS: 'grid',
 }
+const STEPS = ['지역 선택', '항목 선택', '확인서 발급'] as const
 
 function periodAt(offsetFromLatestCompleteMonth: number) {
   const now = new Date()
@@ -232,6 +234,10 @@ export default function AuthHome() {
       setStep('region')
       return
     }
+    goHome()
+  }
+
+  function goHome() {
     setStep('home')
     setSelection(null)
     setSelectingArea(false)
@@ -271,25 +277,57 @@ export default function AuthHome() {
     setMapDistrictId(0)
   }
 
+  const stepIndex: number = step === 'home' ? -1 : step === 'region' ? 0 : documentPreviewOpen ? 2 : 1
+
   return (
+    <div className="portal">
+      <a className="portal-skip" href="#portal-main">본문 바로가기</a>
+      <header className="portal-header">
+        <div className="portal-header-inner">
+          <a href="/" className="portal-brand" aria-label="산불24 홈">
+            <BrandLogo className="portal-brand-logo" />
+          </a>
+          <nav className="portal-util" aria-label="바로가기">
+            <button type="button" onClick={() => setPublicDocumentSearchOpen(true)}>
+              <Icon name="shield" size={22} /><span>문서 진위 확인</span>
+            </button>
+            {step !== 'home' && <button type="button" onClick={goHome}>
+              <Icon name="home" size={22} /><span>처음으로</span>
+            </button>}
+          </nav>
+        </div>
+      </header>
+
+      <div className="portal-body" id="portal-main">
+        <nav className="portal-breadcrumb" aria-label="현재 위치">
+          <span>홈</span>
+          <Icon name="chevron" size={14} />
+          <span className={step === 'home' ? 'is-current' : ''}>산불 이력 확인서 발급</span>
+          {stepIndex >= 0 && <><Icon name="chevron" size={14} /><span className="is-current">{STEPS[stepIndex]}</span></>}
+        </nav>
     <div className="workspace-shell">
       <aside className="workspace-sidebar" aria-label="작업 메뉴">
-        <a href="/" className="workspace-brand" aria-label="산불24 홈">
-          <BrandLogo className="workspace-brand-logo" />
-        </a>
-        <div className="workspace-divider" />
         {step === 'home' ? <>
           <div className="workspace-sidebar-content">
-            <span className="workspace-kicker">WORKSPACE / 00</span>
+            <span className="workspace-kicker">산불 이력 확인서</span>
             <h1>데이터를 고르고,<br />문서로 정리하세요.</h1>
             <p>대한민국 지도에서 원하는 지역을 정하고 문서에 담을 데이터를 선택합니다.</p>
-            <button className="workspace-primary" type="button" disabled={AUTH_FEATURES_ENABLED && (!user || busy)}
-              onClick={() => setStep('region')}>
-              문서 생성 <span aria-hidden="true">↗</span>
-            </button>
-            <button className="workspace-public-search" type="button" onClick={() => setPublicDocumentSearchOpen(true)}>
-              해시번호로 문서 찾기 <span aria-hidden="true">⌕</span>
-            </button>
+            <div className="workspace-services">
+              <button className="workspace-service is-primary" type="button" disabled={AUTH_FEATURES_ENABLED && (!user || busy)}
+                onClick={() => setStep('region')}>
+                <span className="workspace-service-icon"><Icon name="file" size={24} /></span>
+                <span className="workspace-service-text"><strong>문서 생성</strong><small>지역과 항목을 골라 확인서를 만듭니다</small></span>
+                <Icon name="chevron" size={20} />
+              </button>
+              <button className="workspace-service" type="button" onClick={() => setPublicDocumentSearchOpen(true)}>
+                <span className="workspace-service-icon"><Icon name="search" size={24} /></span>
+                <span className="workspace-service-text"><strong>해시번호로 문서 찾기</strong><small>발급한 문서를 12자리 번호로 확인합니다</small></span>
+                <Icon name="chevron" size={20} />
+              </button>
+            </div>
+            <ol className="workspace-guide" aria-label="발급 절차">
+              {STEPS.map((label, index) => <li key={label}><span>{index + 1}</span>{label}</li>)}
+            </ol>
             {AUTH_FEATURES_ENABLED && !user && <small className="workspace-help">Google 로그인 후 문서를 생성할 수 있습니다.</small>}
           </div>
           {AUTH_FEATURES_ENABLED && <div className="workspace-auth">
@@ -303,14 +341,16 @@ export default function AuthHome() {
             {error && !pendingSignup && <p className="auth-error" role="alert">{error}</p>}
           </div>}
         </> : <>
-          <button className="workspace-back" type="button" onClick={goBack}><span aria-hidden="true">←</span> 이전</button>
+          <button className="workspace-back" type="button" onClick={goBack}><Icon name="back" size={18} /> 이전 단계</button>
           <div className="workspace-sidebar-content">
-            <span className="workspace-kicker">DOCUMENT / {step === 'region' ? '01' : '02'}</span>
-            <div className="workspace-step-track" aria-label="문서 생성 단계">
-              <span className="is-current">지역 선택</span><i /><span className={step === 'features' ? 'is-current' : ''}>기능 선택</span>
-            </div>
+            <ol className="workspace-stepper" aria-label="문서 생성 단계">
+              {STEPS.map((label, index) => <li key={label} aria-current={index === stepIndex ? 'step' : undefined}
+                className={index === stepIndex ? 'is-current' : index < stepIndex ? 'is-done' : ''}>
+                <span>{index < stepIndex ? <Icon name="check" size={14} /> : index + 1}</span>{label}
+              </li>)}
+            </ol>
             {step === 'region' ? <>
-              <h1>문서의 지역을<br />선택하세요.</h1>
+              <h1>문서의 지역을 <br />선택하세요.</h1>
               <p>행정구역으로 지도를 이동한 뒤, 지도에서 분석할 사각형 범위를 직접 그려 주세요.</p>
               <MapRegionSearch cityId={mapCityId} districtId={mapDistrictId} canReset={Boolean(mapCityId || mapDistrictId)}
                 areaAction={
@@ -334,11 +374,11 @@ export default function AuthHome() {
               </div>}
               <button className="workspace-primary" type="button" disabled={!selection}
                 onClick={() => setStep('features')}>
-                다음 <span aria-hidden="true">→</span>
+                다음 단계 <Icon name="next" size={18} />
               </button>
               {!selection && <small className="workspace-help">영역을 선택하면 다음 단계로 이동할 수 있습니다.</small>}
             </> : <>
-              <h1>문서에 담을<br />기능을 선택하세요.</h1>
+              <h1>문서에 담을 <br />기능을 선택하세요.</h1>
               <p>기능을 선택하고 각 카드에서 조회 조건을 설정한 뒤 데이터를 미리 확인할 수 있습니다.</p>
               <div className="workspace-selection-summary">
                 <span>선택된 분석 범위</span>
@@ -348,13 +388,11 @@ export default function AuthHome() {
             </>}
           </div>
         </>}
-        <div className="workspace-sidebar-foot">산불24 · SOUTH KOREA</div>
       </aside>
 
       <main className="workspace-main">
         {step === 'features' ? <div className="workspace-features">
-          <div className="workspace-main-heading"><span>02 / DOCUMENT CONTENT</span><strong>문서 구성</strong></div>
-          <div className="workspace-features-intro"><span>STEP 02</span><h2>어떤 데이터를 담을까요?</h2>
+          <div className="workspace-features-intro"><span>2단계 · 항목 선택</span><h2>어떤 데이터를 담을까요?</h2>
             <p>선택한 지역을 기준으로 문서에 추가할 화재 관측 데이터 항목을 선택합니다.</p></div>
           {featuresQuery.isPending && <p className="workspace-feature-state" role="status">기능 목록을 불러오는 중입니다…</p>}
           {featuresQuery.isError && <p className="workspace-feature-error" role="alert">기능 목록을 불러오지 못했습니다.</p>}
@@ -388,10 +426,10 @@ export default function AuthHome() {
               <label className="workspace-feature-toggle">
                 <input type="checkbox" checked={selected}
                   onChange={() => toggleFeature(feature.id)} />
-                <span className="workspace-feature-number">{String(index + 1).padStart(2, '0')} / FIRE DATA</span>
-                <span className="workspace-feature-symbol" aria-hidden="true">{FEATURE_SYMBOLS[feature.code] ?? '◇'}</span>
+                <span className="workspace-feature-symbol"><Icon name={FEATURE_ICONS[feature.code] ?? 'file'} size={22} /></span>
+                <span className="workspace-feature-number">{String(index + 1).padStart(2, '0')}</span>
                 <strong>{feature.name}</strong><small>{feature.description}</small>
-                <span className="workspace-feature-check" aria-hidden="true">✓</span>
+                <span className="workspace-feature-check"><Icon name="check" size={14} /></span>
               </label>
               {selected && isSummary && <div className="workspace-feature-settings">
                 <div className="workspace-feature-fields">
@@ -411,7 +449,7 @@ export default function AuthHome() {
                 </div>
                 {invalidPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
                 <button className="workspace-preview-button" type="button" disabled={invalidPeriod || !selection}
-                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <Icon name="chevron" size={16} /></button>
               </div>}
               {selected && isPoints && <div className="workspace-feature-settings">
                 <div className="workspace-feature-fields">
@@ -428,7 +466,7 @@ export default function AuthHome() {
                 </div>
                 <p className="workspace-feature-note">기준 월을 포함한 최근 6개월을 조회하며, 지도에서 월별로 다른 색상으로 표시합니다.</p>
                 <button className="workspace-preview-button" type="button" disabled={!pointsConfig.period || !selection}
-                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <Icon name="chevron" size={16} /></button>
               </div>}
               {selected && isMonthly && <div className="workspace-feature-settings">
                 <div className="workspace-feature-fields">
@@ -452,7 +490,7 @@ export default function AuthHome() {
                     ? '시작 월은 종료 월보다 늦을 수 없습니다.' : '월별 관측 추이는 최대 12개월까지 선택할 수 있습니다.'}
                 </small>}
                 <button className="workspace-preview-button" type="button" disabled={invalidPeriod || !selection}
-                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <Icon name="chevron" size={16} /></button>
               </div>}
               {selected && isConfidence && <div className="workspace-feature-settings">
                 <div className="workspace-feature-fields">
@@ -467,12 +505,12 @@ export default function AuthHome() {
                 </div>
                 {invalidPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
                 <button className="workspace-preview-button" type="button" disabled={invalidPeriod || !selection}
-                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <Icon name="chevron" size={16} /></button>
               </div>}
               {selected && (isYearly || isLargeFire || isHighRisk) && <div className="workspace-feature-settings">
                 <p className="workspace-feature-note">전체 관측 기간과 보정 데이터를 기준으로 계산합니다.</p>
                 <button className="workspace-preview-button" type="button" disabled={!selection}
-                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <Icon name="chevron" size={16} /></button>
               </div>}
               {selected && isNearest && <div className="workspace-feature-settings">
                 <div className="workspace-feature-fields">
@@ -484,7 +522,7 @@ export default function AuthHome() {
                 {nearestPeriod.fromPeriod > nearestPeriod.toPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
                 <button className="workspace-preview-button" type="button"
                   disabled={!selection || nearestPeriod.fromPeriod > nearestPeriod.toPeriod}
-                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <Icon name="chevron" size={16} /></button>
               </div>}
               {selected && isAdvanced && <div className="workspace-feature-settings">
                 {isIntensity && <p className="workspace-feature-note">
@@ -501,20 +539,20 @@ export default function AuthHome() {
                   }} />
                 {invalidPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
                 <button className="workspace-preview-button" type="button" disabled={invalidPeriod || !selection}
-                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <Icon name="chevron" size={16} /></button>
               </div>}
             </article>
           })}</div>
-          <div className="workspace-features-foot"><strong>{selectedFeatures.length}개 항목 선택</strong><span>선택한 기능은 페이지마다 4개씩 2×2로 배치됩니다.</span></div>
           <div className="workspace-document-create">
+            <div className="workspace-features-foot"><strong>{selectedFeatures.length}개 항목 선택</strong><span>선택한 기능은 페이지마다 4개씩 2×2로 배치됩니다.</span></div>
             <label><span>문서 이름</span><input value={documentName} maxLength={200}
               onChange={(event) => setDocumentName(event.target.value)} placeholder="문서 이름을 입력하세요" /></label>
             {AUTH_FEATURES_ENABLED && <button className="is-history" type="button" onClick={() => setDocumentHistoryOpen(true)}>다운로드 내역</button>}
             <button type="button" disabled={!selection || selectedFeatures.length === 0 || !documentName.trim() || selectedMonthlyPeriodInvalid}
-              onClick={() => setDocumentPreviewOpen(true)}>문서 미리보기 <span aria-hidden="true">↗</span></button>
+              onClick={() => setDocumentPreviewOpen(true)}>문서 미리보기 <Icon name="chevron" size={18} /></button>
           </div>
         </div> : <div className="workspace-map-page">
-          <div className="workspace-main-heading"><strong>대한민국 위성 지도</strong><span>Sentinel-2 · 2024</span></div>
+          <div className="workspace-main-heading"><strong><Icon name="map" size={20} /> 대한민국 위성 지도</strong><span>Sentinel-2 · 2024</span></div>
           <div className="workspace-map-stage">
             <KoreaMap key={`${step === 'home' ? 'home' : 'document'}-${focusedRegion?.id ?? 'all'}`} active={step === 'region'}
               selecting={selectingArea} selection={selection}
@@ -531,6 +569,16 @@ export default function AuthHome() {
           </div>
         </div>}
       </main>
+    </div>
+      </div>
+
+      <footer className="portal-footer">
+        <div className="portal-footer-inner">
+          <span>NASA FIRMS MODIS·VIIRS 위성 관측 기반</span>
+          <span>위성 관측에 근거한 참고 자료이며 법적 효력이 있는 증명서가 아닙니다. 공식 통계는 산림청 자료를 따릅니다.</span>
+          <span>© 2026 Team Red Soups · NASA Space Apps Challenge</span>
+        </div>
+      </footer>
       {AUTH_FEATURES_ENABLED && pendingSignup && <SignupModal profile={pendingSignup} busy={busy} error={error}
         onClose={logout} onSubmit={(details: SignupDetails) => signupMutation.mutate(details)} />}
       {AUTH_FEATURES_ENABLED && user && editingProfile && <EditProfileModal user={user} busy={profileMutation.isPending}

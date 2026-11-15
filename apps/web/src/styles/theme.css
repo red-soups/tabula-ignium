@@ -1,43 +1,78 @@
+/* 디자인 토큰: apps/web/docs/design/tokens.json 과 같은 값. 색 이름은 역할이고 값만 바꾼다. */
 :root {
   color-scheme: light;
 
-  /* Brand */
+  /* Brand (로고) */
   --brand-red: #e9011d;
   --brand-green: #032e1e;
   --brand-charcoal: #343333;
 
-  /* Base surfaces */
-  --bg: #f3f1ec;
-  --header: #fff;
-  --surface: #f7f6f2;
-  --panel: #fff;
-  --modal-surface: #fff;
-  --interactive-hover: #f0eee8;
+  /* Roles */
+  --bg: #f4f5f6;
+  --surface: #fff;
+  --surface-tint: #eef4f0;
+  --surface-muted: #f4f5f6;
+  --border: #e6e8ea;
+  --border-strong: #cdd1d5;
+  --border-input: #8a949e;
+  --text: #1e2124;
+  --text-muted: #464c53;
+  --text-subtle: #646e78;
+  --accent: #0f6a43;
+  --accent-hover: #0a5334;
+  --accent-soft: #e6f2eb;
+  --accent-line: #9fc9b2;
+  --on-accent: #fff;
+  --point: #d90019;
+  --point-soft: #fdecee;
+  --danger: #c4001a;
+  --success: #1f7a4d;
+  --warning: #a35200;
+  --map: #14242e;
 
-  /* Text */
-  --text: var(--brand-charcoal);
-  --text-strong: var(--brand-green);
-  --text-soft: #666662;
-  --muted: #747873;
-  --muted-dark: #92958f;
+  /* Type */
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --text-xs: 13px;
+  --text-sm: 15px;
+  --text-base: 16px;
+  --text-lg: 19px;
+  --text-xl: 26px;
+  --text-display: 34px;
 
-  /* Borders */
-  --line: #d9ddd6;
-  --line-soft: #e8e9e4;
-  --border-strong: #b9c2b9;
+  /* Shape */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 2px rgb(30 33 36 / 4%), 0 2px 10px rgb(30 33 36 / 5%);
+  --shadow-pop: 0 18px 48px rgb(30 33 36 / 20%);
+  --focus-ring: 0 0 0 3px rgb(15 106 67 / 22%);
+  --ease: cubic-bezier(.2, .8, .2, 1);
 
-  /* Brand and states */
-  --green: var(--brand-green);
-  --green-dark: #021f15;
-  --green-ink: #fff;
-  --green-hover: #075238;
-  --orange: var(--brand-red);
-  --danger: var(--brand-red);
-  --danger-hover: #c90019;
-  --danger-surface: #fff0f2;
+  /* Layout */
+  --max-width: 1248px;
+  --header-height: 64px;
 
-  /* Utility */
+  /* 예전 이름 (다른 화면에서 쓰는 변수) */
+  --header: var(--surface);
+  --panel: var(--surface);
+  --modal-surface: var(--surface);
+  --interactive-hover: var(--surface-muted);
+  --text-strong: var(--text);
+  --text-soft: var(--text-muted);
+  --muted: var(--text-subtle);
+  --muted-dark: var(--text-subtle);
+  --line: var(--border);
+  --line-soft: var(--border);
+  --green: var(--accent);
+  --green-dark: var(--accent-hover);
+  --green-ink: var(--on-accent);
+  --green-hover: var(--accent-hover);
+  --orange: var(--point);
+  --danger-hover: #a30016;
+  --danger-surface: var(--point-soft);
   --white: #fff;
-  --overlay: rgb(3 46 30 / 42%);
-  --shadow-modal: 0 25px 90px rgb(3 46 30 / 22%);
+  --overlay: rgb(19 20 22 / 52%);
+  --shadow-modal: var(--shadow-pop);
 }

@@ -34,7 +34,7 @@ export function PublicDocumentSearchModal({ onClose }: { onClose: () => void }) 
   }
 
   return <div className="document-preview-backdrop"><section className="public-document-dialog" role="dialog" aria-modal="true" aria-label="해시번호로 문서 찾기">
-    <header><div><span>PUBLIC DOCUMENT</span><h2>해시번호로 문서 찾기</h2><p>PDF 파일명 앞의 12자리 해시번호를 입력하세요.</p></div>
+    <header><div><span>문서 진위 확인</span><h2>해시번호로 문서 찾기</h2><p>PDF 파일명 앞의 12자리 해시번호를 입력하세요.</p></div>
       <button type="button" aria-label="닫기" onClick={onClose}><Icon name="close" /></button></header>
     <form onSubmit={search}><label><span>문서 해시번호</span><input value={hash} maxLength={12} autoFocus
       onChange={(event) => setHash(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}

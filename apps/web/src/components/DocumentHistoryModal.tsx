@@ -6,7 +6,7 @@ export function DocumentHistoryModal({ onClose }: { onClose: () => void }) {
   const query = useDocumentExportsQuery()
   const deletion = useDeleteDocumentExportMutation()
   return <div className="document-preview-backdrop"><section className="document-history-dialog" role="dialog" aria-modal="true" aria-label="PDF 다운로드 내역">
-    <header><div><span>DOCUMENT ARCHIVE</span><h2>PDF 다운로드 내역</h2></div>
+    <header><div><span>다운로드 내역</span><h2>PDF 다운로드 내역</h2></div>
       <button type="button" aria-label="닫기" onClick={onClose}><Icon name="close" /></button></header>
     <div className="document-history-body">
       {query.isPending && <p>내역을 불러오는 중…</p>}

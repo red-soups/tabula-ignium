@@ -39,7 +39,7 @@ export function FireSummaryPreviewModal({ bounds, regionName, config, onClose }:
     }}>
       <section className="fire-preview-modal" role="dialog" aria-modal="true" aria-labelledby="fire-preview-title">
         <header className="fire-preview-head">
-          <div><span>FIRE DATA PREVIEW</span><h2 id="fire-preview-title">화재 관측 요약</h2></div>
+          <div><span>데이터 미리보기</span><h2 id="fire-preview-title">화재 관측 요약</h2></div>
           <button type="button" aria-label="미리보기 닫기" onClick={onClose}><Icon name="close" /></button>
         </header>
         <div className="fire-preview-context">
