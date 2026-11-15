@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Component
 class LocalDocumentStorage implements DocumentStorage {
+    static final String PROVIDER = "LOCAL";
     private final Path root;
 
     LocalDocumentStorage(@Value("${app.documents.storage-root:../../data/documents}") String root) {
@@ -28,7 +29,7 @@ class LocalDocumentStorage implements DocumentStorage {
         try {
             Files.createDirectories(target.getParent());
             Files.write(target, content, StandardOpenOption.CREATE_NEW);
-            return new StoredDocument("LOCAL", relative);
+            return new StoredDocument(PROVIDER, relative);
         } catch (IOException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "PDF file could not be stored", exception);
         }

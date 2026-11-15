@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.List;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,14 @@ class DocumentExportService {
     private static final int HASH_LENGTH = 12;
     private final SecureRandom random = new SecureRandom();
     private final JdbcTemplate jdbc;
-    private final DocumentStorage storage;
+    private final LocalDocumentStorage localStorage;
+    private final S3DocumentStorage s3Storage;
 
-    DocumentExportService(JdbcTemplate jdbc, DocumentStorage storage) {
+    DocumentExportService(JdbcTemplate jdbc, LocalDocumentStorage localStorage,
+            ObjectProvider<S3DocumentStorage> s3Storage) {
         this.jdbc = jdbc;
-        this.storage = storage;
+        this.localStorage = localStorage;
+        this.s3Storage = s3Storage.getIfAvailable();
     }
 
     @Transactional
@@ -50,9 +54,10 @@ class DocumentExportService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid feature selection");
         }
 
-        DocumentStorage.StoredDocument stored = storage.save(documentId, pdf);
         String accessHash = newAccessHash();
         String fileName = accessHash + "_" + safeFileName(request.name()) + ".pdf";
+        DocumentStorage storage = s3Storage == null ? localStorage : s3Storage;
+        DocumentStorage.StoredDocument stored = storage.save(documentId, pdf);
         long historyId = jdbc.queryForObject("""
                 INSERT INTO document_export_histories
                     (document_id, created_by, storage_provider, file_path, original_file_name, file_size, access_hash)
@@ -71,7 +76,8 @@ class DocumentExportService {
 
     StoredExport download(long id, long userId) {
         ExportHistory history = findOne(id, userId);
-        return new StoredExport(history.originalFileName(), storage.read(history.filePath()));
+        return new StoredExport(history.originalFileName(),
+                storageFor(history.storageProvider()).read(history.filePath()));
     }
 
     PublicExport findPublic(String accessHash) {
@@ -82,15 +88,26 @@ class DocumentExportService {
 
     StoredExport downloadPublic(String accessHash) {
         ExportHistory history = findByHash(normalizeHash(accessHash));
-        return new StoredExport(history.originalFileName(), storage.read(history.filePath()));
+        return new StoredExport(history.originalFileName(),
+                storageFor(history.storageProvider()).read(history.filePath()));
     }
 
     @Transactional
     void delete(long id, long userId) {
         ExportHistory history = findOne(id, userId);
         jdbc.update("DELETE FROM document_export_histories WHERE id = ? AND created_by = ?", id, userId);
-        storage.delete(history.filePath());
+        storageFor(history.storageProvider()).delete(history.filePath());
         jdbc.update("DELETE FROM documents WHERE id = ? AND user_id = ?", history.documentId(), userId);
+    }
+
+    private DocumentStorage storageFor(String provider) {
+        if (LocalDocumentStorage.PROVIDER.equals(provider)) {
+            return localStorage;
+        }
+        if (S3DocumentStorage.PROVIDER.equals(provider) && s3Storage != null) {
+            return s3Storage;
+        }
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Document storage is not configured");
     }
 
     private ExportHistory findOne(long id, long userId) {
