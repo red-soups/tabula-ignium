@@ -12,6 +12,13 @@
    DB_PASSWORD=DB_PASSWORD
    ~~~
 
+PDF를 S3에 저장하려면 EC2의 `/etc/sanbul24/api.env`에 아래 값을 추가합니다. 새 PDF는 S3에 저장되고 기존 LOCAL 문서는 EC2 디스크에서 열립니다. EC2의 IAM 역할에는 문서 버킷 `documents/*`의 `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` 권한이 필요합니다.
+
+~~~ini
+DOCUMENT_S3_BUCKET=sanbul24-documents-1
+AWS_REGION=ap-northeast-2
+~~~
+
 ## 2. AWS 권한과 GitHub 변수 설정
 
 - 배포 아티팩트용 비공개 S3 버킷을 EC2와 같은 리전에 만듭니다.
@@ -33,7 +40,7 @@
 - `develop` 대상 PR에서 백엔드·마이그레이션·배포 설정이 바뀌면 Java 21로 Maven 검증을 실행합니다. 같은 경로의 변경이 `develop`에 들어오고 배포 역할 ARN이 설정되면 CD를 실행합니다.
 - CD가 실행되면 JAR과 마이그레이션 SQL이 커밋 SHA 경로로 S3에 올라갑니다. SSM이 EC2에서 릴리스를 설치하고 `sanbul24-api.service`를 시작합니다. Spring Boot가 함께 전달된 SQL로 Flyway를 실행하고, `GET /api/regions`가 대한민국 데이터를 반환하면 배포가 성공합니다.
 - 실패하면 GitHub Actions에 표시된 SSM 명령 ID와 EC2에서 `sudo journalctl -u sanbul24-api.service -n 100`을 확인합니다.
-- 이전 릴리스는 EC2의 `/opt/sanbul24/releases`에 남습니다. 이전 JAR로 돌아가기 전에 새 DB 스키마와의 호환성을 확인하고, 필요한 릴리스만 남도록 디스크 사용량을 관리하세요. PDF는 `/var/lib/sanbul24/documents`에 저장됩니다.
+- 이전 릴리스는 EC2의 `/opt/sanbul24/releases`에 남습니다. 이전 JAR로 돌아가기 전에 새 DB 스키마와의 호환성을 확인하고, 필요한 릴리스만 남도록 디스크 사용량을 관리하세요. `LOCAL` PDF는 `/var/lib/sanbul24/documents`에 저장됩니다.
 
 ## 4. 배포 기준을 main으로 전환
 
