@@ -19,6 +19,10 @@ import { FireSummaryPreviewModal } from '../components/FireSummaryPreviewModal'
 import {
   ConfidencePreviewModal, FirePointsPreviewModal, MonthlyTrendPreviewModal,
 } from '../components/FireFeaturePreviewModals'
+import {
+  HighRiskPreviewModal, LargeFirePreviewModal, NearestFirePreviewModal,
+  YearlyTrendPreviewModal,
+} from '../components/FireReportPreviewModals'
 import { KoreaMap, type MapSelection } from '../components/KoreaMap'
 import { MapRegionSearch } from '../components/MapRegionSearch'
 import { SignupModal } from '../components/SignupModal'
@@ -32,7 +36,13 @@ const FEATURE_SYMBOLS: Record<string, string> = {
   FIRE_LOCATION_MAP: '⌖',
   MONTHLY_FIRE_TREND: '▥',
   CONFIDENCE_ANALYSIS: '◉',
+  YEARLY_FIRE_TREND: '▥',
+  LARGE_FIRE_FREQUENCY: '▲',
+  HIGH_RISK_SEASON: '◐',
+  NEAREST_FIRE: '◎',
 }
+
+const MAX_FEATURE_SELECTIONS = 4
 
 function periodAt(offsetFromLatestCompleteMonth: number) {
   const now = new Date()
@@ -70,6 +80,7 @@ export default function AuthHome() {
   const [editingProfile, setEditingProfile] = useState(false)
   const [step, setStep] = useState<Step>('home')
   const [selection, setSelection] = useState<MapSelection | null>(null)
+  const [selectingArea, setSelectingArea] = useState(false)
   const [focusedRegion, setFocusedRegion] = useState<RegionMap | null>(null)
   const [mapCityId, setMapCityId] = useState(0)
   const [mapDistrictId, setMapDistrictId] = useState(0)
@@ -78,6 +89,7 @@ export default function AuthHome() {
   const [pointsConfig, setPointsConfig] = useState<FirePointsConfig>(DEFAULT_POINTS_CONFIG)
   const [monthlyConfig, setMonthlyConfig] = useState<MonthlyTrendConfig>(DEFAULT_MONTHLY_CONFIG)
   const [confidenceConfig, setConfidenceConfig] = useState<ConfidenceConfig>(DEFAULT_CONFIDENCE_CONFIG)
+  const [nearestPeriod, setNearestPeriod] = useState({ fromPeriod: periodAt(-11), toPeriod: periodAt(0) })
   const [previewFeatureCode, setPreviewFeatureCode] = useState<string | null>(null)
   const [redirectError, setRedirectError] = useState(() =>
     new URLSearchParams(window.location.search).get('login') === 'failed'
@@ -99,10 +111,8 @@ export default function AuthHome() {
       ? focusedRegion.parentId
       : korea?.id ?? null
   const mapRegionsQuery = useChildRegionMapsQuery(mapLayerParentId, step === 'region')
-  const selectedCityName = selection?.regionLevel === 1
-    ? selection.regionName
-    : provinceRegionsQuery.data?.find((region) => region.id === mapCityId)?.name
-  const selectedDistrictName = selection?.regionLevel === 2 ? selection.regionName : '전체'
+  const selectedCityName = provinceRegionsQuery.data?.find((region) => region.id === mapCityId)?.name
+  const selectedDistrictName = mapRegionsQuery.data?.find((region) => region.id === mapDistrictId)?.name
   const account = accountQuery.data ?? null
   const pendingSignup = account && 'registrationRequired' in account ? account : null
   const user = account && 'id' in account ? account : null
@@ -137,6 +147,7 @@ export default function AuthHome() {
     setEditingProfile(false)
     setStep('home')
     setSelection(null)
+    setSelectingArea(false)
     setFocusedRegion(null)
     setMapCityId(0)
     setMapDistrictId(0)
@@ -158,6 +169,7 @@ export default function AuthHome() {
     }
     setStep('home')
     setSelection(null)
+    setSelectingArea(false)
     setFocusedRegion(null)
     setMapCityId(0)
     setMapDistrictId(0)
@@ -167,17 +179,15 @@ export default function AuthHome() {
 
   function toggleFeature(id: number) {
     if (selectedFeatures.includes(id)) setPreviewFeatureCode(null)
-    setSelectedFeatures((current) => current.includes(id)
-      ? current.filter((feature) => feature !== id) : [...current, id])
+    setSelectedFeatures((current) => {
+      if (current.includes(id)) return current.filter((feature) => feature !== id)
+      if (current.length >= MAX_FEATURE_SELECTIONS) return current
+      return [...current, id]
+    })
   }
 
   const focusAdministrativeRegion = useCallback((region: RegionMap) => {
     setFocusedRegion(region)
-    setSelection({
-      regionId: region.id,
-      regionName: region.name,
-      regionLevel: region.level,
-    })
   }, [])
 
   const clickAdministrativeRegion = useCallback((region: RegionMap) => {
@@ -193,7 +203,6 @@ export default function AuthHome() {
 
   function resetRegionSelection() {
     setFocusedRegion(null)
-    setSelection(null)
     setMapCityId(0)
     setMapDistrictId(0)
   }
@@ -234,20 +243,24 @@ export default function AuthHome() {
             </div>
             {step === 'region' ? <>
               <h1>문서의 지역을<br />선택하세요.</h1>
-              <p>시·도와 시·군·구를 검색하면 지도가 해당 행정구역으로 이동합니다.</p>
-              <MapRegionSearch cityId={mapCityId} districtId={mapDistrictId} canReset={Boolean(selection)}
+              <p>행정구역으로 지도를 이동한 뒤, 지도에서 분석할 사각형 범위를 직접 그려 주세요.</p>
+              <MapRegionSearch cityId={mapCityId} districtId={mapDistrictId} canReset={Boolean(mapCityId || mapDistrictId)}
                 onCityChange={(regionId) => {
                   setMapCityId(regionId)
                   setMapDistrictId(0)
-                  if (!regionId) { setFocusedRegion(null); setSelection(null) }
+                  if (!regionId) setFocusedRegion(null)
                 }}
                 onDistrictChange={setMapDistrictId}
                 onRegionFocus={focusAdministrativeRegion}
                 onReset={resetRegionSelection} />
+              <button className={`workspace-area-button${selectingArea ? ' is-active' : ''}`} type="button"
+                onClick={() => setSelectingArea((current) => !current)}>
+                {selectingArea ? '지도에서 드래그하세요' : selection ? '분석 범위 다시 그리기' : '사각형 분석 범위 그리기'}
+              </button>
               {selection && <div className="workspace-selection-summary" role="status">
-                <span>선택된 행정구역</span>
-                <div><small>시·도</small><strong>{selectedCityName ?? '-'}</strong></div>
-                <div><small>시·군·구</small><strong>{selectedDistrictName}</strong></div>
+                <span>선택된 분석 범위</span>
+                <div><small>지도 위치</small><strong>{selectedDistrictName ?? selectedCityName ?? '사용자 지정 범위'}</strong></div>
+                <div><small>저장 방식</small><strong>사각형 좌표 범위</strong></div>
               </div>}
               <button className="workspace-primary" type="button" disabled={!selection}
                 onClick={() => setStep('features')}>
@@ -258,9 +271,9 @@ export default function AuthHome() {
               <h1>문서에 담을<br />기능을 선택하세요.</h1>
               <p>기능을 선택하고 각 카드에서 조회 조건을 설정한 뒤 데이터를 미리 확인할 수 있습니다.</p>
               <div className="workspace-selection-summary">
-                <span>선택된 행정구역</span>
-                <div><small>시·도</small><strong>{selectedCityName ?? '-'}</strong></div>
-                <div><small>시·군·구</small><strong>{selection ? selectedDistrictName : '-'}</strong></div>
+                <span>선택된 분석 범위</span>
+                <div><small>기준 위치</small><strong>{selectedDistrictName ?? selectedCityName ?? '사용자 지정 범위'}</strong></div>
+                <div><small>범위</small><strong>지도에서 지정한 사각형</strong></div>
               </div>
             </>}
           </div>
@@ -277,19 +290,26 @@ export default function AuthHome() {
           {featuresQuery.isError && <p className="workspace-feature-error" role="alert">기능 목록을 불러오지 못했습니다.</p>}
           <div className="workspace-feature-grid">{featuresQuery.data?.map((feature, index) => {
             const selected = selectedFeatures.includes(feature.id)
+            const selectionDisabled = !selected && selectedFeatures.length >= MAX_FEATURE_SELECTIONS
             const isSummary = feature.code === 'FIRE_SUMMARY'
             const isPoints = feature.code === 'FIRE_LOCATION_MAP'
             const isMonthly = feature.code === 'MONTHLY_FIRE_TREND'
             const isConfidence = feature.code === 'CONFIDENCE_ANALYSIS'
+            const isYearly = feature.code === 'YEARLY_FIRE_TREND'
+            const isLargeFire = feature.code === 'LARGE_FIRE_FREQUENCY'
+            const isHighRisk = feature.code === 'HIGH_RISK_SEASON'
+            const isNearest = feature.code === 'NEAREST_FIRE'
             const hasSettings = isSummary || isPoints || isMonthly || isConfidence
+              || isYearly || isLargeFire || isHighRisk || isNearest
             const invalidPeriod = isMonthly
               ? monthlyConfig.fromPeriod > monthlyConfig.toPeriod
               : isConfidence
                 ? confidenceConfig.fromPeriod > confidenceConfig.toPeriod
                 : summaryConfig.fromPeriod > summaryConfig.toPeriod
-            return <article key={feature.id} className={`workspace-feature-card${selected ? ' is-selected' : ''}${selected && hasSettings ? ' has-settings' : ''}`}>
+            return <article key={feature.id} className={`workspace-feature-card${selected ? ' is-selected' : ''}${selectionDisabled ? ' is-disabled' : ''}${selected && hasSettings ? ' has-settings' : ''}`}>
               <label className="workspace-feature-toggle">
-                <input type="checkbox" checked={selected} onChange={() => toggleFeature(feature.id)} />
+                <input type="checkbox" checked={selected} disabled={selectionDisabled}
+                  onChange={() => toggleFeature(feature.id)} />
                 <span className="workspace-feature-number">{String(index + 1).padStart(2, '0')} / FIRE DATA</span>
                 <span className="workspace-feature-symbol" aria-hidden="true">{FEATURE_SYMBOLS[feature.code] ?? '◇'}</span>
                 <strong>{feature.name}</strong><small>{feature.description}</small>
@@ -365,18 +385,37 @@ export default function AuthHome() {
                 <button className="workspace-preview-button" type="button" disabled={invalidPeriod || !selection}
                   onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
               </div>}
+              {selected && (isYearly || isLargeFire || isHighRisk) && <div className="workspace-feature-settings">
+                <p className="workspace-feature-note">전체 관측 기간과 보정 데이터를 기준으로 계산합니다.</p>
+                <button className="workspace-preview-button" type="button" disabled={!selection}
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+              </div>}
+              {selected && isNearest && <div className="workspace-feature-settings">
+                <div className="workspace-feature-fields">
+                  <label><span>시작 월</span><input type="month" value={nearestPeriod.fromPeriod}
+                    onChange={(event) => setNearestPeriod((current) => ({ ...current, fromPeriod: event.target.value }))} /></label>
+                  <label><span>종료 월</span><input type="month" value={nearestPeriod.toPeriod}
+                    onChange={(event) => setNearestPeriod((current) => ({ ...current, toPeriod: event.target.value }))} /></label>
+                </div>
+                {nearestPeriod.fromPeriod > nearestPeriod.toPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
+                <button className="workspace-preview-button" type="button"
+                  disabled={!selection || nearestPeriod.fromPeriod > nearestPeriod.toPeriod}
+                  onClick={() => setPreviewFeatureCode(feature.code)}>데이터 미리보기 <span aria-hidden="true">↗</span></button>
+              </div>}
             </article>
           })}</div>
-          <div className="workspace-features-foot"><strong>{selectedFeatures.length}개 항목 선택</strong><span>DB에 등록된 활성 기능만 표시됩니다.</span></div>
+          <div className="workspace-features-foot"><strong>{selectedFeatures.length}/{MAX_FEATURE_SELECTIONS}개 항목 선택</strong><span>최대 4개까지 선택할 수 있습니다.</span></div>
         </div> : <div className="workspace-map-page">
           <div className="workspace-main-heading"><span>01 / REGION CANVAS</span><strong>대한민국 지도</strong></div>
           <div className="workspace-map-stage">
             <div className="workspace-map-grid" aria-hidden="true" />
             <KoreaMap key={`${step === 'home' ? 'home' : 'document'}-${focusedRegion?.id ?? 'all'}`} active={step === 'region'}
+              selecting={selectingArea} selection={selection}
               countryRegion={countryMapQuery.data ?? null}
               provinceRegions={provinceRegionsQuery.data ?? []}
               focusRegion={focusedRegion} mapRegions={mapRegionsQuery.data ?? []}
-              onRegionClick={clickAdministrativeRegion} />
+              onRegionClick={clickAdministrativeRegion}
+              onAreaSelect={(area) => { setSelection(area); setSelectingArea(false) }} />
             <div className="workspace-map-corner workspace-map-corner-top">37° N <i /> 127° E</div>
             <div className="workspace-map-attribution">
               <span>행정구역 경계:</span>
@@ -389,9 +428,10 @@ export default function AuthHome() {
             <p>{step === 'home' ? '문서 생성을 누르면 지도를 확대하고 지역을 선택할 수 있습니다.'
               : mapRegionsQuery.isPending ? '행정구역 경계를 불러오는 중입니다.'
                   : focusedRegion?.level === 1 ? `${focusedRegion.name} 안의 시·군·구를 클릭하세요.`
-                    : focusedRegion?.level === 2 ? `${focusedRegion.name} 행정구역으로 이동했습니다.`
-                      : '행정구역을 검색하거나 지도에서 직접 클릭하세요.'}</p>
-            <span>{step === 'home' ? '지도 잠김' : '지도 탐색 가능'}</span>
+                    : focusedRegion?.level === 2 ? `${focusedRegion.name}으로 이동했습니다. 분석 범위를 그려 주세요.`
+                      : selectingArea ? '지도 위를 드래그해 분석할 범위를 지정하세요.'
+                        : '행정구역을 검색하거나 범위 그리기를 시작하세요.'}</p>
+            <span>{step === 'home' ? '지도 잠김' : selectingArea ? '범위 선택 중' : '지도 탐색 가능'}</span>
           </div>
         </div>}
       </main>
@@ -401,16 +441,29 @@ export default function AuthHome() {
         error={profileMutation.error ? '회원정보를 저장하지 못했습니다.' : ''}
         onClose={() => setEditingProfile(false)} onSubmit={saveProfile} />}
       {selection && previewFeatureCode === 'FIRE_SUMMARY' && <FireSummaryPreviewModal
-        regionId={selection.regionId} regionName={selection.regionName} config={summaryConfig}
+        bounds={selection} regionName="선택한 분석 범위" config={summaryConfig}
         onClose={() => setPreviewFeatureCode(null)} />}
       {selection && previewFeatureCode === 'FIRE_LOCATION_MAP' && <FirePointsPreviewModal
-        regionId={selection.regionId} regionName={selection.regionName} config={pointsConfig}
+        bounds={selection} regionName="선택한 분석 범위" config={pointsConfig}
         onClose={() => setPreviewFeatureCode(null)} />}
       {selection && previewFeatureCode === 'MONTHLY_FIRE_TREND' && <MonthlyTrendPreviewModal
-        regionId={selection.regionId} regionName={selection.regionName} config={monthlyConfig}
+        bounds={selection} regionName="선택한 분석 범위" config={monthlyConfig}
         onClose={() => setPreviewFeatureCode(null)} />}
       {selection && previewFeatureCode === 'CONFIDENCE_ANALYSIS' && <ConfidencePreviewModal
-        regionId={selection.regionId} regionName={selection.regionName} config={confidenceConfig}
+        bounds={selection} regionName="선택한 분석 범위" config={confidenceConfig}
+        onClose={() => setPreviewFeatureCode(null)} />}
+      {selection && previewFeatureCode === 'YEARLY_FIRE_TREND' && <YearlyTrendPreviewModal
+        bounds={selection} regionName="선택한 분석 범위"
+        onClose={() => setPreviewFeatureCode(null)} />}
+      {selection && previewFeatureCode === 'LARGE_FIRE_FREQUENCY' && <LargeFirePreviewModal
+        bounds={selection} regionName="선택한 분석 범위"
+        onClose={() => setPreviewFeatureCode(null)} />}
+      {selection && previewFeatureCode === 'HIGH_RISK_SEASON' && <HighRiskPreviewModal
+        bounds={selection} regionName="선택한 분석 범위"
+        onClose={() => setPreviewFeatureCode(null)} />}
+      {selection && previewFeatureCode === 'NEAREST_FIRE' && <NearestFirePreviewModal
+        bounds={selection} regionName="선택한 분석 범위"
+        fromPeriod={nearestPeriod.fromPeriod} toPeriod={nearestPeriod.toPeriod}
         onClose={() => setPreviewFeatureCode(null)} />}
     </div>
   )

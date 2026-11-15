@@ -1,11 +1,11 @@
 import { useEffect, type ReactNode } from 'react'
-import type { ConfidenceConfig, FirePointsConfig, MonthlyTrendConfig } from '../api/fireData'
+import type { AnalysisBounds, ConfidenceConfig, FirePointsConfig, MonthlyTrendConfig } from '../api/fireData'
 import {
   useConfidenceDistributionQuery, useFirePointsQuery, useMonthlyFireTrendQuery,
 } from '../api/fireDataQueries'
 import { Icon } from './Icon'
 
-function PreviewShell({ title, context, onClose, children }: {
+export function PreviewShell({ title, context, onClose, children }: {
   title: string
   context: ReactNode
   onClose: () => void
@@ -33,7 +33,7 @@ function PreviewShell({ title, context, onClose, children }: {
   </div>
 }
 
-function QueryState({ pending, error, empty, children }: {
+export function QueryState({ pending, error, empty, children }: {
   pending: boolean
   error: boolean
   empty: boolean
@@ -45,10 +45,10 @@ function QueryState({ pending, error, empty, children }: {
   return children
 }
 
-export function FirePointsPreviewModal({ regionId, regionName, config, onClose }: {
-  regionId: number; regionName: string; config: FirePointsConfig; onClose: () => void
+export function FirePointsPreviewModal({ bounds, regionName, config, onClose }: {
+  bounds: AnalysisBounds; regionName: string; config: FirePointsConfig; onClose: () => void
 }) {
-  const query = useFirePointsQuery(regionId, config)
+  const query = useFirePointsQuery(bounds, config)
   const points = query.data ?? []
   const west = Math.min(...points.map((point) => point.longitude))
   const east = Math.max(...points.map((point) => point.longitude))
@@ -65,6 +65,7 @@ export function FirePointsPreviewModal({ regionId, regionName, config, onClose }
   </>}>
     <QueryState pending={query.isPending} error={query.isError} empty={!query.isPending && points.length === 0}>
       <div className="fire-point-map">
+        <div className="fire-chart-axis"><span>Y축 · 위도</span><span>X축 · 경도</span></div>
         <svg viewBox="0 0 600 320" role="img" aria-label={`${regionName} 화재 관측점`}>
           {points.map((point) => {
             const x = 24 + (point.longitude - west) / longitudeSpan * 552
@@ -75,7 +76,7 @@ export function FirePointsPreviewModal({ regionId, regionName, config, onClose }
             </circle>
           })}
         </svg>
-        <div><strong>{points.length.toLocaleString('ko-KR')}건</strong><span>FRP가 높을수록 점이 크게 표시됩니다.</span></div>
+        <div className="fire-point-map-foot"><strong>{points.length.toLocaleString('ko-KR')}건</strong><span>FRP가 높을수록 점이 크게 표시됩니다.</span></div>
       </div>
     </QueryState>
   </PreviewShell>
@@ -85,10 +86,10 @@ const METRIC_LABELS = {
   observationCount: '관측 건수', totalFrp: '전체 FRP', averageFrp: '평균 FRP',
 } as const
 
-export function MonthlyTrendPreviewModal({ regionId, regionName, config, onClose }: {
-  regionId: number; regionName: string; config: MonthlyTrendConfig; onClose: () => void
+export function MonthlyTrendPreviewModal({ bounds, regionName, config, onClose }: {
+  bounds: AnalysisBounds; regionName: string; config: MonthlyTrendConfig; onClose: () => void
 }) {
-  const query = useMonthlyFireTrendQuery(regionId, config)
+  const query = useMonthlyFireTrendQuery(bounds, config)
   const rows = query.data ?? []
   const maximum = Math.max(...rows.map((row) => row[config.metric]), 1)
   return <PreviewShell title="월별 관측 추이" onClose={onClose} context={<>
@@ -96,6 +97,7 @@ export function MonthlyTrendPreviewModal({ regionId, regionName, config, onClose
     <span>{METRIC_LABELS[config.metric]}</span><span>{config.sensor === 'ALL' ? '전체 센서' : config.sensor}</span>
   </>}>
     <QueryState pending={query.isPending} error={query.isError} empty={!query.isPending && rows.length === 0}>
+      <div className="fire-chart-axis"><span>Y축 · {METRIC_LABELS[config.metric]}</span><span>X축 · 관측 월</span></div>
       <div className="fire-monthly-chart">
         {rows.map((row) => <div className="fire-monthly-column" key={row.period}>
           <span>{Number(row[config.metric]).toLocaleString('ko-KR', { maximumFractionDigits: 1 })}</span>
@@ -107,16 +109,17 @@ export function MonthlyTrendPreviewModal({ regionId, regionName, config, onClose
   </PreviewShell>
 }
 
-export function ConfidencePreviewModal({ regionId, regionName, config, onClose }: {
-  regionId: number; regionName: string; config: ConfidenceConfig; onClose: () => void
+export function ConfidencePreviewModal({ bounds, regionName, config, onClose }: {
+  bounds: AnalysisBounds; regionName: string; config: ConfidenceConfig; onClose: () => void
 }) {
-  const query = useConfidenceDistributionQuery(regionId, config)
+  const query = useConfidenceDistributionQuery(bounds, config)
   const rows = query.data ?? []
   return <PreviewShell title="관측 신뢰도" onClose={onClose} context={<>
     <strong>{regionName}</strong><span>{config.fromPeriod} – {config.toPeriod}</span>
     <span>{config.sensor === 'ALL' ? '전체 센서' : config.sensor}</span>
   </>}>
     <QueryState pending={query.isPending} error={query.isError} empty={!query.isPending && rows.length === 0}>
+      <div className="fire-chart-axis"><span>Y축 · 신뢰도 등급</span><span>X축 · 관측 비율 (%)</span></div>
       <div className="fire-confidence-chart">{rows.map((row) => <article key={row.confidenceLevel}>
         <header><strong>{row.confidenceLevel}</strong><span>{row.observationCount.toLocaleString('ko-KR')}건 · {row.percentage.toFixed(1)}%</span></header>
         <div><i style={{ width: `${row.percentage}%` }} /></div>

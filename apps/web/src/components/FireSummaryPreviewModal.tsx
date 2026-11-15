@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import type { FireSummaryConfig } from '../api/fireData'
+import type { AnalysisBounds, FireSummaryConfig } from '../api/fireData'
 import { useFireSummaryQuery } from '../api/fireDataQueries'
 import { Icon } from './Icon'
 
@@ -15,13 +15,13 @@ function dateTime(value: string | null) {
   }).format(new Date(value))
 }
 
-export function FireSummaryPreviewModal({ regionId, regionName, config, onClose }: {
-  regionId: number
+export function FireSummaryPreviewModal({ bounds, regionName, config, onClose }: {
+  bounds: AnalysisBounds
   regionName: string
   config: FireSummaryConfig
   onClose: () => void
 }) {
-  const summaryQuery = useFireSummaryQuery(regionId, config)
+  const summaryQuery = useFireSummaryQuery(bounds, config)
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {

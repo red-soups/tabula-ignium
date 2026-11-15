@@ -8,6 +8,7 @@ export function useFeaturesQuery(enabled = true) {
     queryKey: featuresQueryKey,
     queryFn: ({ signal }) => getFeatures(signal),
     enabled,
-    staleTime: 10 * 60 * 1_000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
 }

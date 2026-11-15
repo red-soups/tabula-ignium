@@ -1,6 +1,5 @@
 package com.tabulaignium.api.feature;
 
-import java.time.Duration;
 import java.util.List;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +26,7 @@ class FeatureController {
                 .toList();
 
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.maxAge(Duration.ofMinutes(10)))
+                .cacheControl(CacheControl.noStore())
                 .body(response);
     }
 

@@ -4,13 +4,12 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tabulaignium.api.firedata.FireDataMapper">
 
-    <select id="existsRegion" resultType="boolean">
-        SELECT EXISTS (SELECT 1 FROM regions WHERE id = #{regionId})
+    <select id="findLatestObservationDate" resultType="java.time.LocalDate">
+        SELECT MAX(acq_date) FROM fire_points
     </select>
 
     <select id="findSummary" resultType="com.tabulaignium.api.firedata.FireSummary">
         SELECT
-            r.id AS region_id,
             COUNT(f.id) AS observation_count,
             COUNT(DISTINCT f.acq_date) AS observed_day_count,
             MIN(f.acq_datetime_kst) AS earliest_observation,
@@ -18,10 +17,10 @@
             AVG(f.frp) AS average_frp,
             MAX(f.frp) AS maximum_frp,
             SUM(f.frp) AS total_frp
-        FROM regions r
+        FROM (SELECT ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326) AS boundary) area
         LEFT JOIN fire_points f
-          ON f.location &amp;&amp; r.boundary
-         AND ST_Covers(r.boundary, f.location)
+          ON f.location &amp;&amp; area.boundary
+         AND ST_Covers(area.boundary, f.location)
         <if test="fromPeriod != null and fromPeriod != ''">
          AND f.period &gt;= #{fromPeriod}
         </if>
@@ -34,8 +33,6 @@
         <if test="confidenceLevel != null and confidenceLevel != 'ALL'">
          AND f.confidence_level = #{confidenceLevel}
         </if>
-        WHERE r.id = #{regionId}
-        GROUP BY r.id
     </select>
 
     <select id="findPoints" resultType="com.tabulaignium.api.firedata.FirePoint">
@@ -47,11 +44,9 @@
             f.confidence_level,
             f.sensor,
             f.acq_datetime_kst AS observed_at
-        FROM regions r
-        JOIN fire_points f
-          ON f.location &amp;&amp; r.boundary
-         AND ST_Covers(r.boundary, f.location)
-        WHERE r.id = #{regionId}
+        FROM fire_points f
+        WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
+          AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
           AND f.period = #{period}
         <if test="sensor != null and sensor != 'ALL'">
           AND f.sensor = #{sensor}
@@ -69,11 +64,9 @@
             COUNT(*) AS observation_count,
             SUM(f.frp) AS total_frp,
             AVG(f.frp) AS average_frp
-        FROM regions r
-        JOIN fire_points f
-          ON f.location &amp;&amp; r.boundary
-         AND ST_Covers(r.boundary, f.location)
-        WHERE r.id = #{regionId}
+        FROM fire_points f
+        WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
+          AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
           AND f.period &gt;= #{fromPeriod}
           AND f.period &lt;= #{toPeriod}
         <if test="sensor != null and sensor != 'ALL'">
@@ -88,11 +81,9 @@
             f.confidence_level,
             COUNT(*) AS observation_count,
             COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS percentage
-        FROM regions r
-        JOIN fire_points f
-          ON f.location &amp;&amp; r.boundary
-         AND ST_Covers(r.boundary, f.location)
-        WHERE r.id = #{regionId}
+        FROM fire_points f
+        WHERE f.location &amp;&amp; ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326)
+          AND ST_Covers(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), f.location)
           AND f.period &gt;= #{fromPeriod}
           AND f.period &lt;= #{toPeriod}
         <if test="sensor != null and sensor != 'ALL'">
@@ -105,6 +96,124 @@
             WHEN 'low' THEN 3
             ELSE 4
         END
+    </select>
+
+    <select id="findYearlyTrend" resultType="com.tabulaignium.api.firedata.YearlyFireTrend">
+        WITH yearly AS (
+            SELECT
+                EXTRACT(YEAR FROM monthly.period)::INT AS fire_year,
+                SUM(monthly.harmonized) AS harmonized,
+                SUM(monthly.low) AS low,
+                SUM(monthly.high) AS high,
+                SUM(monthly.harmonized_frp) AS harmonized_frp,
+                COUNT(monthly.harmonized_frp) AS frp_months,
+                SUM(monthly.modis_n) AS raw_modis,
+                SUM(monthly.viirs_n) AS raw_viirs,
+                COUNT(*) AS months
+            FROM fire_monthly(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), #{through}) monthly
+            GROUP BY 1
+        )
+        SELECT
+            fire_year AS "year",
+            harmonized,
+            low,
+            high,
+            months = 12 AND NOT (
+                fire_year = EXTRACT(YEAR FROM #{through}::DATE)
+                AND to_char(#{through}::DATE, 'MM-DD') &lt;&gt; '12-31'
+            ) AS complete,
+            harmonized_frp,
+            CASE WHEN harmonized &gt;= 1 THEN harmonized_frp / harmonized END AS mw_per_detection,
+            raw_modis,
+            raw_viirs
+        FROM yearly
+        ORDER BY fire_year
+    </select>
+
+    <select id="countLargeFireYears" resultType="long">
+        SELECT COUNT(DISTINCT EXTRACT(YEAR FROM monthly.period))
+        FROM fire_monthly(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), #{through}) monthly
+        WHERE EXTRACT(YEAR FROM monthly.period) BETWEEN 2001 AND 2025
+          AND monthly.harmonized &gt;= GREATEST(3 * COALESCE(monthly.normal, 0), 5)
+    </select>
+
+    <select id="countYearsWithAnyFire" resultType="long">
+        SELECT COUNT(*)
+        FROM (
+            SELECT EXTRACT(YEAR FROM monthly.period)
+            FROM fire_monthly(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), #{through}) monthly
+            WHERE EXTRACT(YEAR FROM monthly.period) BETWEEN 2001 AND 2025
+            GROUP BY 1
+            HAVING SUM(monthly.harmonized) &gt;= 1
+        ) years
+    </select>
+
+    <select id="findLargestFireMonths" resultType="com.tabulaignium.api.firedata.LargeFireMonth">
+        SELECT
+            to_char(monthly.period, 'YYYY-MM') AS period,
+            monthly.harmonized,
+            monthly.harmonized / NULLIF(monthly.normal, 0) AS times_normal
+        FROM fire_monthly(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), #{through}) monthly
+        WHERE EXTRACT(YEAR FROM monthly.period) BETWEEN 2001 AND 2025
+          AND monthly.harmonized &gt; 0
+        ORDER BY monthly.harmonized DESC, monthly.period
+        LIMIT 3
+    </select>
+
+    <select id="findHighRiskMonths" resultType="com.tabulaignium.api.firedata.HighRiskMonth">
+        WITH monthly_means AS (
+            SELECT
+                EXTRACT(MONTH FROM monthly.period)::INT AS calendar_month,
+                AVG(monthly.harmonized) AS mean
+            FROM fire_monthly(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326), #{through}) monthly
+            WHERE EXTRACT(YEAR FROM monthly.period) BETWEEN 2003 AND 2023
+            GROUP BY 1
+        )
+        SELECT
+            calendar_month AS "month",
+            mean,
+            COALESCE(mean / NULLIF(SUM(mean) OVER (), 0), 0) AS share,
+            COALESCE(mean / NULLIF(SUM(mean) OVER (), 0), 0) &gt;= 1.5 / 12 AS high_risk
+        FROM monthly_means
+        ORDER BY calendar_month
+    </select>
+
+    <select id="findNearestFire" resultType="com.tabulaignium.api.firedata.NearestFire">
+        WITH center_point AS (
+            SELECT ST_Centroid(ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326))::GEOGRAPHY AS location,
+                   ST_MakeEnvelope(#{west}, #{south}, #{east}, #{north}, 4326) AS boundary
+        ),
+        distances AS (
+            SELECT
+                fire.id,
+                fire.latitude,
+                fire.longitude,
+                fire.frp,
+                fire.sensor,
+                fire.confidence_level,
+                fire.acq_datetime_kst AS observed_at,
+                ST_Distance(fire.location::GEOGRAPHY, center_point.location) / 1000 AS distance_km
+            FROM fire_points fire
+            CROSS JOIN center_point
+            WHERE fire.acq_date BETWEEN #{start} AND #{end}
+              AND fire.location &amp;&amp; center_point.boundary
+              AND ST_Covers(center_point.boundary, fire.location)
+        )
+        SELECT
+            id,
+            latitude,
+            longitude,
+            distance_km,
+            frp,
+            sensor,
+            confidence_level,
+            observed_at,
+            COUNT(*) FILTER (WHERE distance_km &lt;= 1) OVER () AS within_1_km,
+            COUNT(*) FILTER (WHERE distance_km &lt;= 5) OVER () AS within_5_km,
+            COUNT(*) FILTER (WHERE distance_km &lt;= 10) OVER () AS within_10_km
+        FROM distances
+        ORDER BY distance_km
+        LIMIT 1
     </select>
 
 </mapper>

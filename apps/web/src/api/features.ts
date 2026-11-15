@@ -15,7 +15,7 @@ export class FeatureRequestError extends Error {
 }
 
 export async function getFeatures(signal: AbortSignal): Promise<FeatureOption[]> {
-  const response = await fetch('/api/features', { signal })
+  const response = await fetch('/api/features', { signal, cache: 'no-store' })
   if (!response.ok) throw new FeatureRequestError(response.status)
   return response.json()
 }
