@@ -1,0 +1,20 @@
+[Unit]
+Description=Sanbul24 Spring Boot API
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=sanbul24
+Group=sanbul24
+WorkingDirectory=/opt/sanbul24/current
+Environment=SERVER_ADDRESS=127.0.0.1
+Environment=DOCUMENT_STORAGE_ROOT=/var/lib/sanbul24/documents
+Environment=SPRING_FLYWAY_ENABLED=true
+Environment=SPRING_FLYWAY_LOCATIONS=filesystem:/opt/sanbul24/current/migrations
+EnvironmentFile=/etc/sanbul24/api.env
+ExecStart=/usr/bin/java -jar /opt/sanbul24/current/api.jar
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
