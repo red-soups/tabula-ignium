@@ -1,0 +1,138 @@
+{
+  "language": { "ko": "한국어", "en": "English", "change": "언어 변경" },
+  "common": {
+    "close": "닫기", "cancel": "취소", "save": "저장", "saving": "저장 중…", "add": "추가",
+    "search": "검색", "searching": "검색 중…", "loading": "불러오는 중…", "all": "전체",
+    "download": "다운로드", "delete": "삭제", "preview": "데이터 미리보기", "apply": "이 설정 적용",
+    "items": "{{count}}개", "observations": "{{count}}건", "years": "{{count}}개년",
+    "noSearchResults": "검색 결과가 없습니다.", "refineSearch": "검색어를 더 입력해 주세요."
+  },
+  "header": {
+    "skip": "본문 바로가기", "homeLabel": "산불24 홈", "quickLinks": "바로가기",
+    "verifyDocument": "문서 진위 확인", "home": "처음으로"
+  },
+  "auth": {
+    "signupExpired": "가입 세션이 만료되었습니다. Google로 다시 로그인해 주세요.",
+    "emailExists": "이미 등록된 이메일입니다. 기존 계정으로 로그인해 주세요.",
+    "signupFailed": "회원가입을 완료하지 못했습니다. 입력값을 확인해 주세요.",
+    "googleFailed": "Google 로그인에 실패했습니다. 다시 시도해 주세요.",
+    "statusFailed": "로그인 상태를 확인하지 못했습니다.",
+    "logoutFailed": "로그아웃에 실패했습니다.", "loginRequired": "Google 로그인 후 문서를 생성할 수 있습니다.",
+    "editProfile": "회원정보 수정", "logout": "로그아웃", "profileSaveFailed": "회원정보를 저장하지 못했습니다.",
+    "signup": "회원가입", "signupDescription": "이름과 관심 지역을 확인해 가입을 완료하세요.",
+    "editDescription": "이름과 관심 지역을 변경할 수 있습니다.", "name": "이름", "email": "이메일", "googleLogin": "Google 로그인",
+    "googleEmail": "Google에서 확인한 이메일입니다.", "emailImmutable": "이메일은 변경할 수 없습니다.", "processing": "처리 중…"
+  },
+  "history": {
+    "shortTitle": "다운로드 내역", "title": "PDF 다운로드 내역", "loading": "내역을 불러오는 중…",
+    "loadError": "다운로드 내역을 불러오지 못했습니다.", "empty": "아직 생성한 PDF가 없습니다.",
+    "confirmDelete": "'{{name}}' 다운로드 내역과 파일을 삭제할까요?"
+  },
+  "publicSearch": {
+    "title": "해시번호로 문서 찾기", "description": "PDF 파일명 앞의 12자리 해시번호를 입력하세요.",
+    "hash": "문서 해시번호", "example": "예: A7K9M2Q4X8PL", "invalidHash": "12자리 해시번호를 입력해 주세요.",
+    "notFound": "해당 해시번호의 문서를 찾지 못했습니다.", "failed": "문서를 검색하지 못했습니다."
+  },
+  "home": {
+    "breadcrumb": "현재 위치", "home": "홈", "issueReport": "산불 이력 확인서 발급", "workMenu": "작업 메뉴",
+    "report": "산불 이력 확인서", "headline1": "데이터를 고르고,", "headline2": "문서로 정리하세요.",
+    "description": "대한민국 지도에서 원하는 지역을 정하고 문서에 담을 데이터를 선택합니다.",
+    "create": "문서 생성", "createDescription": "지역과 항목을 골라 확인서를 만듭니다",
+    "findByHash": "해시번호로 문서 찾기", "findByHashDescription": "발급한 문서를 12자리 번호로 확인합니다",
+    "process": "발급 절차", "previous": "이전 단계", "documentSteps": "문서 생성 단계",
+    "steps": ["지역 선택", "항목 선택", "확인서 발급"],
+    "selectRegionTitle": "문서의 지역을 선택하세요.",
+    "selectRegionDescription": "행정구역으로 지도를 이동한 뒤, 지도에서 분석할 사각형 범위를 직접 그려 주세요.",
+    "drawArea": "범위 그리기", "redrawArea": "범위 다시 그리기", "selectedArea": "선택된 분석 범위",
+    "mapLocation": "지도 위치", "customArea": "사용자 지정 범위", "saveMethod": "저장 방식",
+    "rectangleBounds": "사각형 좌표 범위", "next": "다음 단계", "areaRequired": "영역을 선택하면 다음 단계로 이동할 수 있습니다.",
+    "selectFeaturesTitle": "문서에 담을 기능을 선택하세요.",
+    "selectFeaturesDescription": "기능을 선택하고 각 카드에서 조회 조건을 설정한 뒤 데이터를 미리 확인할 수 있습니다.",
+    "referenceLocation": "기준 위치", "range": "범위", "mapRectangle": "지도에서 지정한 사각형",
+    "mapTitle": "대한민국 위성 지도", "wholeKorea": "대한민국 전역", "mapLocked": "지도 잠김",
+    "mapExplore": "지도 탐색 가능", "selectingArea": "범위 선택 중",
+    "startHint": "문서 생성을 누르면 지도를 확대하고 지역을 선택할 수 있습니다.",
+    "dragHint": "지도 위를 드래그해 분석할 범위를 지정하세요.",
+    "searchHint": "행정구역을 검색하거나 범위 그리기를 시작하세요.",
+    "defaultDocumentName": "산불 관측 분석 문서",
+    "footerSource": "NASA FIRMS MODIS·VIIRS 위성 관측 기반",
+    "footerNotice": "위성 관측에 근거한 참고 자료이며 법적 효력이 있는 증명서가 아닙니다. 공식 통계는 산림청 자료를 따릅니다."
+  },
+  "region": {
+    "searchTitle": "행정구역 검색", "reset": "행정구역 다시 선택", "province": "시·도", "district": "시·군·구",
+    "provinceSearch": "시·도 검색", "districtSearch": "시·군·구 검색", "selectProvinceFirst": "시·도 먼저 선택",
+    "findingOnMap": "지도에서 위치를 찾는 중…", "loadError": "행정구역 정보를 불러오지 못했습니다.",
+    "selectedCount": "{{selected}}/{{max}}개 선택", "optional": "선택", "noSelection": "선택한 지역이 없습니다.",
+    "deleteLabel": "{{label}} 삭제", "interest": "관심 지역"
+  },
+  "feature": {
+    "step": "2단계 · 항목 선택", "title": "어떤 데이터를 담을까요?",
+    "description": "선택한 지역을 기준으로 문서에 추가할 화재 관측 데이터 항목을 선택합니다.",
+    "loading": "기능 목록을 불러오는 중입니다…", "loadError": "기능 목록을 불러오지 못했습니다.",
+    "fromMonth": "시작 월", "toMonth": "종료 월", "baseMonth": "기준 월", "sensor": "센서", "confidence": "신뢰도",
+    "metric": "표시 지표", "gridSize": "격자 크기", "allSensors": "전체 센서", "allConfidence": "전체 신뢰도",
+    "invalidPeriod": "시작 월은 종료 월보다 늦을 수 없습니다.", "maxTwelveMonths": "월별 관측 추이는 최대 12개월까지 선택할 수 있습니다.",
+    "sixMonthNote": "기준 월을 포함한 최근 6개월을 조회하며, 지도에서 월별로 다른 색상으로 표시합니다.",
+    "correctedNote": "전체 관측 기간과 보정 데이터를 기준으로 계산합니다.",
+    "intensityNote": "FRP 기준 · 약함 10 MW 미만 · 보통 10–30 MW 미만 · 강함 30–100 MW 미만 · 매우 강함 100 MW 이상",
+    "selectedCount": "{{count}}개 항목 선택", "layoutNote": "선택한 기능은 페이지마다 4개씩 2×2로 배치됩니다.",
+    "documentName": "문서 이름", "documentNamePlaceholder": "문서 이름을 입력하세요", "history": "다운로드 내역", "documentPreview": "문서 미리보기",
+    "metrics": { "observationCount": "관측 건수", "totalFrp": "전체 FRP", "averageFrp": "평균 FRP" },
+    "catalog": {
+      "FIRE_SUMMARY": { "name": "화재 관측 요약", "description": "선택 범위의 화재 관측 건수와 FRP를 요약합니다." },
+      "FIRE_LOCATION_MAP": { "name": "화재 관측 위치", "description": "화재 관측 위치를 지도에서 확인합니다." },
+      "MONTHLY_FIRE_TREND": { "name": "월별 관측 추이", "description": "월별 화재 관측 변화를 비교합니다." },
+      "CONFIDENCE_ANALYSIS": { "name": "관측 신뢰도", "description": "화재 관측 신뢰도 분포를 분석합니다." },
+      "YEARLY_FIRE_TREND": { "name": "연도별 화재 추이", "description": "센서 차이를 보정한 연도별 추이를 표시합니다." },
+      "LARGE_FIRE_FREQUENCY": { "name": "큰 산불 발생 빈도", "description": "큰 산불이 관측된 빈도와 재현 주기를 분석합니다." },
+      "HIGH_RISK_SEASON": { "name": "고위험 시기", "description": "월별 화재 위험 비중이 높은 시기를 보여줍니다." },
+      "NEAREST_FIRE": { "name": "가장 가까운 화재", "description": "선택 범위 중심에서 가장 가까운 화재를 찾습니다." },
+      "FIRE_INTENSITY": { "name": "화재 강도 등급", "description": "FRP에 따라 화재 관측 강도를 분류합니다." },
+      "DAY_NIGHT_COMPARISON": { "name": "주·야간 관측 비교", "description": "주간과 야간의 화재 관측 특성을 비교합니다." },
+      "PERIOD_COMPARISON": { "name": "이전 기간 비교", "description": "현재 기간과 동일 길이의 이전 기간을 비교합니다." },
+      "FIRE_HOTSPOTS": { "name": "화재 집중 구역", "description": "격자별 화재 관측 밀집 지역을 표시합니다." }
+    }
+  },
+  "fire": {
+    "loading": "화재 데이터를 불러오는 중입니다…", "loadError": "화재 데이터를 불러오지 못했습니다.",
+    "empty": "설정한 조건에 해당하는 데이터가 없습니다.", "previewClose": "미리보기 닫기",
+    "axisXMonth": "X축 · 관측 월", "axisXYear": "X축 · 관측 연도", "axisXRatio": "X축 · 관측 비율 (%)",
+    "axisYConfidence": "Y축 · 신뢰도 등급", "pointsLegend": "색상은 관측 월, 점 크기는 FRP를 나타냅니다.",
+    "correctedIndex": "센서 보정 관측지수", "completedYears": "완료 연도", "correctedIndexTitle": "센서 보정 관측지수란?",
+    "correctedIndexDescription": "MODIS와 VIIRS 등 시기별 위성 센서의 관측 성능 차이를 보정한 비교용 값입니다. 실제 산불 발생 건수와는 다릅니다.",
+    "titles": { "summary": "화재 관측 요약", "points": "화재 관측 위치", "monthly": "월별 관측 추이", "confidence": "관측 신뢰도", "yearly": "연도별 화재 추이", "large": "큰 산불 발생 빈도", "risk": "고위험 시기", "nearest": "가장 가까운 화재", "intensity": "화재 강도 등급", "dayNight": "주·야간 관측 비교", "comparison": "이전 기간 비교", "hotspots": "화재 집중 구역" },
+    "labels": { "observationCount": "관측 건수", "observedDays": "관측일 수", "averageFrp": "평균 FRP", "maximumFrp": "최대 FRP", "totalFrp": "전체 FRP", "earliest": "최초 관측", "latest": "최근 관측" },
+    "selectedArea": "선택한 분석 범위", "notComparable": "비교 불가", "previousPeriod": "이전 기간", "currentPeriod": "현재 기간",
+    "harmonizedBasis": "보정 관측값 기준", "normalPeriod": "2003–2023 평년", "monthlyRiskShare": "월별 위험 비중",
+    "highRisk": "고위험", "centerBasis": "선택 범위 중심 기준", "nearestDistance": "가장 가까운 관측 거리",
+    "withinDistance": "{{distance}}km 이내", "intensityCriteria": "화재 강도 등급 기준", "frpCriteria": "FRP 등급 기준",
+    "low": "약함", "moderate": "보통", "high": "강함", "extreme": "매우 강함",
+    "below": "{{value}} MW 미만", "rangeBelow": "{{from}}–{{to}} MW 미만", "above": "{{value}} MW 이상",
+    "hotspotClose": "화재 집중 구역 지도 닫기", "hotspotMapNote": "각 사각형은 {{grid}}km 격자이며, 관측 건수가 많을수록 진한 빨간색으로 표시됩니다.",
+    "satelliteYears": "위성 화재 관측 {{count}}년 · 센서 차이 보정", "throughDate": "{{month}}월 {{day}}일까지",
+    "axisYIntensity": "Y축 · FRP 강도 등급", "axisYRisk": "Y축 · 평년 위험 비중 (%)", "axisXCalendarMonth": "X축 · 월"
+  },
+  "map": {
+    "hotspots": "화재 집중 구역 지도", "observations": "화재 관측 위치 위성 지도", "korea": "대한민국 위성 지도",
+    "monthLegend": "월별 화재 관측 색상", "hotspotLegend": "화재 집중도 색상", "concentration": "관측 집중도",
+    "low": "낮음", "high": "높음", "controls": "지도 확대 조작", "zoomIn": "지도 확대", "zoomOut": "지도 축소",
+    "returnArea": "분석 범위로 돌아가기", "reset": "지도 원래 크기"
+  },
+  "document": {
+    "preview": "문서 미리보기", "previewDescription": "선택한 기능이 페이지마다 4개씩 배치됩니다.",
+    "creatingPdf": "PDF 생성 중…", "downloadPdf": "PDF 다운로드", "pageTitle": "산불 이력 확인서 · {{current}}/{{total}}쪽",
+    "customArea": "사용자 지정 분석 범위", "createdAt": "문서 생성일", "creator": "생성자", "satelliteItem": "위성 관측 항목",
+    "dataLoading": "데이터를 불러오는 중…", "dataLoadError": "데이터를 불러오지 못했습니다.", "dataEmpty": "해당 범위에 데이터가 없습니다.",
+    "historyError": "PDF 저장 이력을 등록하지 못했습니다.", "downloadHash": "다운로드 해시", "hashHelp": "파일명 앞의 해시로 문서를 다시 받을 수 있습니다.",
+    "mapReadError": "지도 이미지를 읽지 못했습니다.", "mapTileMissing": "PDF에 넣을 위성 지도 타일을 찾지 못했습니다.",
+    "mapTileUrlMissing": "위성 지도 타일 주소가 없습니다.", "mapTileLoadError": "위성 지도 타일을 불러오지 못했습니다. ({{status}})",
+    "pdfCreateError": "PDF를 생성하지 못했습니다.", "sixMonthPoints": "최근 6개월 관측 {{count}}건 · 색상은 월, 점 크기는 FRP",
+    "occurrenceYears": "발생 연도", "returnPeriod": "재현 주기", "observedYears": "관측 연도", "yearValue": "{{value}}년",
+    "peakMonths": "최대 월", "monthValue": "{{value}}월", "fromAreaCenter": "선택 범위 중심에서",
+    "distanceCounts": "1km {{one}}건 · 5km {{five}}건 · 10km {{ten}}건", "periodObservation": "{{period}} 관측",
+    "notComparable": "비교 불가", "previous": "이전", "current": "현재", "observationChange": "관측 건수 증감",
+    "averageFrpChange": "평균 FRP 증감", "periodComparison": "이전 {{previousFrom}}–{{previousTo}} / 현재 {{currentFrom}}–{{currentTo}}",
+    "hotspotNote": "{{grid}}km 격자 · 진한 빨간색일수록 화재 관측이 집중된 구역",
+    "harmonizedValue": "보정값 {{value}}", "timesNormal": "평년 대비 {{value}}배"
+  }
+}

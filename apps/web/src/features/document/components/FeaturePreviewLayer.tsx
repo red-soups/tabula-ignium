@@ -4,6 +4,7 @@ import { HighRiskPreviewModal, LargeFirePreviewModal, NearestFirePreviewModal, Y
 import { FireSummaryPreviewModal } from '../../../components/FireSummaryPreviewModal'
 import type { MapSelection } from '../../../components/KoreaMap'
 import type { DocumentFeatureConfigs } from '../documentConfig'
+import { useTranslation } from 'react-i18next'
 
 type FeaturePreviewLayerProps = {
   bounds: MapSelection | null
@@ -13,9 +14,10 @@ type FeaturePreviewLayerProps = {
 }
 
 export function FeaturePreviewLayer({ bounds, featureCode, configs, onClose }: FeaturePreviewLayerProps) {
+  const { t } = useTranslation()
   if (!bounds || !featureCode) return null
 
-  const common = { bounds, regionName: '선택한 분석 범위', onClose }
+  const common = { bounds, regionName: t('fire.selectedArea'), onClose }
 
   switch (featureCode) {
     case 'FIRE_SUMMARY':

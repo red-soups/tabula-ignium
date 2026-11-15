@@ -37,13 +37,13 @@ class RegionController {
         }
 
         var response = result.stream()
-                .map(region -> new RegionResponse(region.getId(), region.getName(),
+                .map(region -> new RegionResponse(region.getId(), region.getNameKo(), region.getNameEn(),
                         region.getCountryCode(), region.getRegionLevel()))
                 .toList();
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(response);
     }
 
-    record RegionResponse(long id, String name, String countryCode, Short level) {
+    record RegionResponse(long id, String nameKo, String nameEn, String countryCode, Short level) {
     }
 
     @GetMapping("/api/regions/{regionId}/map")

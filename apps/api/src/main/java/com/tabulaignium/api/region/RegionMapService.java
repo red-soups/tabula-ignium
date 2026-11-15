@@ -12,7 +12,8 @@ class RegionMapService {
     private static final String REGION_MAP_SQL = """
             SELECT id,
                    parent_region_id,
-                   name_ko AS name,
+                   name_ko,
+                   name AS name_en,
                    region_level,
                    ST_XMin(Box3D(boundary)) AS west,
                    ST_XMax(Box3D(boundary)) AS east,
@@ -59,7 +60,8 @@ class RegionMapService {
         return new RegionMap(
                 row.getLong("id"),
                 row.getObject("parent_region_id", Long.class),
-                row.getString("name"),
+                row.getString("name_ko"),
+                row.getString("name_en"),
                 row.getShort("region_level"),
                 row.getDouble("west"),
                 row.getDouble("east"),
@@ -68,7 +70,7 @@ class RegionMapService {
                 row.getString("geometry_geo_json"));
     }
 
-    record RegionMap(long id, Long parentId, String name, short level, double west, double east,
+    record RegionMap(long id, Long parentId, String nameKo, String nameEn, short level, double west, double east,
             double south, double north, String geometryGeoJson) {
     }
 }

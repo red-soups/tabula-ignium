@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useRegionsQuery } from '../api/regionQueries'
 import { Icon } from './Icon'
 import { SearchableSelect } from './SearchableSelect'
@@ -23,6 +24,7 @@ export function RegionSelector({
   initialSelections = [],
   onSelectionChange,
 }: RegionSelectorProps) {
+  const { t } = useTranslation()
   const [cityId, setCityId] = useState(0)
   const [districtId, setDistrictId] = useState(0)
   const [selectedRegions, setSelectedRegions] =
@@ -103,14 +105,14 @@ export function RegionSelector({
       <legend>
         {title}{' '}
         <small>
-          {selectedRegions.length}/{maxSelections}개 선택
+          {t('region.selectedCount', { selected: selectedRegions.length, max: maxSelections })}
         </small>
       </legend>
 
       <div className="region-selectors">
         <label>
           <span>
-            시·도 <small>선택</small>
+            {t('region.province')} <small>{t('region.optional')}</small>
           </span>
 
           <SearchableSelect
@@ -123,8 +125,8 @@ export function RegionSelector({
             }
             placeholder={
               countriesQuery.isPending || citiesQuery.isPending
-                  ? '불러오는 중…'
-                  : '시·도 검색'
+                  ? t('common.loading')
+                  : t('region.provinceSearch')
             }
             disabled={
               !countryId ||
@@ -142,7 +144,7 @@ export function RegionSelector({
 
         <label>
           <span>
-            군·구 <small>선택</small>
+            {t('region.district')} <small>{t('region.optional')}</small>
           </span>
 
           <SearchableSelect
@@ -155,10 +157,10 @@ export function RegionSelector({
             }
             placeholder={
               !cityId
-                ? '시·도 먼저 선택'
+                ? t('region.selectProvinceFirst')
                 : districtsQuery.isPending
-                  ? '불러오는 중…'
-                  : '군·구 검색'
+                  ? t('common.loading')
+                  : t('region.districtSearch')
             }
             disabled={
               !cityId ||
@@ -180,7 +182,7 @@ export function RegionSelector({
             selectedRegions.length >= maxSelections
           }
         >
-          추가
+          {t('common.add')}
         </button>
       </div>
 
@@ -189,7 +191,7 @@ export function RegionSelector({
           className="region-fetch-error"
           role="alert"
         >
-          지역 정보를 불러오지 못했습니다.
+          {t('region.loadError')}
         </p>
       )}
 
@@ -207,7 +209,7 @@ export function RegionSelector({
             <button
               type="button"
               onClick={() => removeRegion(region.id)}
-              aria-label={`${region.label} 삭제`}
+              aria-label={t('region.deleteLabel', { label: region.label })}
             >
               <Icon
                 name="close"
@@ -225,7 +227,7 @@ export function RegionSelector({
 
         {selectedRegions.length === 0 && (
           <span className="region-empty">
-            선택한 지역이 없습니다.
+            {t('region.noSelection')}
           </span>
         )}
       </div>

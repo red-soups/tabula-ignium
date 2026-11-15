@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { CurrentUser, ProfileDetails } from '../api/auth'
 import { Icon } from './Icon'
 import { RegionSelector } from './RegionSelector'
@@ -12,6 +13,7 @@ type EditProfileModalProps = {
 }
 
 export function EditProfileModal({ user, busy, error, onClose, onSubmit }: EditProfileModalProps) {
+  const { t } = useTranslation()
   const dialog = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   const emailHintId = useId()
@@ -41,10 +43,10 @@ export function EditProfileModal({ user, busy, error, onClose, onSubmit }: EditP
     >
       <div className="signup-modal-head">
         <div>
-          <h2 id={titleId}>회원정보 수정</h2>
-          <p>이름과 관심 지역을 변경할 수 있습니다.</p>
+          <h2 id={titleId}>{t('auth.editProfile')}</h2>
+          <p>{t('auth.editDescription')}</p>
         </div>
-        <button className="modal-close" type="button" onClick={onClose} aria-label="닫기" disabled={busy}>
+        <button className="modal-close" type="button" onClick={onClose} aria-label={t('common.close')} disabled={busy}>
           <Icon name="close" />
         </button>
       </div>
@@ -52,18 +54,18 @@ export function EditProfileModal({ user, busy, error, onClose, onSubmit }: EditP
       <form className="signup-form" onSubmit={submit}>
         <div className="signup-basic-fields">
           <label>
-            <span>이름</span>
+            <span>{t('auth.name')}</span>
             <input name="name" value={name} onChange={(event) => setName(event.target.value)} maxLength={100} required />
           </label>
           <label>
-            <span>이메일</span>
+            <span>{t('auth.email')}</span>
             <input type="email" value={user.email} readOnly aria-describedby={emailHintId} />
-            <small id={emailHintId}>이메일은 변경할 수 없습니다.</small>
+            <small id={emailHintId}>{t('auth.emailImmutable')}</small>
           </label>
         </div>
 
         <RegionSelector
-          title="관심 지역"
+          title={t('region.interest')}
           inputName="regionIds"
           initialSelections={initialRegions}
           maxSelections={1}
@@ -72,9 +74,9 @@ export function EditProfileModal({ user, busy, error, onClose, onSubmit }: EditP
 
         {error && <p className="auth-error" role="alert">{error}</p>}
         <div className="signup-actions">
-          <button className="quiet-button" type="button" onClick={onClose} disabled={busy}>취소</button>
+          <button className="quiet-button" type="button" onClick={onClose} disabled={busy}>{t('common.cancel')}</button>
           <button className="accent-button" type="submit" disabled={busy || !name.trim() || regionIds.length === 0}>
-            {busy ? '저장 중…' : '저장'}
+            {busy ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </form>

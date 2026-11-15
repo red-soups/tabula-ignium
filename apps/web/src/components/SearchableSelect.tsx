@@ -1,4 +1,5 @@
 import { useId, useMemo, useState, type KeyboardEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export type SearchableOption = {
   value: string
@@ -22,6 +23,7 @@ export function SearchableSelect({
   name,
   onChange,
 }: SearchableSelectProps) {
+  const { t } = useTranslation()
   const listId = useId()
   const selectedLabel = options.find((option) => option.value === value)?.label ?? ''
   const [searchTerm, setSearchTerm] = useState<string | null>(null)
@@ -102,8 +104,8 @@ export function SearchableSelect({
               {option.label}
             </div>
           ))}
-          {filteredOptions.length === 0 && <div className="searchable-select-empty">검색 결과가 없습니다.</div>}
-          {filteredOptions.length === 50 && <div className="searchable-select-hint">검색어를 더 입력해 주세요.</div>}
+          {filteredOptions.length === 0 && <div className="searchable-select-empty">{t('common.noSearchResults')}</div>}
+          {filteredOptions.length === 50 && <div className="searchable-select-hint">{t('common.refineSearch')}</div>}
         </div>
       )}
     </div>

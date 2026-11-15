@@ -19,8 +19,6 @@ export type DocumentFeatureConfigs = {
   hotspots: HotspotConfig
 }
 
-export const DOCUMENT_STEPS = ['지역 선택', '항목 선택', '확인서 발급'] as const
-
 export function periodAt(offsetFromLatestCompleteMonth: number) {
   const now = new Date()
   const date = new Date(now.getFullYear(), now.getMonth() - 1 + offsetFromLatestCompleteMonth, 1)

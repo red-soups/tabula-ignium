@@ -70,3 +70,6 @@ dialog.signup-modal::backdrop { background: var(--overlay); }
   .signup-modal { max-height: calc(100vh - 20px); }
 }
 @media (max-width: 420px) { .signup-modal-head, .signup-form { padding-inline: 16px; } }
+.portal-language { display: inline-flex; align-items: center; gap: 7px; margin-right: 4px; color: var(--text-subtle); font-size: 12px; }
+.portal-language button { min-height: auto; padding: 4px 2px; border: 0; background: transparent; color: inherit; font: inherit; }
+.portal-language button.is-active { color: var(--primary); font-weight: 700; }

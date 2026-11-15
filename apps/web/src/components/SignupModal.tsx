@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { PendingSignup, SignupDetails } from '../api/auth'
 import { Icon } from './Icon'
 import { RegionSelector } from './RegionSelector'
@@ -12,6 +13,7 @@ type SignupModalProps = {
 }
 
 export function SignupModal({ profile, busy, error, onClose, onSubmit }: SignupModalProps) {
+  const { t } = useTranslation()
   const dialog = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   const emailHintId = useId()
@@ -40,10 +42,10 @@ export function SignupModal({ profile, busy, error, onClose, onSubmit }: SignupM
     >
       <div className="signup-modal-head">
         <div>
-          <h2 id={titleId}>회원가입</h2>
-          <p>이름과 관심 지역을 확인해 가입을 완료하세요.</p>
+          <h2 id={titleId}>{t('auth.signup')}</h2>
+          <p>{t('auth.signupDescription')}</p>
         </div>
-        <button className="modal-close" type="button" onClick={onClose} aria-label="닫기" disabled={busy}>
+        <button className="modal-close" type="button" onClick={onClose} aria-label={t('common.close')} disabled={busy}>
           <Icon name="close" />
         </button>
       </div>
@@ -51,18 +53,18 @@ export function SignupModal({ profile, busy, error, onClose, onSubmit }: SignupM
       <form className="signup-form" onSubmit={submit}>
         <div className="signup-basic-fields">
           <label>
-            <span>이름</span>
+            <span>{t('auth.name')}</span>
             <input name="name" value={name} onChange={(event) => setName(event.target.value)} maxLength={100} required />
           </label>
           <label>
-            <span>이메일</span>
+            <span>{t('auth.email')}</span>
             <input type="email" value={profile.email} readOnly aria-describedby={emailHintId} />
-            <small id={emailHintId}>Google에서 확인한 이메일입니다.</small>
+            <small id={emailHintId}>{t('auth.googleEmail')}</small>
           </label>
         </div>
 
         <RegionSelector
-          title="관심 지역"
+          title={t('region.interest')}
           inputName="regionIds"
           maxSelections={1}
           onSelectionChange={setRegionIds}
@@ -70,9 +72,9 @@ export function SignupModal({ profile, busy, error, onClose, onSubmit }: SignupM
 
         {error && <p className="auth-error" role="alert">{error}</p>}
         <div className="signup-actions">
-          <button className="quiet-button" type="button" onClick={onClose} disabled={busy}>취소</button>
+          <button className="quiet-button" type="button" onClick={onClose} disabled={busy}>{t('common.cancel')}</button>
           <button className="accent-button" type="submit" disabled={busy || !name.trim() || regionIds.length === 0}>
-            {busy ? '처리 중…' : '회원가입'}
+            {busy ? t('auth.processing') : t('auth.signup')}
           </button>
         </div>
       </form>

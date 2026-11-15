@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useRegionMapQuery, useRegionsQuery } from '../api/regionQueries'
 import type { RegionMap } from '../api/regions'
 import { Icon } from './Icon'
@@ -14,6 +15,7 @@ export function MapRegionSearch({ cityId, districtId, canReset, areaAction, onCi
   onRegionFocus: (region: RegionMap) => void
   onReset: () => void
 }) {
+  const { t } = useTranslation()
   const countriesQuery = useRegionsQuery(null)
   const korea = countriesQuery.data?.find((region) =>
     region.countryCode === 'KR' && region.level === 0)
@@ -32,10 +34,10 @@ export function MapRegionSearch({ cityId, districtId, canReset, areaAction, onCi
   return (
     <div className="workspace-region-search">
       <div className="workspace-region-search-head">
-        <span className="workspace-small-label">행정구역 검색</span>
+        <span className="workspace-small-label">{t('region.searchTitle')}</span>
         <div className="workspace-region-search-actions">
           {canReset && <button className="workspace-region-reset" type="button" onClick={onReset}
-            aria-label="행정구역 다시 선택" title="행정구역 다시 선택">
+            aria-label={t('region.reset')} title={t('region.reset')}>
             <Icon name="refresh" size={14} />
           </button>}
           {areaAction}
@@ -43,13 +45,13 @@ export function MapRegionSearch({ cityId, districtId, canReset, areaAction, onCi
       </div>
       <div className="workspace-region-search-grid">
         <label>
-          <span>시·도</span>
+          <span>{t('region.province')}</span>
           <SearchableSelect
             value={cityId ? String(cityId) : ''}
             options={citiesQuery.data?.map((region) => ({
               value: String(region.id), label: region.name,
             })) ?? []}
-            placeholder={citiesQuery.isPending ? '불러오는 중…' : '시·도 검색'}
+            placeholder={citiesQuery.isPending ? t('common.loading') : t('region.provinceSearch')}
             disabled={!korea || citiesQuery.isPending || citiesQuery.isError}
             onChange={(value) => {
               onCityChange(Number(value))
@@ -58,20 +60,20 @@ export function MapRegionSearch({ cityId, districtId, canReset, areaAction, onCi
           />
         </label>
         <label>
-          <span>시·군·구</span>
+          <span>{t('region.district')}</span>
           <SearchableSelect
             value={districtId ? String(districtId) : ''}
             options={districtsQuery.data?.map((region) => ({
               value: String(region.id), label: region.name,
             })) ?? []}
-            placeholder={!cityId ? '시·도 먼저 선택' : districtsQuery.isPending ? '불러오는 중…' : '시·군·구 검색'}
+            placeholder={!cityId ? t('region.selectProvinceFirst') : districtsQuery.isPending ? t('common.loading') : t('region.districtSearch')}
             disabled={!cityId || districtsQuery.isPending || districtsQuery.isError}
             onChange={(value) => onDistrictChange(Number(value))}
           />
         </label>
       </div>
-      {mapQuery.isPending && focusedId && <small className="workspace-region-state">지도에서 위치를 찾는 중…</small>}
-      {hasError && <small className="workspace-region-error" role="alert">행정구역 정보를 불러오지 못했습니다.</small>}
+      {mapQuery.isPending && focusedId && <small className="workspace-region-state">{t('region.findingOnMap')}</small>}
+      {hasError && <small className="workspace-region-error" role="alert">{t('region.loadError')}</small>}
     </div>
   )
 }

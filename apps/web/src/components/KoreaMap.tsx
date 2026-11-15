@@ -1,7 +1,9 @@
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { AnalysisBounds, FireHotspot, FirePoint } from '../api/fireData'
 import type { RegionGeometry, RegionMap } from '../api/regions'
 import type { HeatCell } from '../api/fireTimelapse'
+import { localeFor } from '../i18n'
 
 export type MapSelection = AnalysisBounds
 
@@ -207,6 +209,7 @@ export function KoreaMap({
   onRegionClick?: (region: RegionMap) => void
   onAreaSelect?: (selection: MapSelection) => void
 }) {
+  const { t, i18n } = useTranslation()
   const svg = useRef<SVGSVGElement>(null)
   const drag = useRef<Drag | null>(null)
   const didPan = useRef(false)
@@ -393,7 +396,7 @@ export function KoreaMap({
   return (
     <div className={`korea-map${active ? ' is-active' : ''}${selecting ? ' is-selecting' : ''}${heat ? ' is-night' : ''}`}>
       <svg ref={svg} className="korea-map-svg" viewBox={`${viewport.x} ${viewport.y} ${viewport.width} ${viewport.height}`}
-        role="img" aria-label={hotspots ? '화재 집중 구역 지도' : observations ? '화재 관측 위치 위성 지도' : '대한민국 위성 지도'}
+        role="img" aria-label={hotspots ? t('map.hotspots') : observations ? t('map.observations') : t('map.korea')}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}>
         <g className="korea-imagery" aria-hidden="true">
@@ -433,12 +436,12 @@ export function KoreaMap({
             <rect className="korea-hotspot-cell"
               x={cell.x} y={cell.y} width={cell.width} height={cell.height}
               style={{ fillOpacity: cell.opacity }}>
-              <title>집중 구역 #{cell.hotspotRank} · 관측 {cell.observationCount.toLocaleString('ko-KR')}건 · 평균 FRP {cell.averageFrp.toFixed(1)} MW</title>
+              <title>#{cell.hotspotRank} · {t('common.observations', { count: cell.observationCount.toLocaleString(localeFor(i18n.resolvedLanguage)) })} · {t('fire.labels.averageFrp')} {cell.averageFrp.toFixed(1)} MW</title>
             </rect>
             <text className="korea-hotspot-rank" x={centerX} y={centerY - 2 * labelScale}
               style={{ fontSize: 11 * labelScale }}>#{cell.hotspotRank}</text>
             <text className="korea-hotspot-count" x={centerX} y={centerY + 9 * labelScale}
-              style={{ fontSize: 8 * labelScale }}>{cell.observationCount.toLocaleString('ko-KR')}건</text>
+              style={{ fontSize: 8 * labelScale }}>{t('common.observations', { count: cell.observationCount.toLocaleString(localeFor(i18n.resolvedLanguage)) })}</text>
           </g>
         })}
         {shortSide > 0 && observationMarkers.map((marker) => (
@@ -448,18 +451,18 @@ export function KoreaMap({
           </circle>
         ))}
       </svg>
-      {observations && observationMonths.length > 0 && <div className="korea-fire-month-legend" aria-label="월별 화재 관측 색상">
+      {observations && observationMonths.length > 0 && <div className="korea-fire-month-legend" aria-label={t('map.monthLegend')}>
         {observationMonths.map((period, index) => <span key={period}>
           <i style={{ backgroundColor: FIRE_MONTH_COLORS[index] }} />{period.replace('-', '.')}
         </span>)}
       </div>}
-      {hotspots && hotspots.length > 0 && <div className="korea-hotspot-legend" aria-label="화재 집중도 색상">
-        <strong>관측 집중도</strong><span>낮음</span><i /><span>높음</span>
+      {hotspots && hotspots.length > 0 && <div className="korea-hotspot-legend" aria-label={t('map.hotspotLegend')}>
+        <strong>{t('map.concentration')}</strong><span>{t('map.low')}</span><i /><span>{t('map.high')}</span>
       </div>}
-      {active && <div className="korea-map-controls" aria-label="지도 확대 조작">
-        <button type="button" aria-label="지도 확대" disabled={view.size <= MIN_VIEW_SIZE} onClick={() => zoom(0.75)}>+</button>
-        <button type="button" aria-label="지도 축소" disabled={view.size >= WORLD} onClick={() => zoom(1 / 0.75)}>−</button>
-        <button type="button" aria-label={observations ? '분석 범위로 돌아가기' : '지도 원래 크기'}
+      {active && <div className="korea-map-controls" aria-label={t('map.controls')}>
+        <button type="button" aria-label={t('map.zoomIn')} disabled={view.size <= MIN_VIEW_SIZE} onClick={() => zoom(0.75)}>+</button>
+        <button type="button" aria-label={t('map.zoomOut')} disabled={view.size >= WORLD} onClick={() => zoom(1 / 0.75)}>−</button>
+        <button type="button" aria-label={observations ? t('map.returnArea') : t('map.reset')}
           onClick={() => setManualView(observations ? focusedView : nationalView)}>⌂</button>
       </div>}
     </div>

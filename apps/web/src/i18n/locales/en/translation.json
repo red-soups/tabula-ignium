@@ -1,0 +1,138 @@
+{
+  "language": { "ko": "한국어", "en": "English", "change": "Change language" },
+  "common": {
+    "close": "Close", "cancel": "Cancel", "save": "Save", "saving": "Saving…", "add": "Add",
+    "search": "Search", "searching": "Searching…", "loading": "Loading…", "all": "All",
+    "download": "Download", "delete": "Delete", "preview": "Data preview", "apply": "Apply settings",
+    "items": "{{count}} items", "observations": "{{count}} observations", "years": "{{count}} years",
+    "noSearchResults": "No results found.", "refineSearch": "Enter more text to refine your search."
+  },
+  "header": {
+    "skip": "Skip to main content", "homeLabel": "Wildfire 24 home", "quickLinks": "Quick links",
+    "verifyDocument": "Verify document", "home": "Home"
+  },
+  "auth": {
+    "signupExpired": "Your registration session has expired. Sign in with Google again.",
+    "emailExists": "This email is already registered. Sign in to your existing account.",
+    "signupFailed": "Could not complete registration. Check your entries.",
+    "googleFailed": "Google sign-in failed. Try again.",
+    "statusFailed": "Could not check your sign-in status.",
+    "logoutFailed": "Could not sign out.", "loginRequired": "Sign in with Google to create a document.",
+    "editProfile": "Edit profile", "logout": "Sign out", "profileSaveFailed": "Could not save your profile.",
+    "signup": "Sign up", "signupDescription": "Confirm your name and area of interest to finish signing up.",
+    "editDescription": "You can change your name and area of interest.", "name": "Name", "email": "Email", "googleLogin": "Sign in with Google",
+    "googleEmail": "This email was verified by Google.", "emailImmutable": "Email cannot be changed.", "processing": "Processing…"
+  },
+  "history": {
+    "shortTitle": "Download history", "title": "PDF download history", "loading": "Loading history…",
+    "loadError": "Could not load download history.", "empty": "No PDFs have been created yet.",
+    "confirmDelete": "Delete the download record and file for '{{name}}'?"
+  },
+  "publicSearch": {
+    "title": "Find a document by hash", "description": "Enter the 12-character hash at the beginning of the PDF filename.",
+    "hash": "Document hash", "example": "Example: A7K9M2Q4X8PL", "invalidHash": "Enter a 12-character hash.",
+    "notFound": "No document was found for this hash.", "failed": "Could not search for the document."
+  },
+  "home": {
+    "breadcrumb": "Current location", "home": "Home", "issueReport": "Issue wildfire history report", "workMenu": "Tasks",
+    "report": "Wildfire History Report", "headline1": "Choose your data,", "headline2": "turn it into a document.",
+    "description": "Choose an area on the map of South Korea and select the wildfire observations to include.",
+    "create": "Create document", "createDescription": "Choose an area and data items to create a report",
+    "findByHash": "Find by hash", "findByHashDescription": "Find an issued document using its 12-character code",
+    "process": "Issuance steps", "previous": "Previous step", "documentSteps": "Document creation steps",
+    "steps": ["Select area", "Select items", "Issue report"],
+    "selectRegionTitle": "Select an area for the document.",
+    "selectRegionDescription": "Move the map using an administrative area, then draw a rectangular analysis area on the map.",
+    "drawArea": "Draw area", "redrawArea": "Redraw area", "selectedArea": "Selected analysis area",
+    "mapLocation": "Map location", "customArea": "Custom area", "saveMethod": "Storage format",
+    "rectangleBounds": "Rectangle bounds", "next": "Next", "areaRequired": "Select an area to continue.",
+    "selectFeaturesTitle": "Select features for the document.",
+    "selectFeaturesDescription": "Select features, configure each card, and preview the resulting data.",
+    "referenceLocation": "Reference location", "range": "Area", "mapRectangle": "Rectangle selected on map",
+    "mapTitle": "South Korea satellite map", "wholeKorea": "All of South Korea", "mapLocked": "Map locked",
+    "mapExplore": "Map navigation available", "selectingArea": "Selecting area",
+    "startHint": "Select Create document to zoom in and choose an area.",
+    "dragHint": "Drag on the map to define the analysis area.",
+    "searchHint": "Search for an administrative area or start drawing an area.",
+    "defaultDocumentName": "Wildfire Observation Analysis",
+    "footerSource": "Based on NASA FIRMS MODIS and VIIRS observations",
+    "footerNotice": "This reference material is based on satellite observations and is not a legally valid certificate. Refer to the Korea Forest Service for official statistics."
+  },
+  "region": {
+    "searchTitle": "Administrative area search", "reset": "Reset administrative area", "province": "Province / city", "district": "District",
+    "provinceSearch": "Search province or city", "districtSearch": "Search district", "selectProvinceFirst": "Select a province or city first",
+    "findingOnMap": "Locating on map…", "loadError": "Could not load administrative areas.",
+    "selectedCount": "{{selected}}/{{max}} selected", "optional": "Optional", "noSelection": "No area selected.",
+    "deleteLabel": "Remove {{label}}", "interest": "Area of interest"
+  },
+  "feature": {
+    "step": "Step 2 · Select items", "title": "What data would you like to include?",
+    "description": "Select the wildfire observation data to add to the document for the chosen area.",
+    "loading": "Loading features…", "loadError": "Could not load features.",
+    "fromMonth": "Start month", "toMonth": "End month", "baseMonth": "Reference month", "sensor": "Sensor", "confidence": "Confidence",
+    "metric": "Metric", "gridSize": "Grid size", "allSensors": "All sensors", "allConfidence": "All confidence levels",
+    "invalidPeriod": "The start month cannot be later than the end month.", "maxTwelveMonths": "Monthly trends can cover up to 12 months.",
+    "sixMonthNote": "Shows the latest six months including the reference month, using a different map color for each month.",
+    "correctedNote": "Calculated from the complete observation period and harmonized data.",
+    "intensityNote": "FRP thresholds · Low <10 MW · Moderate 10–<30 MW · High 30–<100 MW · Extreme ≥100 MW",
+    "selectedCount": "{{count}} items selected", "layoutNote": "Selected features are arranged four per page in a 2×2 grid.",
+    "documentName": "Document name", "documentNamePlaceholder": "Enter a document name", "history": "Download history", "documentPreview": "Document preview",
+    "metrics": { "observationCount": "Observation count", "totalFrp": "Total FRP", "averageFrp": "Average FRP" },
+    "catalog": {
+      "FIRE_SUMMARY": { "name": "Fire observation summary", "description": "Summarizes fire observations and FRP within the selected area." },
+      "FIRE_LOCATION_MAP": { "name": "Fire observation locations", "description": "Displays observed fire locations on a map." },
+      "MONTHLY_FIRE_TREND": { "name": "Monthly observation trend", "description": "Compares monthly changes in fire observations." },
+      "CONFIDENCE_ANALYSIS": { "name": "Observation confidence", "description": "Analyzes the confidence distribution of fire observations." },
+      "YEARLY_FIRE_TREND": { "name": "Annual fire trend", "description": "Displays annual trends harmonized across satellite sensors." },
+      "LARGE_FIRE_FREQUENCY": { "name": "Large-fire frequency", "description": "Analyzes the frequency and return period of large-fire observations." },
+      "HIGH_RISK_SEASON": { "name": "High-risk season", "description": "Shows the months with the highest share of fire risk." },
+      "NEAREST_FIRE": { "name": "Nearest fire", "description": "Finds the fire observation nearest the selected area's center." },
+      "FIRE_INTENSITY": { "name": "Fire intensity classes", "description": "Classifies observed fire intensity by FRP." },
+      "DAY_NIGHT_COMPARISON": { "name": "Day/night comparison", "description": "Compares daytime and nighttime fire observations." },
+      "PERIOD_COMPARISON": { "name": "Previous-period comparison", "description": "Compares the selected period with the preceding period of equal length." },
+      "FIRE_HOTSPOTS": { "name": "Fire hotspots", "description": "Displays grid cells where fire observations are concentrated." }
+    }
+  },
+  "fire": {
+    "loading": "Loading wildfire data…", "loadError": "Could not load wildfire data.",
+    "empty": "No data matches the selected conditions.", "previewClose": "Close preview",
+    "axisXMonth": "X-axis · Observation month", "axisXYear": "X-axis · Observation year", "axisXRatio": "X-axis · Observation share (%)",
+    "axisYConfidence": "Y-axis · Confidence level", "pointsLegend": "Color represents observation month; point size represents FRP.",
+    "correctedIndex": "Sensor-harmonized observation index", "completedYears": "Complete years", "correctedIndexTitle": "What is the sensor-harmonized observation index?",
+    "correctedIndexDescription": "A comparative index that adjusts for observation-performance differences among satellite sensors such as MODIS and VIIRS. It is not the number of actual wildfires.",
+    "titles": { "summary": "Fire observation summary", "points": "Fire observation locations", "monthly": "Monthly observation trend", "confidence": "Observation confidence", "yearly": "Annual fire trend", "large": "Large-fire frequency", "risk": "High-risk season", "nearest": "Nearest fire", "intensity": "Fire intensity classes", "dayNight": "Day/night comparison", "comparison": "Previous-period comparison", "hotspots": "Fire hotspots" },
+    "labels": { "observationCount": "Observation count", "observedDays": "Observed days", "averageFrp": "Average FRP", "maximumFrp": "Maximum FRP", "totalFrp": "Total FRP", "earliest": "First observation", "latest": "Latest observation" },
+    "selectedArea": "Selected analysis area", "notComparable": "Not comparable", "previousPeriod": "Previous period", "currentPeriod": "Current period",
+    "harmonizedBasis": "Based on harmonized observations", "normalPeriod": "2003–2023 baseline", "monthlyRiskShare": "Monthly risk share",
+    "highRisk": "High risk", "centerBasis": "Based on selected-area center", "nearestDistance": "Nearest observation distance",
+    "withinDistance": "Within {{distance}} km", "intensityCriteria": "Fire intensity criteria", "frpCriteria": "FRP class thresholds",
+    "low": "Low", "moderate": "Moderate", "high": "High", "extreme": "Extreme",
+    "below": "Below {{value}} MW", "rangeBelow": "{{from}}–below {{to}} MW", "above": "{{value}} MW or higher",
+    "hotspotClose": "Close fire hotspot map", "hotspotMapNote": "Each rectangle is a {{grid}} km grid cell. Darker red indicates more observations.",
+    "satelliteYears": "{{count}} years of satellite fire observations · sensor harmonized", "throughDate": "Through {{month}}/{{day}}",
+    "axisYIntensity": "Y-axis · FRP intensity class", "axisYRisk": "Y-axis · Baseline risk share (%)", "axisXCalendarMonth": "X-axis · Month"
+  },
+  "map": {
+    "hotspots": "Fire hotspot map", "observations": "Satellite map of fire observations", "korea": "South Korea satellite map",
+    "monthLegend": "Monthly fire-observation colors", "hotspotLegend": "Fire concentration colors", "concentration": "Observation concentration",
+    "low": "Low", "high": "High", "controls": "Map zoom controls", "zoomIn": "Zoom in", "zoomOut": "Zoom out",
+    "returnArea": "Return to analysis area", "reset": "Reset map"
+  },
+  "document": {
+    "preview": "Document preview", "previewDescription": "Selected features are arranged four per page.",
+    "creatingPdf": "Creating PDF…", "downloadPdf": "Download PDF", "pageTitle": "Wildfire History Report · Page {{current}} of {{total}}",
+    "customArea": "Custom analysis area", "createdAt": "Created", "creator": "Created by", "satelliteItem": "Satellite observation item",
+    "dataLoading": "Loading data…", "dataLoadError": "Could not load data.", "dataEmpty": "No data is available for this area.",
+    "historyError": "Could not record the PDF export.", "downloadHash": "Download hash", "hashHelp": "Use the hash at the beginning of the filename to download the document again.",
+    "mapReadError": "Could not read the map image.", "mapTileMissing": "Could not find satellite map tiles for the PDF.",
+    "mapTileUrlMissing": "A satellite map tile URL is missing.", "mapTileLoadError": "Could not load a satellite map tile. ({{status}})",
+    "pdfCreateError": "Could not create the PDF.", "sixMonthPoints": "{{count}} observations over the latest six months · Color represents month and point size represents FRP",
+    "occurrenceYears": "Occurrence years", "returnPeriod": "Return period", "observedYears": "Observed years", "yearValue": "{{value}} years",
+    "peakMonths": "Peak months", "monthValue": "Month {{value}}", "fromAreaCenter": "From the selected area's center",
+    "distanceCounts": "{{one}} within 1 km · {{five}} within 5 km · {{ten}} within 10 km", "periodObservation": "{{period}} observation",
+    "notComparable": "Not comparable", "previous": "Previous", "current": "Current", "observationChange": "Observation-count change",
+    "averageFrpChange": "Average-FRP change", "periodComparison": "Previous {{previousFrom}}–{{previousTo}} / Current {{currentFrom}}–{{currentTo}}",
+    "hotspotNote": "{{grid}} km grid · Darker red indicates a higher concentration of fire observations",
+    "harmonizedValue": "Harmonized {{value}}", "timesNormal": "{{value}}× baseline"
+  }
+}

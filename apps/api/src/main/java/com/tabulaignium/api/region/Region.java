@@ -45,7 +45,11 @@ public class Region {
         return nameKo;
     }
 
-    public String getEnglishName() {
+    public String getNameKo() {
+        return nameKo;
+    }
+
+    public String getNameEn() {
         return name;
     }
 

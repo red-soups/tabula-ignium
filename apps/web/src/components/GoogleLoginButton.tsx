@@ -1,7 +1,4 @@
-// 구글 로그인 버튼에 사용하는 표시 데이터입니다.
-const GOOGLE_LOGIN_DATA = {
-  label: 'Google 로그인',
-}
+import { useTranslation } from 'react-i18next'
 
 type GoogleLoginButtonProps = {
   onClick: () => void
@@ -20,10 +17,11 @@ function GoogleLogo() {
 }
 
 export function GoogleLoginButton({ onClick, disabled }: GoogleLoginButtonProps) {
+  const { t } = useTranslation()
   return (
-    <button className="google-login-button header-google-login" type="button" aria-label={GOOGLE_LOGIN_DATA.label} onClick={onClick} disabled={disabled}>
+    <button className="google-login-button header-google-login" type="button" aria-label={t('auth.googleLogin')} onClick={onClick} disabled={disabled}>
       <GoogleLogo />
-      <span>{GOOGLE_LOGIN_DATA.label}</span>
+      <span>{t('auth.googleLogin')}</span>
     </button>
   )
 }

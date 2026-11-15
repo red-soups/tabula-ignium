@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { FeatureOption } from '../../../api/features'
 import type {
   FirePointsConfig,
@@ -8,6 +9,7 @@ import type {
   PeriodAnalysisConfig,
 } from '../../../api/fireData'
 import { Icon, type IconName } from '../../../components/Icon'
+import { localizedFeature } from '../../../i18n/features'
 import {
   periodMonthCount,
   shiftPeriod,
@@ -56,16 +58,17 @@ function PeriodAnalysisFields({ config, onChange, gridMeters, onGridChange }: {
   gridMeters?: HotspotConfig['gridMeters']
   onGridChange?: (gridMeters: HotspotConfig['gridMeters']) => void
 }) {
+  const { t } = useTranslation()
   return <div className="workspace-feature-fields">
-    <label><span>시작 월</span><input type="month" value={config.fromPeriod}
+    <label><span>{t('feature.fromMonth')}</span><input type="month" value={config.fromPeriod}
       onChange={(event) => onChange({ ...config, fromPeriod: event.target.value })} /></label>
-    <label><span>종료 월</span><input type="month" value={config.toPeriod}
+    <label><span>{t('feature.toMonth')}</span><input type="month" value={config.toPeriod}
       onChange={(event) => onChange({ ...config, toPeriod: event.target.value })} /></label>
-    <label><span>센서</span><select value={config.sensor}
+    <label><span>{t('feature.sensor')}</span><select value={config.sensor}
       onChange={(event) => onChange({ ...config, sensor: event.target.value as PeriodAnalysisConfig['sensor'] })}>
-      <option value="ALL">전체</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
+      <option value="ALL">{t('common.all')}</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
     </select></label>
-    {gridMeters && onGridChange && <label><span>격자 크기</span><select value={gridMeters}
+    {gridMeters && onGridChange && <label><span>{t('feature.gridSize')}</span><select value={gridMeters}
       onChange={(event) => onGridChange(Number(event.target.value) as HotspotConfig['gridMeters'])}>
       <option value={2500}>2.5km</option><option value={5000}>5km</option><option value={10000}>10km</option>
     </select></label>}
@@ -88,6 +91,7 @@ export function FeatureSelectionPanel({
   onOpenDocumentPreview,
   onOpenHistory,
 }: FeatureSelectionPanelProps) {
+  const { t } = useTranslation()
   const { summary, points, monthly, confidence, nearest, intensity, dayNight, comparison, hotspots } = configs
   const monthlyPeriodInvalid = monthly.fromPeriod > monthly.toPeriod
     || periodMonthCount(monthly.fromPeriod, monthly.toPeriod) > 12
@@ -95,10 +99,10 @@ export function FeatureSelectionPanel({
     && features?.some((feature) => selectedFeatureIds.includes(feature.id) && feature.code === 'MONTHLY_FIRE_TREND')
 
   return <div className="workspace-features">
-    <div className="workspace-features-intro"><span>2단계 · 항목 선택</span><h2>어떤 데이터를 담을까요?</h2>
-      <p>선택한 지역을 기준으로 문서에 추가할 화재 관측 데이터 항목을 선택합니다.</p></div>
-    {isPending && <p className="workspace-feature-state" role="status">기능 목록을 불러오는 중입니다…</p>}
-    {isError && <p className="workspace-feature-error" role="alert">기능 목록을 불러오지 못했습니다.</p>}
+    <div className="workspace-features-intro"><span>{t('feature.step')}</span><h2>{t('feature.title')}</h2>
+      <p>{t('feature.description')}</p></div>
+    {isPending && <p className="workspace-feature-state" role="status">{t('feature.loading')}</p>}
+    {isError && <p className="workspace-feature-error" role="alert">{t('feature.loadError')}</p>}
     <div className="workspace-feature-grid">{features?.map((feature, index) => {
       const selected = selectedFeatureIds.includes(feature.id)
       const isSummary = feature.code === 'FIRE_SUMMARY'
@@ -126,108 +130,109 @@ export function FeatureSelectionPanel({
             ? advancedConfig.fromPeriod > advancedConfig.toPeriod
             : summary.fromPeriod > summary.toPeriod
 
+      const displayFeature = localizedFeature(feature, t)
       return <article key={feature.id} className={`workspace-feature-card${selected ? ' is-selected' : ''}${selected && hasSettings ? ' has-settings' : ''}`}>
         <label className="workspace-feature-toggle">
           <input type="checkbox" checked={selected} onChange={() => onToggleFeature(feature.id)} />
           <span className="workspace-feature-symbol"><Icon name={FEATURE_ICONS[feature.code] ?? 'file'} size={22} /></span>
           <span className="workspace-feature-number">{String(index + 1).padStart(2, '0')}</span>
-          <strong>{feature.name}</strong><small>{feature.description}</small>
+          <strong>{displayFeature.name}</strong><small>{displayFeature.description}</small>
           <span className="workspace-feature-check"><Icon name="check" size={14} /></span>
         </label>
 
         {selected && isSummary && <div className="workspace-feature-settings">
           <div className="workspace-feature-fields">
-            <label><span>시작 월</span><input type="month" value={summary.fromPeriod}
+            <label><span>{t('feature.fromMonth')}</span><input type="month" value={summary.fromPeriod}
               onChange={(event) => configSetters.summary((current) => ({ ...current, fromPeriod: event.target.value }))} /></label>
-            <label><span>종료 월</span><input type="month" value={summary.toPeriod}
+            <label><span>{t('feature.toMonth')}</span><input type="month" value={summary.toPeriod}
               onChange={(event) => configSetters.summary((current) => ({ ...current, toPeriod: event.target.value }))} /></label>
-            <label><span>센서</span><select value={summary.sensor}
+            <label><span>{t('feature.sensor')}</span><select value={summary.sensor}
               onChange={(event) => configSetters.summary((current) => ({ ...current, sensor: event.target.value as FireSummaryConfig['sensor'] }))}>
-              <option value="ALL">전체</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
+              <option value="ALL">{t('common.all')}</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
             </select></label>
-            <label><span>신뢰도</span><select value={summary.confidenceLevel}
+            <label><span>{t('feature.confidence')}</span><select value={summary.confidenceLevel}
               onChange={(event) => configSetters.summary((current) => ({ ...current, confidenceLevel: event.target.value as FireSummaryConfig['confidenceLevel'] }))}>
-              <option value="ALL">전체</option><option value="high">high</option><option value="nominal">nominal</option><option value="low">low</option>
+              <option value="ALL">{t('common.all')}</option><option value="high">high</option><option value="nominal">nominal</option><option value="low">low</option>
             </select></label>
           </div>
-          {invalidPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
+          {invalidPeriod && <small className="workspace-feature-validation" role="alert">{t('feature.invalidPeriod')}</small>}
           <PreviewButton disabled={invalidPeriod || !hasSelection} onClick={() => onPreviewFeature(feature.code)} />
         </div>}
 
         {selected && isPoints && <div className="workspace-feature-settings">
           <div className="workspace-feature-fields">
-            <label><span>기준 월</span><input type="month" value={points.period}
+            <label><span>{t('feature.baseMonth')}</span><input type="month" value={points.period}
               onChange={(event) => configSetters.points((current) => ({ ...current, period: event.target.value }))} /></label>
-            <label><span>센서</span><select value={points.sensor}
+            <label><span>{t('feature.sensor')}</span><select value={points.sensor}
               onChange={(event) => configSetters.points((current) => ({ ...current, sensor: event.target.value as FirePointsConfig['sensor'] }))}>
-              <option value="ALL">전체</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
+              <option value="ALL">{t('common.all')}</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
             </select></label>
-            <label><span>신뢰도</span><select value={points.confidenceLevel}
+            <label><span>{t('feature.confidence')}</span><select value={points.confidenceLevel}
               onChange={(event) => configSetters.points((current) => ({ ...current, confidenceLevel: event.target.value as FirePointsConfig['confidenceLevel'] }))}>
-              <option value="ALL">전체</option><option value="high">high</option><option value="nominal">nominal</option><option value="low">low</option>
+              <option value="ALL">{t('common.all')}</option><option value="high">high</option><option value="nominal">nominal</option><option value="low">low</option>
             </select></label>
           </div>
-          <p className="workspace-feature-note">기준 월을 포함한 최근 6개월을 조회하며, 지도에서 월별로 다른 색상으로 표시합니다.</p>
+          <p className="workspace-feature-note">{t('feature.sixMonthNote')}</p>
           <PreviewButton disabled={!points.period || !hasSelection} onClick={() => onPreviewFeature(feature.code)} />
         </div>}
 
         {selected && isMonthly && <div className="workspace-feature-settings">
           <div className="workspace-feature-fields">
-            <label><span>시작 월</span><input type="month" value={monthly.fromPeriod}
+            <label><span>{t('feature.fromMonth')}</span><input type="month" value={monthly.fromPeriod}
               min={shiftPeriod(monthly.toPeriod, -11)} max={monthly.toPeriod}
               onChange={(event) => configSetters.monthly((current) => ({ ...current, fromPeriod: event.target.value }))} /></label>
-            <label><span>종료 월</span><input type="month" value={monthly.toPeriod}
+            <label><span>{t('feature.toMonth')}</span><input type="month" value={monthly.toPeriod}
               min={monthly.fromPeriod} max={shiftPeriod(monthly.fromPeriod, 11)}
               onChange={(event) => configSetters.monthly((current) => ({ ...current, toPeriod: event.target.value }))} /></label>
-            <label><span>센서</span><select value={monthly.sensor}
+            <label><span>{t('feature.sensor')}</span><select value={monthly.sensor}
               onChange={(event) => configSetters.monthly((current) => ({ ...current, sensor: event.target.value as MonthlyTrendConfig['sensor'] }))}>
-              <option value="ALL">전체</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
+              <option value="ALL">{t('common.all')}</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
             </select></label>
-            <label><span>표시 지표</span><select value={monthly.metric}
+            <label><span>{t('feature.metric')}</span><select value={monthly.metric}
               onChange={(event) => configSetters.monthly((current) => ({ ...current, metric: event.target.value as MonthlyTrendConfig['metric'] }))}>
-              <option value="observationCount">관측 건수</option><option value="totalFrp">전체 FRP</option><option value="averageFrp">평균 FRP</option>
+              <option value="observationCount">{t('feature.metrics.observationCount')}</option><option value="totalFrp">{t('feature.metrics.totalFrp')}</option><option value="averageFrp">{t('feature.metrics.averageFrp')}</option>
             </select></label>
           </div>
           {invalidPeriod && <small className="workspace-feature-validation" role="alert">
-            {monthly.fromPeriod > monthly.toPeriod ? '시작 월은 종료 월보다 늦을 수 없습니다.' : '월별 관측 추이는 최대 12개월까지 선택할 수 있습니다.'}
+            {monthly.fromPeriod > monthly.toPeriod ? t('feature.invalidPeriod') : t('feature.maxTwelveMonths')}
           </small>}
           <PreviewButton disabled={invalidPeriod || !hasSelection} onClick={() => onPreviewFeature(feature.code)} />
         </div>}
 
         {selected && isConfidence && <div className="workspace-feature-settings">
           <div className="workspace-feature-fields">
-            <label><span>시작 월</span><input type="month" value={confidence.fromPeriod}
+            <label><span>{t('feature.fromMonth')}</span><input type="month" value={confidence.fromPeriod}
               onChange={(event) => configSetters.confidence((current) => ({ ...current, fromPeriod: event.target.value }))} /></label>
-            <label><span>종료 월</span><input type="month" value={confidence.toPeriod}
+            <label><span>{t('feature.toMonth')}</span><input type="month" value={confidence.toPeriod}
               onChange={(event) => configSetters.confidence((current) => ({ ...current, toPeriod: event.target.value }))} /></label>
-            <label><span>센서</span><select value={confidence.sensor}
+            <label><span>{t('feature.sensor')}</span><select value={confidence.sensor}
               onChange={(event) => configSetters.confidence((current) => ({ ...current, sensor: event.target.value as typeof confidence.sensor }))}>
-              <option value="ALL">전체</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
+              <option value="ALL">{t('common.all')}</option><option value="MODIS">MODIS</option><option value="VIIRS">VIIRS</option>
             </select></label>
           </div>
-          {invalidPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
+          {invalidPeriod && <small className="workspace-feature-validation" role="alert">{t('feature.invalidPeriod')}</small>}
           <PreviewButton disabled={invalidPeriod || !hasSelection} onClick={() => onPreviewFeature(feature.code)} />
         </div>}
 
         {selected && (isYearly || isLargeFire || isHighRisk) && <div className="workspace-feature-settings">
-          <p className="workspace-feature-note">전체 관측 기간과 보정 데이터를 기준으로 계산합니다.</p>
+          <p className="workspace-feature-note">{t('feature.correctedNote')}</p>
           <PreviewButton disabled={!hasSelection} onClick={() => onPreviewFeature(feature.code)} />
         </div>}
 
         {selected && isNearest && <div className="workspace-feature-settings">
           <div className="workspace-feature-fields">
-            <label><span>시작 월</span><input type="month" value={nearest.fromPeriod}
+            <label><span>{t('feature.fromMonth')}</span><input type="month" value={nearest.fromPeriod}
               onChange={(event) => configSetters.nearest((current) => ({ ...current, fromPeriod: event.target.value }))} /></label>
-            <label><span>종료 월</span><input type="month" value={nearest.toPeriod}
+            <label><span>{t('feature.toMonth')}</span><input type="month" value={nearest.toPeriod}
               onChange={(event) => configSetters.nearest((current) => ({ ...current, toPeriod: event.target.value }))} /></label>
           </div>
-          {nearest.fromPeriod > nearest.toPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
+          {nearest.fromPeriod > nearest.toPeriod && <small className="workspace-feature-validation" role="alert">{t('feature.invalidPeriod')}</small>}
           <PreviewButton disabled={!hasSelection || nearest.fromPeriod > nearest.toPeriod} onClick={() => onPreviewFeature(feature.code)} />
         </div>}
 
         {selected && isAdvanced && <div className="workspace-feature-settings">
           {isIntensity && <p className="workspace-feature-note">
-            FRP 기준 · 약함 10 MW 미만 · 보통 10–30 MW 미만 · 강함 30–100 MW 미만 · 매우 강함 100 MW 이상
+            {t('feature.intensityNote')}
           </p>}
           <PeriodAnalysisFields config={advancedConfig}
             gridMeters={isHotspots ? hotspots.gridMeters : undefined}
@@ -238,24 +243,25 @@ export function FeatureSelectionPanel({
               else if (isPeriodComparison) configSetters.comparison(config)
               else configSetters.hotspots((current) => ({ ...current, ...config }))
             }} />
-          {invalidPeriod && <small className="workspace-feature-validation" role="alert">시작 월은 종료 월보다 늦을 수 없습니다.</small>}
+          {invalidPeriod && <small className="workspace-feature-validation" role="alert">{t('feature.invalidPeriod')}</small>}
           <PreviewButton disabled={invalidPeriod || !hasSelection} onClick={() => onPreviewFeature(feature.code)} />
         </div>}
       </article>
     })}</div>
     <div className="workspace-document-create">
-      <div className="workspace-features-foot"><strong>{selectedFeatureIds.length}개 항목 선택</strong><span>선택한 기능은 페이지마다 4개씩 2×2로 배치됩니다.</span></div>
-      <label><span>문서 이름</span><input value={documentName} maxLength={200}
-        onChange={(event) => onDocumentNameChange(event.target.value)} placeholder="문서 이름을 입력하세요" /></label>
-      {showHistoryButton && <button className="is-history" type="button" onClick={onOpenHistory}>다운로드 내역</button>}
+      <div className="workspace-features-foot"><strong>{t('feature.selectedCount', { count: selectedFeatureIds.length })}</strong><span>{t('feature.layoutNote')}</span></div>
+      <label><span>{t('feature.documentName')}</span><input value={documentName} maxLength={200}
+        onChange={(event) => onDocumentNameChange(event.target.value)} placeholder={t('feature.documentNamePlaceholder')} /></label>
+      {showHistoryButton && <button className="is-history" type="button" onClick={onOpenHistory}>{t('feature.history')}</button>}
       <button type="button" disabled={!hasSelection || selectedFeatureIds.length === 0 || !documentName.trim() || Boolean(selectedMonthlyPeriodInvalid)}
-        onClick={onOpenDocumentPreview}>문서 미리보기 <Icon name="chevron" size={18} /></button>
+        onClick={onOpenDocumentPreview}>{t('feature.documentPreview')} <Icon name="chevron" size={18} /></button>
     </div>
   </div>
 }
 
 function PreviewButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+  const { t } = useTranslation()
   return <button className="workspace-preview-button" type="button" disabled={disabled} onClick={onClick}>
-    데이터 미리보기 <Icon name="chevron" size={16} />
+    {t('common.preview')} <Icon name="chevron" size={16} />
   </button>
 }
