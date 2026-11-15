@@ -2,7 +2,7 @@ spring:
   application:
     name: tabula-ignium-api
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5433/tabula_ignium}
+    url: ${DB_URL:jdbc:postgresql://database-1.cfwscqye6p73.ap-northeast-2.rds.amazonaws.com:5432/tabula_ignium?sslmode=require}
     username: ${DB_USER:tabula_ignium}
     password: ${DB_PASSWORD}
   flyway:

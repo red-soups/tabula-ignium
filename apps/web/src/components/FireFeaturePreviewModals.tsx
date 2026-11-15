@@ -6,9 +6,10 @@ import {
 import { Icon } from './Icon'
 import { KoreaMap, SatelliteMapAttribution } from './KoreaMap'
 
-export function PreviewShell({ title, context, onClose, children }: {
+export function PreviewShell({ title, context, className = '', onClose, children }: {
   title: string
   context: ReactNode
+  className?: string
   onClose: () => void
   children: ReactNode
 }) {
@@ -23,9 +24,11 @@ export function PreviewShell({ title, context, onClose, children }: {
   return <div className="fire-preview-backdrop" role="presentation" onMouseDown={(event) => {
     if (event.target === event.currentTarget) onClose()
   }}>
-    <section className="fire-preview-modal" role="dialog" aria-modal="true" aria-label={title}>
+    <section className={`fire-preview-modal${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-label={title}>
       <header className="fire-preview-head"><div><span>데이터 미리보기</span><h2>{title}</h2></div>
-        <button type="button" aria-label="미리보기 닫기" onClick={onClose}><Icon name="close" /></button></header>
+        <button className="fire-preview-close" type="button" aria-label="미리보기 닫기" onClick={onClose}>
+          <Icon name="close" /><span>닫기</span>
+        </button></header>
       <div className="fire-preview-context">{context}</div>
       <div className="fire-preview-body">{children}</div>
       <footer className="fire-preview-foot"><button type="button" onClick={onClose}>닫기</button>

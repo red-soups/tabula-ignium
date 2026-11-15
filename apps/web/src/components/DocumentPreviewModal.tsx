@@ -143,7 +143,8 @@ function YearlyPanel({ bounds }: { bounds: AnalysisBounds }) {
   const max = Math.max(...rows.map((row) => row.harmonized), 1)
   return <State pending={query.isPending} error={query.isError} empty={!query.isPending && rows.length === 0}>
     <div className="document-bars">{rows.map((row) => <div key={row.year}><i style={{ height: `${Math.max(2, row.harmonized / max * 100)}%` }} /><small>{row.year}</small></div>)}</div>
-    <small className="document-chart-note">X축 연도 · Y축 보정 화재 관측값</small>
+    <small className="document-chart-note">X축 연도 · Y축 센서 보정 관측지수</small>
+    <p className="document-metric-explanation">MODIS·VIIRS 등 위성 센서의 관측 성능 차이를 보정한 비교용 지수이며, 실제 산불 발생 건수가 아닙니다.</p>
   </State>
 }
 
@@ -229,10 +230,17 @@ function HotspotsPanel({ bounds, config }: { bounds: AnalysisBounds; config: Hot
   const query = useFireHotspotsQuery(bounds, config)
   const rows = query.data ?? []
   return <State pending={query.isPending} error={query.isError} empty={!query.isPending && rows.length === 0}>
-    <div className="document-hotspot-list">{rows.map((row) => <div key={row.hotspotRank}>
-      <strong>#{row.hotspotRank}</strong><span>{row.observationCount.toLocaleString('ko-KR')}건</span>
-      <small>{row.centerLatitude.toFixed(3)}, {row.centerLongitude.toFixed(3)}</small><b>평균 {row.averageFrp.toFixed(1)} MW</b>
-    </div>)}</div>
+    <div className="document-point-map-wrap">
+      <div className="document-point-map document-hotspot-map">
+        <KoreaMap active={false} focusBounds={bounds} selection={bounds}
+          hotspots={rows} hotspotGridMeters={config.gridMeters} />
+      </div>
+      <SatelliteMapAttribution />
+      <small className="document-chart-note">{config.gridMeters / 1000}km 격자 · 진한 빨간색일수록 화재 관측이 집중된 구역</small>
+      <div className="document-hotspot-summary">{rows.slice(0, 5).map((row) => <span key={row.hotspotRank}>
+        <strong>#{row.hotspotRank}</strong> {row.observationCount.toLocaleString('ko-KR')}건
+      </span>)}</div>
+    </div>
   </State>
 }
 

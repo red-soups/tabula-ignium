@@ -13,9 +13,13 @@ export function YearlyTrendPreviewModal({ bounds, regionName, onClose }: {
   const recent = rows.slice(-15)
   const maximum = Math.max(...recent.map((row) => row.harmonized), 1)
   return <PreviewShell title="연도별 화재 추이" onClose={onClose}
-    context={<><strong>{regionName}</strong><span>보정 관측값</span><span>완료 연도</span></>}>
+    context={<><strong>{regionName}</strong><span>센서 보정 관측지수</span><span>완료 연도</span></>}>
     <QueryState pending={query.isPending} error={query.isError} empty={!query.isPending && rows.length === 0}>
-      <div className="fire-chart-axis"><span>Y축 · 보정 화재 관측값</span><span>X축 · 관측 연도</span></div>
+      <aside className="fire-data-explanation" aria-label="센서 보정 관측지수 설명">
+        <strong>센서 보정 관측지수란?</strong>
+        <p>MODIS와 VIIRS 등 시기별 위성 센서의 관측 성능 차이를 보정한 비교용 값입니다. 실제 산불 발생 건수와는 다릅니다.</p>
+      </aside>
+      <div className="fire-chart-axis"><span>Y축 · 센서 보정 관측지수</span><span>X축 · 관측 연도</span></div>
       <div className="fire-monthly-chart fire-yearly-chart">{recent.map((row) => <div className="fire-monthly-column" key={row.year}>
         <span>{row.harmonized.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}</span>
         <i style={{ height: `${Math.max(3, row.harmonized / maximum * 100)}%` }} />

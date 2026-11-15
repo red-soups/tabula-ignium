@@ -3,7 +3,9 @@ import {
   useDayNightDistributionQuery, useFireHotspotsQuery,
   useFireIntensityQuery, usePeriodComparisonQuery,
 } from '../api/fireDataQueries'
+import { Icon } from './Icon'
 import { PreviewShell, QueryState } from './FireFeaturePreviewModals'
+import { KoreaMap, SatelliteMapAttribution } from './KoreaMap'
 
 function context(regionName: string, config: PeriodAnalysisConfig) {
   return <><strong>{regionName}</strong><span>{config.fromPeriod} – {config.toPeriod}</span>
@@ -98,13 +100,25 @@ export function FireHotspotsPreviewModal({ bounds, regionName, config, onClose }
 }) {
   const query = useFireHotspotsQuery(bounds, config)
   const rows = query.data ?? []
-  return <PreviewShell title="화재 집중 구역" context={<>{context(regionName, config)}<span>{config.gridMeters / 1000}km 격자</span></>} onClose={onClose}>
+  return <PreviewShell title="화재 집중 구역" className="fire-hotspot-preview-modal"
+    context={<>{context(regionName, config)}<span>{config.gridMeters / 1000}km 격자</span></>} onClose={onClose}>
     <QueryState pending={query.isPending} error={query.isError} empty={!query.isPending && rows.length === 0}>
-      <div className="fire-hotspot-list">{rows.map((row) => <article key={row.hotspotRank}>
-        <span>#{row.hotspotRank}</span><div><strong>{row.observationCount.toLocaleString('ko-KR')}건</strong>
-          <small>중심 {row.centerLatitude.toFixed(4)}, {row.centerLongitude.toFixed(4)}</small></div>
-        <p>평균 {row.averageFrp.toFixed(1)}<small> MW</small><br />최대 {row.maximumFrp.toFixed(1)}<small> MW</small></p>
-      </article>)}</div>
+      <div className="fire-hotspot-preview-layout">
+        <div className="fire-hotspot-map-column">
+          <div className="fire-hotspot-map-stage">
+            <KoreaMap active focusBounds={bounds} selection={bounds} hotspots={rows} hotspotGridMeters={config.gridMeters} />
+            <button className="fire-hotspot-map-close" type="button" onClick={onClose} aria-label="화재 집중 구역 지도 닫기">
+              <Icon name="close" size={18} />
+            </button>
+          </div>
+          <SatelliteMapAttribution />
+          <p className="fire-hotspot-map-note">각 사각형은 {config.gridMeters / 1000}km 격자이며, 관측 건수가 많을수록 진한 빨간색으로 표시됩니다.</p>
+        </div>
+        <div className="fire-hotspot-list">{rows.slice(0, 5).map((row) => <article key={row.hotspotRank}>
+          <span>#{row.hotspotRank}</span><div><strong>{row.observationCount.toLocaleString('ko-KR')}건</strong>
+            <small>평균 {row.averageFrp.toFixed(1)} · 최대 {row.maximumFrp.toFixed(1)} MW</small></div>
+        </article>)}</div>
+      </div>
     </QueryState>
   </PreviewShell>
 }

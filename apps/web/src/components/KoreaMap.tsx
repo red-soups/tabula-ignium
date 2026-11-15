@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
-import type { AnalysisBounds, FirePoint } from '../api/fireData'
+import type { AnalysisBounds, FireHotspot, FirePoint } from '../api/fireData'
 import type { RegionGeometry, RegionMap } from '../api/regions'
 import type { HeatCell } from '../api/fireTimelapse'
 
@@ -191,7 +191,8 @@ export function SatelliteMapAttribution() {
 
 export function KoreaMap({
   active, selecting = false, selection = null, focusBounds = null,
-  mapRegions = NO_REGIONS, observations, observationPeriod, heat, onRegionClick, onAreaSelect,
+  mapRegions = NO_REGIONS, observations, observationPeriod, heat, hotspots, hotspotGridMeters,
+  onRegionClick, onAreaSelect,
 }: {
   active: boolean
   heat?: HeatCell[]
@@ -201,6 +202,8 @@ export function KoreaMap({
   mapRegions?: RegionMap[]
   observations?: FirePoint[]
   observationPeriod?: string
+  hotspots?: FireHotspot[]
+  hotspotGridMeters?: number
   onRegionClick?: (region: RegionMap) => void
   onAreaSelect?: (selection: MapSelection) => void
 }) {
@@ -241,6 +244,28 @@ export function KoreaMap({
       label: `${point.period} · ${point.sensor} · FRP ${point.frp.toFixed(2)} · ${point.confidenceLevel}`,
     }))
   }, [observationColors, observations])
+  const hotspotCells = useMemo(() => {
+    if (!hotspots?.length || !hotspotGridMeters) return []
+    const maximumCount = Math.max(1, ...hotspots.map((hotspot) => hotspot.observationCount))
+    return hotspots.map((hotspot) => {
+      const halfLatitude = hotspotGridMeters / 2 / 111_320
+      const halfLongitude = hotspotGridMeters / 2
+        / (111_320 * Math.cos(hotspot.centerLatitude * Math.PI / 180))
+      const left = projectX(hotspot.centerLongitude - halfLongitude)
+      const right = projectX(hotspot.centerLongitude + halfLongitude)
+      const top = projectY(hotspot.centerLatitude + halfLatitude)
+      const bottom = projectY(hotspot.centerLatitude - halfLatitude)
+      const intensity = hotspot.observationCount / maximumCount
+      return {
+        ...hotspot,
+        x: left,
+        y: top,
+        width: right - left,
+        height: bottom - top,
+        opacity: 0.28 + intensity * 0.62,
+      }
+    })
+  }, [hotspotGridMeters, hotspots])
   const visibleSelection = draftRect ?? (selection && rectBetween(
     { x: projectX(selection.west), y: projectY(selection.north) },
     { x: projectX(selection.east), y: projectY(selection.south) },
@@ -368,7 +393,7 @@ export function KoreaMap({
   return (
     <div className={`korea-map${active ? ' is-active' : ''}${selecting ? ' is-selecting' : ''}${heat ? ' is-night' : ''}`}>
       <svg ref={svg} className="korea-map-svg" viewBox={`${viewport.x} ${viewport.y} ${viewport.width} ${viewport.height}`}
-        role="img" aria-label={observations ? '화재 관측 위치 위성 지도' : '대한민국 위성 지도'}
+        role="img" aria-label={hotspots ? '화재 집중 구역 지도' : observations ? '화재 관측 위치 위성 지도' : '대한민국 위성 지도'}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}>
         <g className="korea-imagery" aria-hidden="true">
@@ -400,6 +425,22 @@ export function KoreaMap({
             style={{ '--flicker': `${flicker.toFixed(2)}s` } as CSSProperties} />
         })}
         {visibleSelection && <rect className="korea-analysis-area" {...visibleSelection} />}
+        {hotspotCells.map((cell) => {
+          const labelScale = shortSide > 0 ? view.size / shortSide : 1
+          const centerX = cell.x + cell.width / 2
+          const centerY = cell.y + cell.height / 2
+          return <g key={cell.hotspotRank} className="korea-hotspot-group">
+            <rect className="korea-hotspot-cell"
+              x={cell.x} y={cell.y} width={cell.width} height={cell.height}
+              style={{ fillOpacity: cell.opacity }}>
+              <title>집중 구역 #{cell.hotspotRank} · 관측 {cell.observationCount.toLocaleString('ko-KR')}건 · 평균 FRP {cell.averageFrp.toFixed(1)} MW</title>
+            </rect>
+            <text className="korea-hotspot-rank" x={centerX} y={centerY - 2 * labelScale}
+              style={{ fontSize: 11 * labelScale }}>#{cell.hotspotRank}</text>
+            <text className="korea-hotspot-count" x={centerX} y={centerY + 9 * labelScale}
+              style={{ fontSize: 8 * labelScale }}>{cell.observationCount.toLocaleString('ko-KR')}건</text>
+          </g>
+        })}
         {shortSide > 0 && observationMarkers.map((marker) => (
           <circle key={marker.id} className="korea-fire-marker" cx={marker.x} cy={marker.y}
             r={marker.radius * view.size / shortSide} style={{ fill: marker.color }}>
@@ -411,6 +452,9 @@ export function KoreaMap({
         {observationMonths.map((period, index) => <span key={period}>
           <i style={{ backgroundColor: FIRE_MONTH_COLORS[index] }} />{period.replace('-', '.')}
         </span>)}
+      </div>}
+      {hotspots && hotspots.length > 0 && <div className="korea-hotspot-legend" aria-label="화재 집중도 색상">
+        <strong>관측 집중도</strong><span>낮음</span><i /><span>높음</span>
       </div>}
       {active && <div className="korea-map-controls" aria-label="지도 확대 조작">
         <button type="button" aria-label="지도 확대" disabled={view.size <= MIN_VIEW_SIZE} onClick={() => zoom(0.75)}>+</button>
