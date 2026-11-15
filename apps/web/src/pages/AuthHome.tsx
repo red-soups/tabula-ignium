@@ -11,7 +11,7 @@ import { useFeaturesQuery } from '../api/featureQueries'
 import type {
   ConfidenceConfig, FirePointsConfig, FireSummaryConfig, MonthlyTrendConfig,
 } from '../api/fireData'
-import { useChildRegionMapsQuery, useRegionMapQuery, useRegionsQuery } from '../api/regionQueries'
+import { useChildRegionMapsQuery, useRegionsQuery } from '../api/regionQueries'
 import { EditProfileModal } from '../components/EditProfileModal'
 import { BrandLogo } from '../components/BrandLogo'
 import { GoogleLoginButton } from '../components/GoogleLoginButton'
@@ -102,8 +102,7 @@ export default function AuthHome() {
   const countriesQuery = useRegionsQuery(null)
   const korea = countriesQuery.data?.find((region) =>
     region.countryCode === 'KR' && region.level === 0)
-  const countryMapQuery = useRegionMapQuery(korea?.id ?? null)
-  const provinceRegionsQuery = useChildRegionMapsQuery(korea?.id ?? null)
+  const provinceRegionsQuery = useRegionsQuery(korea?.id ?? null, Boolean(korea))
   const featuresQuery = useFeaturesQuery(step === 'features')
   const mapLayerParentId = focusedRegion?.level === 1
     ? focusedRegion.id
@@ -406,31 +405,23 @@ export default function AuthHome() {
           })}</div>
           <div className="workspace-features-foot"><strong>{selectedFeatures.length}/{MAX_FEATURE_SELECTIONS}개 항목 선택</strong><span>최대 4개까지 선택할 수 있습니다.</span></div>
         </div> : <div className="workspace-map-page">
-          <div className="workspace-main-heading"><span>01 / REGION CANVAS</span><strong>대한민국 지도</strong></div>
+          <div className="workspace-main-heading"><strong>대한민국 위성 지도</strong><span>Sentinel-2 · 2024</span></div>
           <div className="workspace-map-stage">
-            <div className="workspace-map-grid" aria-hidden="true" />
             <KoreaMap key={`${step === 'home' ? 'home' : 'document'}-${focusedRegion?.id ?? 'all'}`} active={step === 'region'}
               selecting={selectingArea} selection={selection}
-              countryRegion={countryMapQuery.data ?? null}
-              provinceRegions={provinceRegionsQuery.data ?? []}
               focusRegion={focusedRegion} mapRegions={mapRegionsQuery.data ?? []}
               onRegionClick={clickAdministrativeRegion}
               onAreaSelect={(area) => { setSelection(area); setSelectingArea(false) }} />
-            <div className="workspace-map-corner workspace-map-corner-top">37° N <i /> 127° E</div>
-            <div className="workspace-map-attribution">
-              <span>행정구역 경계:</span>
-              <a href="https://www.vworld.kr" target="_blank" rel="noopener noreferrer">국가공간정보포털 V-World</a>
-              <span>· WGS 84</span>
-            </div>
-            <div className="workspace-map-corner workspace-map-corner-bottom">KOREA / WGS 84</div>
           </div>
-          <div className="workspace-map-footer"><span><i /> 대한민국 전역</span>
+          <div className="workspace-map-attribution">
+            <a href="https://cloudless.eox.at" target="_blank" rel="noopener noreferrer">EOxCloudless</a>
+            {' by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024) · '}
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
+          </div>
+          <div className="workspace-map-footer"><span><i /> {focusedRegion?.name ?? '대한민국 전역'}</span>
             <p>{step === 'home' ? '문서 생성을 누르면 지도를 확대하고 지역을 선택할 수 있습니다.'
-              : mapRegionsQuery.isPending ? '행정구역 경계를 불러오는 중입니다.'
-                  : focusedRegion?.level === 1 ? `${focusedRegion.name} 안의 시·군·구를 클릭하세요.`
-                    : focusedRegion?.level === 2 ? `${focusedRegion.name}으로 이동했습니다. 분석 범위를 그려 주세요.`
-                      : selectingArea ? '지도 위를 드래그해 분석할 범위를 지정하세요.'
-                        : '행정구역을 검색하거나 범위 그리기를 시작하세요.'}</p>
+              : selectingArea ? '지도 위를 드래그해 분석할 범위를 지정하세요.'
+                : '행정구역을 검색하거나 범위 그리기를 시작하세요.'}</p>
             <span>{step === 'home' ? '지도 잠김' : selectingArea ? '범위 선택 중' : '지도 탐색 가능'}</span>
           </div>
         </div>}

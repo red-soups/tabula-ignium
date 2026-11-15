@@ -2,15 +2,13 @@
 
 ## 지도 배경
 
-- 외부 위성 영상이나 지도 타일을 사용하지 않는다.
-- 밝은 단색 배경 위에 DB에서 조회한 행정구역 경계를 SVG로 표시한다.
+- [FireScope의 위성 지도](https://github.com/red-soups/firescope/blob/a5f7896289b20989bf58b7fb05d52da5b03231d6/src/globe/EarthGlobe.ts#L89-L96)와 동일한 EOxCloudless Sentinel-2 2024 WGS84 타일을 사용한다.
+- 대한민국과 주변 해안이 보이는 범위에서 이동할 수 있다. 전국 보기에서 최대 256배 확대할 수 있으며, 현재 화면에 필요한 타일을 5~13단계에서 불러온다.
+- 지도는 확대 중에도 바로 움직인다. 움직임이 잠시 멈추면 현재 화면의 상세 타일을 요청하며, 이미지가 도착할 때까지 이미 받은 타일 중 가장 가까운 해상도의 영상을 표시한다.
+- 5단계 영상은 기본 배경으로 사용한다. 국경·지명, 구름, 야간 조명 레이어는 표시하지 않는다.
+- 지도 하단에 EOX와 Copernicus Sentinel 2024 데이터 출처, 비상업용 CC BY-NC-SA 4.0을 표시한다. [EOX 이용 조건](https://cloudless.eox.at/documentation/faq)
 
-## 행정 경계
+## 지역 찾기와 분석 범위
 
-- 정적 지도 JSON 파일은 사용하지 않는다.
-- `regions.boundary`에 저장된 PostGIS 경계를 `/api/regions/{regionId}/map`과
-  `/api/regions/{parentId}/children/map`으로 조회한다.
-- 0단계는 대한민국 외곽선, 1단계는 시·도, 2단계는 시·군·구 표시와 클릭에 사용한다.
-- API는 화면 전송량을 줄이기 위해 `ST_SimplifyPreserveTopology`로 경계를 단순화하고
-  WGS84 GeoJSON으로 반환한다.
-- 선택 결과는 `regionId`, 이름과 경계 범위를 프론트엔드 상태에 보관한다.
+- 행정구역 GeoJSON은 지도에서 클릭한 위치를 찾고 검색한 행정구역으로 이동하는 데 사용한다. 경계선과 이름은 지도 위에 그리지 않는다.
+- 사용자가 직접 그린 분석 사각형은 지도에 표시한다. 분석 API에는 그 사각형의 WGS84 좌표를 전달한다.
