@@ -18,7 +18,7 @@ dialog.signup-modal::backdrop { background: var(--overlay); }
 .signup-modal-head h2 { margin: 5px 0 3px; color: var(--text); font-size: 24px; letter-spacing: -.05em; }
 .signup-modal-head p { margin: 0; color: var(--muted); font-size: 12px; }
 .signup-form { padding: 20px 24px 23px; display: grid; gap: 20px; }
-.signup-basic-fields { display: grid; grid-template-columns: 1fr 1.35fr; gap: 10px; }
+.signup-basic-fields { display: grid; grid-template-columns: 1fr 1.35fr; align-items: start; gap: 10px; }
 .signup-form label { min-width: 0; display: grid; gap: 6px; color: var(--brand-charcoal); font-size: 11px; font-weight: 650; }
 .signup-form input, .signup-form select { width: 100%; min-width: 0; height: 40px; padding: 8px 10px; border: 1px solid #b8c2b9; border-radius: 7px; outline: 0; background: #fff; color: var(--brand-charcoal); }
 .signup-form input:focus, .signup-form select:focus { border-color: var(--brand-green); box-shadow: 0 0 0 3px rgb(3 46 30 / 10%); }
