@@ -13,6 +13,5 @@
   "main": "./worker.js",
   "vars": {
     "API_ORIGIN": "https://integral-poll-teach-contractor.trycloudflare.com"
-  },
-  "keep_vars": true
+  }
 }
